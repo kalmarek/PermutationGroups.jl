@@ -1,3 +1,4 @@
+# Documentation: http://docs.travis-ci.com/user/languages/julia/
 language: julia
 
 os:
@@ -6,11 +7,13 @@ os:
 
 julia:
   - 1.0
+  - 1.1
   - nightly
 
 # # Uncomment the following lines to allow failures on nightly julia
 # # (tests will run but not make your overall status red)
-# matrix:
+matrix:
+  fast_finish: true
   allow_failures:
   - julia: nightly
 
@@ -21,6 +24,7 @@ notifications:
 #  - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
 #  - julia -e 'Pkg.clone(pwd()); Pkg.build("Example"); Pkg.test("Example"; coverage=true)';
 
-after_success:
-  # - julia -e 'if VERSION >= v"0.7.0-" using Pkg end; cd(Pkg.dir("Example")); Pkg.add("Coverage"); using Coverage; Coveralls.submit(Coveralls.process_folder())';
-  - julia -e 'using Pkg; Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder())';
+codecov: true
+
+#after_success:
+   #- julia -e 'using Pkg; Pkg.build(); Pkg.test(coverage=true);' 
