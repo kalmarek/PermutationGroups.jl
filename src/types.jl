@@ -73,7 +73,17 @@ mutable struct PrmGroup{I<:Integer, SC<:StabilizerChain} <: AbstractAlgebra.Grou
     stabchain::SC
 
     function PrmGroup(gens::Vector{perm{I}}) where I<:Integer
-        return new{I, StabilizerChain{I, perm{I}, Orbit{I,I}}}(gens)
+        maxmoved = maximum(lastmoved.(gens))
+        new_gens = similar(gens)
+        for i in eachindex(gens)
+            if length(gens[i].d) == maxmoved
+                new_gens[i] = deepcopy(gens[i])
+            else
+                new_gens[i] = Generic.emb!(perm(collect(1:maxmoved)), gens[i], 1:lastmoved(gens[i]))
+            end
+        end
+
+        return new{I, StabilizerChain{I, perm{I}, Orbit{I,I}}}(new_gens)
     end
 
     function PrmGroup(gens::Vector{perm{I}}, sc::SC) where {I<:Integer, SC<:StabilizerChain}
