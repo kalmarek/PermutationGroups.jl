@@ -4,7 +4,7 @@ using AbstractAlgebra
 using Markdown
 
 export AbstractOrbit, Orbit, Transversal, Schreier, StabilizerChain, PrmGroup
-export firstmoved, fixes, fixedpoints
+export firstmoved, fixes, fixedpoints, lastmoved
 export base, getinv, representative, schreier_sims, sgs, sift
 
 include("types.jl")

@@ -19,9 +19,15 @@ end
 
 fixedpoints(p::perm, range=1:length(p.d)) = [i for i in range if fixes(p, i)]
 
-function firstmoved(p::perm{I}, op=^) where I
-    k = findfirst(i -> i != p.d[i], eachindex(p.d))
-    k == nothing && return zero(I)
-    # isnothing(k) && return zero(I)
-    return I(k)
+for (fname, findname) in [(:firstmoved, :findfirst), (:lastmoved, :findlast)]
+    @eval begin
+        function $fname(p::perm{I}, op=^) where I
+            k = $findname(i -> i != p.d[i], eachindex(p.d))
+            k == nothing && return zero(I)
+            # isnothing(k) && return zero(I)
+            return I(k)
+        end
+    end
+end
+
 end
