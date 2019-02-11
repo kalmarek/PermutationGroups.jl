@@ -76,7 +76,7 @@ mutable struct PrmGroup{I<:Integer, SC<:StabilizerChain} <: AbstractAlgebra.Grou
         maxmoved = maximum(lastmoved.(gens))
         new_gens = similar(gens)
         for i in eachindex(gens)
-            if length(gens[i].d) == maxmoved
+            if length(gens[i].d) >= maxmoved
                 new_gens[i] = deepcopy(gens[i])
             else
                 new_gens[i] = Generic.emb!(perm(collect(1:maxmoved)), gens[i], 1:lastmoved(gens[i]))
