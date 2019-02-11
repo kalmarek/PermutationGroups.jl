@@ -30,4 +30,13 @@ for (fname, findname) in [(:firstmoved, :findfirst), (:lastmoved, :findlast)]
     end
 end
 
+function gensstring(gens::Vector{<:perm}; width=96)
+    str = ""
+    ellipsis = " … "
+
+    str = join(gens, ", ")
+    if length(str) > width
+        str = str[1:width - length(ellipsis)] * ellipsis
+    end
+    return str
 end

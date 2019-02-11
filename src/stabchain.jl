@@ -35,11 +35,11 @@ function initial_bsgs(gens::Vector{perm{I}}, B::Vector{I}=I[]) where I<:Integer
 end
 
 function Base.show(io::IO, sc::StabilizerChain)
-    println(io, "StabilizerChain with base $(base(sc))")
+    println(io, "StabilizerChain with base $(base(sc)) of size $(order(sc))")
     for i in 1:length(sc)
         b, S, Δ = sc[i]
-        println(io, "$b\t$S")
         println(io, "Orbit:\t", collect(Δ))
+        println(io, "Stab:\t⟨$(gensstring(S))⟩")
     end
 end
 

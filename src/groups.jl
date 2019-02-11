@@ -1,7 +1,7 @@
-function Base.show(io::IO, PG::PrmGroup)
-    init = isdefined(PG, :stabchain) ? " with stabiliser chain of length $(length(PG.stabchain))" : ""
-    println(io, "Permutation group$init")
-    println(io, "⟨"*join(gens(G), ", ")*"⟩")
+function Base.show(io::IO, G::PrmGroup)
+    init = isdefined(G, :stabchain) ? " with stabiliser chain of length $(length(G.stabchain))" : ""
+    println(io, "Permutation group on $(length(gens(G))) generators$init")
+    println(io, "⟨"* gensstring(gens(G), width=240)*"⟩")
 end
 
 @doc doc"""
