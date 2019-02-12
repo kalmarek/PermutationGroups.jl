@@ -1,5 +1,5 @@
 function Base.show(io::IO, G::PrmGroup)
-    init = isdefined(G, :stabchain) ? " with stabiliser chain of length $(length(G.stabchain))" : ""
+    init = isdefined(G, :stabchain) ? " of order $(order(StabilizerChain(G)))" : ""
     println(io, "Permutation group on $(length(gens(G))) generators$init")
     println(io, "⟨"* gensstring(gens(G), width=240)*"⟩")
 end
@@ -12,9 +12,10 @@ AbstractAlgebra.gens(G::PrmGroup) = G.gens
 
 @doc doc"""
     StabilizerChain(G::PrmGroup)
-> Construct the stabilizer chain for group `G`. If constructed for the first time
-> the chain will be completed by the full deterministic Schreier-Sims algorithm.
-> The `StabilizerChain` struct will be stored in `G` for future uses.
+> Construct the stabilizer chain for group `G`. The first call on a particular
+> group `G` will construct the chain from `gens(G)` and complete by the
+> deterministic Schreier-Sims algorithm. The subsequent calls just return the
+> cached copy.
 """
 function StabilizerChain(G::PrmGroup)
     if !(isdefined(G, :stabchain))

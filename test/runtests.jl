@@ -363,11 +363,21 @@ end
     end
 
     G = PrmGroup([perm"(1,2,3,4)", perm"(1,2)"])
+
+    m = match(r"order (\d+)", string(G))
+    @test m === nothing
+
     @test perm"(1,3)" in G
     @test perm"(1,5)" ∉ G
+
+    m = match(r"order (\d+)", string(G))
+    @test parse(Int, m.captures[1]) == 24
+
     A = PrmGroup([perm"(1,2,3)", perm"(2,3,4)"])
-    @test order(A) == factorial(4)÷2
-    A.stabchain
+    @test order(A) == 12
+    m = match(r"order (\d+)", string(A))
+    @test parse(Int, m.captures[1]) == 12
+
     @test perm"(1,2)" ∉ A
     @test perm"(1,3,4)" in A
 end
