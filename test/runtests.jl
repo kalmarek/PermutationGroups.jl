@@ -335,6 +335,12 @@ end
     @test d == 3
 
     @test order(sc) == 20
+
+    m = match(r"size (\d+)", string(sc))
+    @test parse(Int, m.captures[1]) == 20
+
+    m = match(r"Orbit:\s+(\[.*\])", string(sc))
+    @test Meta.parse(m.captures[1]) |> eval == collect(sc.transversals[1])
 end
 
 @testset "PrmGroups" begin
