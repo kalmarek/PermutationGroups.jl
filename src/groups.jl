@@ -51,6 +51,10 @@ AbstractAlgebra.order(G::PrmGroup) = order(StabilizerChain(G))
 """
 function Base.in(g, G::PrmGroup)
     sc = StabilizerChain(G)
+    n = degree(first(gens(G)))
+    if degree(g) < n
+        g = Generic.emb(g, n)
+    end
     h, depth = sift(g, sc)
     depth ≤ length(sc) && return false
     return ifelse(isone(h), true, false)

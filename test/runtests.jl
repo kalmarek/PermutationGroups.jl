@@ -83,6 +83,12 @@ end
 
     @test isone(g) == false
     @test isone(perm([1,2,3]))
+
+    @test degree(perm"(1,3)") == 3
+    @test degree(perm"(1,3)(5)") == 5
+
+    @test Generic.emb(perm"(1,3)", 5) ≠ perm"(1,3)"
+    @test Generic.emb(perm"(1,3)", 5) == perm"(1,3)(5)"
 end
 
 import PermutationGroups: Orbit1, Orbit2, Orbit3, Orbit4, Orbit5
@@ -355,6 +361,15 @@ end
         G = PrmGroup(S)
         @test order(G) == factorial(N)
     end
+
+    G = PrmGroup([perm"(1,2,3,4)", perm"(1,2)"])
+    @test perm"(1,3)" in G
+    @test perm"(1,5)" ∉ G
+    A = PrmGroup([perm"(1,2,3)", perm"(2,3,4)"])
+    @test order(A) == factorial(4)÷2
+    A.stabchain
+    @test perm"(1,2)" ∉ A
+    @test perm"(1,3,4)" in A
 end
 
 @testset "GAP Docs examples" begin
