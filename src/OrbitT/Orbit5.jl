@@ -30,15 +30,15 @@ end
 @inline Base.getindex(orb::Orbit5, o) = orb.elts[o][1]
 
 @inline Base.iterate(orb::Orbit5) = orb.pt, orb.pt
-@inline function Base.iterate(orb::Orbit5{T, S}, s) where {T,S} # s is the previous elt
-    x = orb.elts[s][2]
-    if s == x
-        return nothing
-    end
-    return (x, x)
-end
+
+@inline islast(orb::Orbit5, s) = s == orb.last
+@inline next(orb::Orbit5, s) = (last(orb.elts[s]), last(orb.elts[s]))
+
+# s is the previous elt
+@inline Base.iterate(orb::Orbit5, s) = (islast(orb, s) ? nothing : next(orb, s))
 
 @inline Base.length(orb::Orbit5) = length(orb.elts)
+
 @inline function Base.:(==)(o1::Orbit5, o2::Orbit5)
     o1.pt == o2.pt && o1.last == o2.last || return false
     return o1.elts == o2.elts

@@ -18,7 +18,7 @@ Orbit4(pt::T) where {T} = Orbit4(pt, nothing)
 
 @inline function Base.push!(orb::Orbit4{T,S}, tup::Tuple{T,S}) where {T,S}
     new, val = tup
-    orb.elts[orb.last] = (orb.elts[orb.last][1], new)
+    orb.elts[orb.last] = (first(orb.elts[orb.last]), new)
     orb.last = new
     push!(orb.elts, new => (val, nothing))
     return orb
@@ -26,20 +26,17 @@ end
 
 @inline Base.push!(orb::Orbit4{T,Nothing}, n::T) where T = push!(orb, (n,nothing))
 
-# o is a point in orbit, return (value, nextptr)
-@inline Base.getindex(orb::Orbit4, o) = orb.elts[o][1]
+@inline Base.getindex(orb::Orbit4, o) = first(orb.elts[o])
 
-@inline Base.iterate(orb::Orbit4) = orb.pt, orb.pt
-@inline function Base.iterate(orb::Orbit4{T, S}, s) where {T,S} # s is the previous elt
-    if s == orb.last
-        return nothing
-    end
-    x = orb.elts[s][2]::T
-    return (x, x)
+@inline islast(orb::Orbit4, s) = s == orb.last
+@inline function next(orb::Orbit4{T}, s) where {T}
+    return (last(orb.elts[s]), last(orb.elts[s]))::Tuple{T,T}
 end
 
-@inline Base.iterate(orb::Orbit4, ::Nothing) = nothing
+@inline Base.iterate(orb::Orbit4) = orb.pt, orb.pt
+@inline Base.iterate(orb::Orbit4, s) = (islast(orb, s) ? nothing : next(orb, s))
 @inline Base.length(orb::Orbit4) = length(orb.elts)
+
 @inline function Base.:(==)(o1::Orbit4, o2::Orbit4)
     o1.pt == o2.pt && o1.last == o2.last || return false
     return o1.elts == o2.elts
