@@ -17,6 +17,8 @@
     return pw1.gens_ptrs == pw2.gens_ptrs
 end
 
+Base.hash(pw::Word, h::UInt) = hash(Word, hash(pw.gens_ptrs, h))
+
 @doc doc"""
     Word(orb, gens_inv, pt, [^])
 > return a `Word` consising of pointers to inverts of generators `gens_inv`.
