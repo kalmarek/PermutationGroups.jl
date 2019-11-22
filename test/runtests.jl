@@ -56,9 +56,9 @@ end
     @test fixedpoints(g) == [1,4,6,7]
 
     @test firstmoved(g) == 2
-    @test firstmoved(perm(5)) == 0
+    @test firstmoved(Perm(5)) == 0
     @test fixedpoints(perm"(1,2,3,4,5)") isa Vector{Int}
-    @test fixedpoints(perm(Int8[1,2,3,4,5])) isa Vector{Int}
+    @test fixedpoints(Perm(Int8[1,2,3,4,5])) isa Vector{Int}
     @test fixedpoints(perm"(1,3,5)") == [2,4]
 
     g = perm(Int8[1,3,4,2]) # (1)(2,3,4)
@@ -82,7 +82,7 @@ end
     @test (1,2,3).^Ref(g) == (1,3,4)
 
     @test isone(g) == false
-    @test isone(perm([1,2,3]))
+    @test isone(Perm([1,2,3]))
 
     @test degree(perm"(1,3)") == 3
     @test degree(perm"(1,3)(5)") == 5
@@ -272,7 +272,7 @@ end
     @test length(sc) == 1
     pt, S, Δ = sc[1]
     @test pt == 1
-    @test S isa Vector{<:perm}
+    @test S isa Vector{<:Perm}
     @test S == [a,b]
     @test Δ isa Schreier
     @test collect(Δ) == [1,2,4,5,3]
@@ -299,7 +299,7 @@ end
     @test length(sc.sgs) == 2
 
     # and allocates generating set and the transversal
-    @test sc.sgs[2] == perm{Int}[] # we've just extended basis here!
+    @test sc.sgs[2] == Perm{Int}[] # we've just extended basis here!
     @test length(sc.transversals) == 2 # the sc.transversals[2] is right now a garbage
 
     # add c to generators at depth new_depth=2
@@ -359,11 +359,11 @@ end
     @test length(base(G)) == 3
     @test order(G) == factorial(4)
 
-    SN(n) = [perm(circshift(collect(1:n), -1)), perm([[2,1];3:n])]
+    SN(n) = [Perm(circshift(collect(1:n), -1)), Perm([[2,1];3:n])]
 
     for N in 6:20
         S = SN(N)
-        S = [S; [perm(randperm(N)) for _ in 1:3]]
+        S = [S; [Perm(randperm(N)) for _ in 1:3]]
         G = PrmGroup(S)
         @test order(G) == factorial(N)
     end
@@ -390,7 +390,7 @@ end
 
 @testset "GAP Docs examples" begin
 
-    cube4 = perm.([
+    cube4 = Perm.([
        [1,9,3,11,5,13,7,15,2,10,4,12,6,14,8,16],
        [1,2,3,4,9,10,11,12,5,6,7,8,13,14,15,16],
        [1,2,5,6,3,4,7,8,9,10,13,14,11,12,15,16],
