@@ -161,3 +161,6 @@ function Base.iterate(K::PrmGroup, state::Union{Nothing, AbstractArray{<:Integer
 	end
 end
 
+function Base.length(K::PrmGroup) 
+       return prod(length(tt.orb.elts) for tt in PermutationGroups.transversals(K))
+end
