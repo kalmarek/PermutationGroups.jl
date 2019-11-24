@@ -21,9 +21,9 @@ Base.hash(pw::Word, h::UInt) = hash(Word, hash(pw.gens_ptrs, h))
 
 @doc doc"""
     Word(orb, gens_inv, pt, [^])
-> return a `Word` consising of pointers to inverts of generators `gens_inv`.
-> The group element element `r` such that `first(orb)^r = pt` can be
-> reconstructed via
+> return a `Word` `w` consising of pointers to inverses of generators `gens_inv`.
+> The group element `r` such that `first(orb)^r = pt` can be
+> reconstructed via `prod(gens_inv[i] for i in reverse(w))`
 > e.g. if
     g = gens[1]*gens[3]*gens[2]
     δ = first(orb)^g

@@ -60,3 +60,6 @@ function Base.in(g, G::PrmGroup)
     depth ≤ length(sc) && return false
     return ifelse(isone(h), true, false)
 end
+
+Base.one(K::PrmGroup{I}) where I = (g=first(gens(K)); perm(collect(1:degree(g))))
+	

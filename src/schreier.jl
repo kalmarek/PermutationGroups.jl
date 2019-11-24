@@ -15,6 +15,7 @@ end
 @inline Base.length(schr::Schreier) = length(schr.orb)
 @inline Base.eltype(::Schreier{GEl,I}) where {GEl, I} = I
 @inline Base.first(schr::Schreier) = first(schr.orb)
+@inline islast(schr::Schreier, pt) = islast(schr.orb,pt)
 
 function Base.:(==)(s1::Schreier,s2::Schreier)
     s1.gens_inv == s2.gens_inv || return false
@@ -22,6 +23,8 @@ function Base.:(==)(s1::Schreier,s2::Schreier)
     s1.op == s2.op || return  false
     return true
 end
+
+Base.hash(schr::S, h::UInt) where S<:Schreier = hash(S, hash(schr.gens_inv, hash(schr.orb, hash(schr.op, h))))
 
 @doc doc"""
     Schreier(gens, pt[, op=^])
