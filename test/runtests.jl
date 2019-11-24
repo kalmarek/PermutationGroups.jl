@@ -509,3 +509,12 @@ end
         # GAP: 17 ms vs 50 ms here
     end
 end
+
+@testset "Iterate over PrmGroup" begin
+	G = PermGroup(6);
+	K = PrmGroup(rand(G,2));
+	elements = [g for g in K]
+	@test unique!(elements) == elements
+	@test length(K)==length(elements)
+end
+
