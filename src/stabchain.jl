@@ -123,8 +123,6 @@ AbstractAlgebra.order(sc::StabilizerChain) = mapreduce(length, *, sc.transversal
 
 transversals(sc::StabilizerChain) = sc.transversals 
 transversals(K::PrmGroup) = transversals(StabilizerChain(K))
-elements(orb::Orbit) = orb.elts
-elements(orb::O) where O<:AbstractOrbit = nothing
 
 function next!(state::AbstractArray{<:Integer}, transversals)
 	goon = true
@@ -132,7 +130,7 @@ function next!(state::AbstractArray{<:Integer}, transversals)
 	while goon && position > 1
 		position -= 1
 		t = transversals[position]
-		orbit = elements( t.orb )
+		orbit = collect( t.orb )
 		if state[position] == orbit[end]
 			state[position] = orbit[1]
 		else
