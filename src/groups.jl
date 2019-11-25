@@ -61,5 +61,8 @@ function Base.in(g, G::PrmGroup)
     return ifelse(isone(h), true, false)
 end
 
-Base.one(K::PrmGroup{I}) where I = (g=first(gens(K)); perm(collect(1:degree(g))))
-	
+transversals(K::PrmGroup) = transversals(StabilizerChain(K))
+Base.length(K) = order(K::PrmGroup)
+Generic.degree(G::PrmGroup{I}) where I = I(degree(first(gens(G))))
+Base.one(K::PrmGroup{I}) where I = Perm(degree(K))
+

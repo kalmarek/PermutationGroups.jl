@@ -511,10 +511,17 @@ end
 end
 
 @testset "Iterate over PrmGroup" begin
-	G = PermGroup(6);
-	K = PrmGroup(rand(G,2));
-	elements = [g for g in K]
-	@test unique!(elements) == elements
-	@test length(K)==length(elements)
+	K1 = PrmGroup([perm"(5,6)", perm"(1,2,3,4,5,6)"]) # Symmetric group on 6 symbols
+	elements = [g for g in K1]
+	uniq_elements = unique(elements)
+	@test uniq_elements == elements
+	@test order(K1) == length(uniq_elements) == 720
+
+	K2 = PrmGroup([perm"(3,4,5)", perm"(1,2,3,4,5)"]) # Alternating group on 5 symbols
+	elements = [g for g in K2]	
+	uniq_elements = unique(elements) 
+	@test uniq_elements == elements
+	@test order(K2) == length(uniq_elements) == 60
+
 end
 

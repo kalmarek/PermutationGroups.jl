@@ -2,7 +2,7 @@
 # StabilizerChain and Scheier-Sims algorithm
 ###############################################################################
 
-function sift(g::Perm, base::Vector{<:Integer}, transversals::Vector{Orb}) where Orb<:AbstractOrbit
+function sift(g::Perm, base::Vector{<:Integer}, transversals::AbstractVector{Orb}) where Orb<:AbstractOrbit
     h = g
 
     for (i, Δ) in enumerate(transversals)
@@ -15,12 +15,12 @@ function sift(g::Perm, base::Vector{<:Integer}, transversals::Vector{Orb}) where
 end
 
 @doc doc"""
-    initial_bsgs(gens::Vector{<:perm}[, B::Vector{<:Integer}=I[])
+    initial_bsgs(gens::AbstractVector{<:perm}[, B::AbstractVector{<:Integer}=I[])
 > Compute the initial base and strong generating set from generators `gens` and initial base `B`.
 > It will remove duplicates and may reorder points in `B`. If the initial base
 > is not provided the first point moved by each of `gens` will be taken.
 """
-function initial_bsgs(gens::AbstractVector{Perm{I}}, B::Vector{I}=I[]) where I<:Integer
+function initial_bsgs(gens::AbstractVector{Perm{I}}, B::AbstractVector{I}=I[]) where I<:Integer
     B = filter(b -> !all(fixes.(gens, b)), B)
 
     if isempty(B)
@@ -49,7 +49,7 @@ end
 > initial basis `B`. The returned `StabilizerChain` is **not** completed.
 > Use `schreier_sims!` for completion.
 """
-function StabilizerChain(gens::AbstractVector{Perm{I}}, B::Vector{I}=I[]) where I
+function StabilizerChain(gens::AbstractVector{Perm{I}}, B::AbstractVector{I}=I[]) where I
     B, S = initial_bsgs(gens, B)
     T = [Schreier(gs, pt) for (gs, pt) in zip(S, B)]
     return StabilizerChain(B, S, T)
@@ -122,20 +122,19 @@ end
 AbstractAlgebra.order(sc::StabilizerChain) = mapreduce(length, *, sc.transversals, init=big(1))
 
 transversals(sc::StabilizerChain) = sc.transversals 
-transversals(K::PrmGroup) = transversals(StabilizerChain(K))
 
-function next!(state::AbstractArray{<:Integer}, transversals)
+function next!(state::AbstractVector{<:Integer}, transversals)
 	goon = true
 	position = length(state) + 1
 	while goon && position > 1
 		position -= 1
 		t = transversals[position]
-		orbit = collect( t.orb )
-		if state[position] == orbit[end]
-			state[position] = orbit[1]
+		orbit_points = collect( t.orb )
+		if state[position] == last(orbit_points)
+			state[position] = first(orbit_points)
 		else
-			idx = findfirst(isequal(state[position]), orbit)
-			state[position] = orbit[idx + 1]
+			idx = findfirst(isequal(state[position]), orbit_points)
+			state[position] = orbit_points[idx + 1]
 			goon = false
 		end
 	end
@@ -146,19 +145,15 @@ function next!(state::AbstractArray{<:Integer}, transversals)
 	end
 end
 
-function state2element(state::AbstractArray{<:Integer}, transversals)
+function state2element(state::AbstractVector{<:Integer}, transversals)
 	return prod(inv(transversals[i][state[i]]) for i in 1:length(state))
 end
 
-function Base.iterate(K::PrmGroup, state::Union{Nothing, AbstractArray{<:Integer}} = base(K) )
+function Base.iterate(K::PrmGroup, state::Union{Nothing, AbstractVector{<:Integer}} = base(K) )
 	if state == nothing
 		return nothing
 	else
 		t = transversals(K)
 		return state2element(state, t), next!(state,t)
 	end
-end
-
-function Base.length(K::PrmGroup) 
-       return prod(length(tt.orb.elts) for tt in PermutationGroups.transversals(K))
 end
