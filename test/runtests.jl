@@ -518,9 +518,9 @@ end
     @test order(K1) == length(uniq_elements) == 720
     @test uniq_elements == elements
 
-	K2 = PrmGroup([perm"(3,4,5)", perm"(1,2,3,4,5)"]) # Alternating group on 5 symbols
+	K2 = PrmGroup(Perm{Int16}[perm"(3,4,5)", perm"(1,2,3,4,5)"]) # Alternating group on 5 symbols
 	elements = [g for g in K2]
-    @test elements isa Vector{Perm{Int64}}
+    @test elements isa Vector{Perm{Int16}}
 	uniq_elements = unique(elements)
     @test order(K2) == length(uniq_elements) == 60
 	@test uniq_elements == elements

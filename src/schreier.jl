@@ -45,7 +45,7 @@ function Schreier(OrbT::Type{<:AbstractOrbit}, gens::Vector{<:GroupElem}, pt, op
         for (idx, g) in enumerate(gens)
             γ = op(o, g)
             if γ ∉ schr
-                push!(schr,(γ, idx))
+                push!(schr,(γ, oftype(pt,idx)))
             end
         end
     end

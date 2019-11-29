@@ -41,7 +41,7 @@ function gensstring(gens::AbstractVector{<:Perm}; width=96)
     return str
 end
 
-AbstractAlgebra.degree(p::Perm) = length(p.d)
+AbstractAlgebra.degree(p::Perm{I}) where I = I(length(p.d))
 function Generic.emb(p::Generic.Perm{I}, n) where I
     return Generic.emb!(Perm(I(n)), p, 1:degree(p))
 end

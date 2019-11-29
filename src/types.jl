@@ -75,7 +75,7 @@ mutable struct PrmGroup{I<:Integer, SC<:StabilizerChain} <: AbstractAlgebra.Grou
     function PrmGroup(gens::Vector{Generic.Perm{I}}) where I<:Integer
         maxdegree = maximum(degree.(gens))
         new_gens = Generic.emb.(gens, maxdegree)
-        sc = Schreier([first(new_gens)], 1, ^)
+        sc = Schreier([first(new_gens)], I(1), ^)
         return new{I,
             StabilizerChain{I, Perm{I}, Orbit{I,I}, typeof(^), typeof(sc)}}(
             new_gens)

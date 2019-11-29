@@ -2,16 +2,16 @@
 # StabilizerChain and Scheier-Sims algorithm
 ###############################################################################
 
-function sift(g::Perm, base::Vector{<:Integer}, transversals::AbstractVector{Orb}) where Orb<:AbstractOrbit
+function sift(g::Perm{I}, base::Vector{<:Integer}, transversals::AbstractVector{Orb}) where {I<:Integer, Orb<:AbstractOrbit}
     h = g
 
     for (i, Δ) in enumerate(transversals)
         β = base[i]^h
-        β ∈ Δ || return h, i
+        β ∈ Δ || return h, I(i)
         # uᵦ = Δ[β]
         h = h*getinv(Δ, β) # assuming: Δ=orbits[i] is based on base[i]
     end
-    return h, length(transversals)+1
+    return h, I(length(transversals)+1)
 end
 
 @doc doc"""
@@ -51,7 +51,7 @@ end
 """
 function StabilizerChain(gens::AbstractVector{Perm{I}}, B::AbstractVector{I}=I[]) where I
     B, S = initial_bsgs(gens, B)
-    T = [Schreier(gs, pt) for (gs, pt) in zip(S, B)]
+    T = [Schreier(gs, pt) for (pt, gs) in zip(B, S)]
     return StabilizerChain(B, S, T)
 end
 
