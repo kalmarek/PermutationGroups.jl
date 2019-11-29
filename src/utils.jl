@@ -45,3 +45,12 @@ AbstractAlgebra.degree(p::Perm) = length(p.d)
 function Generic.emb(p::Generic.Perm{I}, n) where I
     return Generic.emb!(Perm(I(n)), p, 1:degree(p))
 end
+
+# TODO: move to AbstractAlgebra
+function fastmul!(out::Perm, g::Perm, h::Perm)
+   out = (out === h ? similar(out) : out)
+   @inbounds for i in eachindex(out.d)
+      out[i] = h[g[i]]
+   end
+   return out
+end
