@@ -127,33 +127,20 @@ AbstractAlgebra.order(sc::StabilizerChain) = mapreduce(length, *, sc.transversal
 """
 transversals(sc::StabilizerChain) = sc.transversals
 
-function next!(state::AbstractVector{<:Integer}, transversals)
-	goon = true
-	position = length(state) + 1
-	while goon && position > 1
-		position -= 1
+function next!(baseimages::AbstractVector{<:Integer}, transversals)
+	for position in length(baseimages):-1:1
 		t = transversals[position]
-		orbit_points = collect( t.orb )
-		if state[position] == last(orbit_points)
-			state[position] = first(orbit_points)
+		if islast(t, baseimages[position])
+			@debug "last point in orbit: spilling at" position collect(t), baseimages[position]
+			baseimages[position] = first(t)
 		else
-			idx = findfirst(isequal(state[position]), orbit_points)
-			state[position] = orbit_points[idx + 1]
-			goon = false
+			@debug "next point in orbit: incrementing at" position collect(t), baseimages[position]
+			# TODO: replace by next(t, position)
+			orbit_points = collect(t)
+			idx = findfirst(isequal(baseimages[position]), orbit_points)
+			baseimages[position] = orbit_points[idx + 1]
+			break
 		end
 	end
-	if goon
-		return nothing
-	else
-		return state
-	end
-end
-
-function Base.iterate(K::PrmGroup, state::Union{Nothing, AbstractVector{<:Integer}} = base(K) )
-	if state == nothing
-		return nothing
-	else
-		t = transversals(K)
-		return state2element(state, t), next!(state,t)
-	end
+	return baseimages
 end
