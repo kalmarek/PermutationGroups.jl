@@ -54,3 +54,5 @@ function fastmul!(out::Perm, g::Perm, h::Perm)
    end
    return out
 end
+
+Base.one(G::Generic.PermGroup) = G()

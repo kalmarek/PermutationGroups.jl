@@ -63,6 +63,16 @@ end
 
 transversals(K::PrmGroup) = transversals(StabilizerChain(K))
 Base.length(K) = order(K::PrmGroup)
+@doc doc"""
+	degree(G::PrmGroup{I})::I where I
+> Return the degree of `G`, i.e. the length of the storage of permutations in `G`.
+> !!! This is an implementation detail and due to change without notice!!!
+"""
 Generic.degree(G::PrmGroup{I}) where I = I(degree(first(gens(G))))
-Base.one(K::PrmGroup{I}) where I = Perm(degree(K))
+
+@doc doc"""
+	one(G::PrmGroup)
+> Return the identity of a permutation group `G`.
+"""
+Base.one(G::PrmGroup) = Perm(degree(G))
 

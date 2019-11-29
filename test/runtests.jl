@@ -181,11 +181,11 @@ end
 
     for OrbT in OrbitTypes
         schr = Schreier(OrbT, S, pt, ^)
-        @test schr[pt] == G()
+        @test schr[pt] == one(G)
 
         g,h,k = S
 
-        @test representative(S, schr.orb, pt) == G()
+        @test representative(S, schr.orb, pt) == one(G)
         @test representative(S, schr.orb, pt^g) == g
         @test representative(S, schr.orb, (pt^g)^h) == g*h
         @test representative(S, schr.orb, pt^(g*h)) == g*h
