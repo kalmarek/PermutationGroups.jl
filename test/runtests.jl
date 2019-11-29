@@ -513,15 +513,15 @@ end
 @testset "Iterate over PrmGroup" begin
 	K1 = PrmGroup([perm"(5,6)", perm"(1,2,3,4,5,6)"]) # Symmetric group on 6 symbols
 	elements = [g for g in K1]
+    @test elements isa Vector{Perm{Int64}}
 	uniq_elements = unique(elements)
-	@test uniq_elements == elements
-	@test order(K1) == length(uniq_elements) == 720
+    @test order(K1) == length(uniq_elements) == 720
+    @test uniq_elements == elements
 
 	K2 = PrmGroup([perm"(3,4,5)", perm"(1,2,3,4,5)"]) # Alternating group on 5 symbols
-	elements = [g for g in K2]	
-	uniq_elements = unique(elements) 
+	elements = [g for g in K2]
+    @test elements isa Vector{Perm{Int64}}
+	uniq_elements = unique(elements)
+    @test order(K2) == length(uniq_elements) == 60
 	@test uniq_elements == elements
-	@test order(K2) == length(uniq_elements) == 60
-
 end
-
