@@ -15,6 +15,7 @@ end
 @inline Base.length(schr::Schreier) = length(schr.orb)
 @inline Base.eltype(::Schreier{GEl,I}) where {GEl, I} = I
 @inline Base.first(schr::Schreier) = first(schr.orb)
+@inline Base.last(schr::Schreier) = last(schr.orb)
 @inline islast(schr::Schreier, pt) = islast(schr.orb,pt)
 
 function Base.:(==)(s1::Schreier,s2::Schreier)
