@@ -121,7 +121,11 @@ end
 """
 AbstractAlgebra.order(sc::StabilizerChain) = mapreduce(length, *, sc.transversals, init=big(1))
 
-transversals(sc::StabilizerChain) = sc.transversals 
+@doc doc"""
+	transversals(sc::StabilizerChain)
+> Return the transversals (as a Vector) from stabilizer chain `sc`.
+"""
+transversals(sc::StabilizerChain) = sc.transversals
 
 function next!(state::AbstractVector{<:Integer}, transversals)
 	goon = true
@@ -143,10 +147,6 @@ function next!(state::AbstractVector{<:Integer}, transversals)
 	else
 		return state
 	end
-end
-
-function state2element(state::AbstractVector{<:Integer}, transversals)
-	return prod(inv(transversals[i][state[i]]) for i in 1:length(state))
 end
 
 function Base.iterate(K::PrmGroup, state::Union{Nothing, AbstractVector{<:Integer}} = base(K) )

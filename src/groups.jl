@@ -61,8 +61,32 @@ function Base.in(g, G::PrmGroup)
     return ifelse(isone(h), true, false)
 end
 
-transversals(K::PrmGroup) = transversals(StabilizerChain(K))
 Base.length(K) = order(K::PrmGroup)
+@doc doc"""
+	transversals(G::PrmGroup)
+> Return the transversals (as a Vector) of a permutation group `G`.
+"""
+transversals(G::PrmGroup) = transversals(StabilizerChain(G))
+
+@doc doc"""
+    perm_by_baseimages(G::PrmGroup, base_images::AbstractVector{<:Integer})
+> Return the unique permutation in `G` determined by to `base_images`
+> (with respect to `base(G)`).
+"""
+function perm_by_baseimages(G::PrmGroup, baseimages::AbstractVector{<:Integer})
+    @boundscheck length(baseimages) == length(base(G))
+	trans = transversals(G)
+	res = one(G)
+
+	for (schr, bi) in zip(trans, baseimages)
+		gr_word = Word(schr.gens_inv, schr.orb, bi, schr.op)
+	    res = gr_word(schr.gens_inv, res)
+		# res = fastmul!(res, res, t[bi])
+	end
+
+    return inv(res)
+end
+
 @doc doc"""
 	degree(G::PrmGroup{I})::I where I
 > Return the degree of `G`, i.e. the length of the storage of permutations in `G`.
@@ -75,4 +99,3 @@ Generic.degree(G::PrmGroup{I}) where I = I(degree(first(gens(G))))
 > Return the identity of a permutation group `G`.
 """
 Base.one(G::PrmGroup) = Perm(degree(G))
-
