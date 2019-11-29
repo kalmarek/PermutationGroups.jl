@@ -61,7 +61,6 @@ function Base.in(g, G::PrmGroup)
     return ifelse(isone(h), true, false)
 end
 
-Base.length(K) = order(K::PrmGroup)
 @doc doc"""
 	transversals(G::PrmGroup)
 > Return the transversals (as a Vector) of a permutation group `G`.
@@ -99,3 +98,24 @@ Generic.degree(G::PrmGroup{I}) where I = I(degree(first(gens(G))))
 > Return the identity of a permutation group `G`.
 """
 Base.one(G::PrmGroup) = Perm(degree(G))
+
+####################################
+### iteration protocol for PrmGroups
+
+function Base.iterate(G::PrmGroup)
+	return one(G), (deepcopy(base(G)), 1, order(G))
+end
+
+function Base.iterate(G::PrmGroup, state)
+	base_im, count, ord_G = state
+	count == ord_G && return nothing
+
+	basis_im = next!(base_im, transversals(G))
+	g = perm_by_baseimages(G, base_im)
+
+	return (g, (base_im, count+1, ord_G))
+end
+
+Base.eltype(::Type{<:PrmGroup{I}}) where I = Perm{I}
+Base.length(G::PrmGroup) = order(G)
+Base.size(G::PrmGroup) = (length(G),)
