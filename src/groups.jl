@@ -16,11 +16,13 @@ AbstractAlgebra.gens(G::PrmGroup) = G.gens
 > group `G` will construct the chain from `gens(G)` and complete by the
 > deterministic Schreier-Sims algorithm. The subsequent calls just return the
 > cached copy.
+> !!! NOTE: !!! It is users responsibility to ensure that the cached copy is
+> completed by call to `schreier_sims!` if the `base` or `gens` are changed
+> manually after groups creation. 
 """
 function StabilizerChain(G::PrmGroup)
     if !(isdefined(G, :stabchain))
-        G.stabchain = StabilizerChain(gens(G))
-        schreier_sims!(G.stabchain)
+        G.stabchain = schreier_sims!(StabilizerChain(gens(G)))
     end
     return G.stabchain
 end
