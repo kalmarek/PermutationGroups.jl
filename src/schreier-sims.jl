@@ -32,9 +32,9 @@ function schreier_sims!(sc::StabilizerChain)
 
                 if found_new_generator
                     for l in (depth+1):new_depth # h fixes all points <= depth
-                        @debug "recomputing Schreier trees..." sc.transversals[l]
+                        @debug "recomputing Schreier trees at level $l ∈ $((depth+1):new_depth)"
                         push!(sc, h, l, recompute=true) # recompute Schreier trees
-                        @debug "...done! new transversal is", sc.transversals[l]
+                        @debug "...done! new transversal is" sc.transversals[l]
                     end
                     @debug "restarting the procedure at depth" new_depth
                     depth = new_depth

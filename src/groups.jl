@@ -16,11 +16,13 @@ AbstractAlgebra.gens(G::PrmGroup) = G.gens
 > group `G` will construct the chain from `gens(G)` and complete by the
 > deterministic Schreier-Sims algorithm. The subsequent calls just return the
 > cached copy.
+> !!! NOTE: !!! It is users responsibility to ensure that the cached copy is
+> completed by call to `schreier_sims!` if the `base` or `gens` are changed
+> manually after groups creation. 
 """
 function StabilizerChain(G::PrmGroup)
     if !(isdefined(G, :stabchain))
-        G.stabchain = StabilizerChain(gens(G))
-        schreier_sims!(G.stabchain)
+        G.stabchain = schreier_sims!(StabilizerChain(gens(G)))
     end
     return G.stabchain
 end
@@ -61,8 +63,61 @@ function Base.in(g, G::PrmGroup)
     return ifelse(isone(h), true, false)
 end
 
-transversals(K::PrmGroup) = transversals(StabilizerChain(K))
-Base.length(K) = order(K::PrmGroup)
-Generic.degree(G::PrmGroup{I}) where I = I(degree(first(gens(G))))
-Base.one(K::PrmGroup{I}) where I = Perm(degree(K))
+@doc doc"""
+	transversals(G::PrmGroup)
+> Return the transversals (as a Vector) of a permutation group `G`.
+"""
+transversals(G::PrmGroup) = transversals(StabilizerChain(G))
 
+@doc doc"""
+    perm_by_baseimages(G::PrmGroup, base_images::AbstractVector{<:Integer})
+> Return the unique permutation in `G` determined by to `base_images`
+> (with respect to `base(G)`).
+"""
+function perm_by_baseimages(G::PrmGroup, baseimages::AbstractVector{<:Integer})
+    @boundscheck length(baseimages) == length(base(G))
+	trans = transversals(G)
+	res = one(G)
+
+	for (schr, bi) in zip(trans, baseimages)
+		gr_word = Word(schr.gens_inv, schr.orb, bi, schr.op)
+	    res = gr_word(schr.gens_inv, res)
+		# res = fastmul!(res, res, t[bi])
+	end
+
+    return inv(res)
+end
+
+@doc doc"""
+	degree(G::PrmGroup{I})::I where I
+> Return the degree of `G`, i.e. the length of the storage of permutations in `G`.
+> !!! This is an implementation detail and due to change without notice!!!
+"""
+Generic.degree(G::PrmGroup{I}) where I = I(degree(first(gens(G))))
+
+@doc doc"""
+	one(G::PrmGroup)
+> Return the identity of a permutation group `G`.
+"""
+Base.one(G::PrmGroup) = Perm(degree(G))
+
+####################################
+### iteration protocol for PrmGroups
+
+function Base.iterate(G::PrmGroup)
+	return one(G), (deepcopy(base(G)), 1, order(G))
+end
+
+function Base.iterate(G::PrmGroup, state)
+	base_im, count, ord_G = state
+	count == ord_G && return nothing
+
+	basis_im = next!(base_im, transversals(G))
+	g = perm_by_baseimages(G, base_im)
+
+	return (g, (base_im, count+1, ord_G))
+end
+
+Base.eltype(::Type{<:PrmGroup{I}}) where I = Perm{I}
+Base.length(G::PrmGroup) = order(G)
+Base.size(G::PrmGroup) = (length(G),)

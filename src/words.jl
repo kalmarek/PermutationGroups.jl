@@ -45,14 +45,18 @@ end
 > Computes the evaluation of group word `w` as a group element in generators
 > `gens`. Optional `init` element is by default the identity.
 """
-function (pw::Word)(gens::Vector{<:GroupElem}, init=parent(first(gens))())
-    return foldl(*, map(i->gens[i], pw), init=init)
+function (pw::Word)(gens::Vector{<:GroupElem}, init=Perm(degree(first(gens))))
+    res = init
+    @inbounds for i in pw
+        res = fastmul!(res, res, gens[i])
+    end
+    return res
 end
 
 @doc doc"""
     representative(orb, gens, pt, [^])
 > Return a representative of the coset of `Stab(orb)` which takes `first(orb)`
-> to `pt` i.e. an element `r` of `⟨gens⟩` such that `first(orb)^r = pt`.
+> to `pt` i.e. an element `g` of `⟨gens⟩` such that `first(orb)^g = pt`.
 """
 function representative(gens::Vector{<:GroupElem}, orb::AbstractOrbit{I, <:Integer}, pt::I, op=^) where I<:Integer
     gens_inv = inv.(gens)

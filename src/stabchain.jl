@@ -2,16 +2,16 @@
 # StabilizerChain and Scheier-Sims algorithm
 ###############################################################################
 
-function sift(g::Perm, base::Vector{<:Integer}, transversals::AbstractVector{Orb}) where Orb<:AbstractOrbit
+function sift(g::Perm{I}, base::Vector{<:Integer}, transversals::AbstractVector{Orb}) where {I<:Integer, Orb<:AbstractOrbit}
     h = g
 
     for (i, Δ) in enumerate(transversals)
         β = base[i]^h
-        β ∈ Δ || return h, i
+        β ∈ Δ || return h, I(i)
         # uᵦ = Δ[β]
         h = h*getinv(Δ, β) # assuming: Δ=orbits[i] is based on base[i]
     end
-    return h, length(transversals)+1
+    return h, I(length(transversals)+1)
 end
 
 @doc doc"""
@@ -51,7 +51,7 @@ end
 """
 function StabilizerChain(gens::AbstractVector{Perm{I}}, B::AbstractVector{I}=I[]) where I
     B, S = initial_bsgs(gens, B)
-    T = [Schreier(gs, pt) for (gs, pt) in zip(S, B)]
+    T = [Schreier(gs, pt) for (pt, gs) in zip(B, S)]
     return StabilizerChain(B, S, T)
 end
 
@@ -121,39 +121,26 @@ end
 """
 AbstractAlgebra.order(sc::StabilizerChain) = mapreduce(length, *, sc.transversals, init=big(1))
 
-transversals(sc::StabilizerChain) = sc.transversals 
+@doc doc"""
+	transversals(sc::StabilizerChain)
+> Return the transversals (as a Vector) from stabilizer chain `sc`.
+"""
+transversals(sc::StabilizerChain) = sc.transversals
 
-function next!(state::AbstractVector{<:Integer}, transversals)
-	goon = true
-	position = length(state) + 1
-	while goon && position > 1
-		position -= 1
+function next!(baseimages::AbstractVector{<:Integer}, transversals)
+	for position in length(baseimages):-1:1
 		t = transversals[position]
-		orbit_points = collect( t.orb )
-		if state[position] == last(orbit_points)
-			state[position] = first(orbit_points)
+		if islast(t, baseimages[position])
+			@debug "last point in orbit: spilling at" position collect(t), baseimages[position]
+			baseimages[position] = first(t)
 		else
-			idx = findfirst(isequal(state[position]), orbit_points)
-			state[position] = orbit_points[idx + 1]
-			goon = false
+			@debug "next point in orbit: incrementing at" position collect(t), baseimages[position]
+			# TODO: replace by next(t, position)
+			orbit_points = collect(t)
+			idx = findfirst(isequal(baseimages[position]), orbit_points)
+			baseimages[position] = orbit_points[idx + 1]
+			break
 		end
 	end
-	if goon
-		return nothing
-	else
-		return state
-	end
-end
-
-function state2element(state::AbstractVector{<:Integer}, transversals)
-	return prod(inv(transversals[i][state[i]]) for i in 1:length(state))
-end
-
-function Base.iterate(K::PrmGroup, state::Union{Nothing, AbstractVector{<:Integer}} = base(K) )
-	if state == nothing
-		return nothing
-	else
-		t = transversals(K)
-		return state2element(state, t), next!(state,t)
-	end
+	return baseimages
 end

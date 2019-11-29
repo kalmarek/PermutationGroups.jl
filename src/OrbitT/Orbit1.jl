@@ -35,3 +35,5 @@ end
     o1.elts == o2.elts && o1.vals == o2.vals
 
 @inline Base.first(orb::Orbit1) = orb.elts[1]
+@inline Base.last(orb::Orbit1) = orb.elts[end]
+@inline islast(orb::Orbit1, pt) = pt == last(orb) 

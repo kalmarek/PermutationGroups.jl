@@ -181,11 +181,11 @@ end
 
     for OrbT in OrbitTypes
         schr = Schreier(OrbT, S, pt, ^)
-        @test schr[pt] == G()
+        @test schr[pt] == one(G)
 
         g,h,k = S
 
-        @test representative(S, schr.orb, pt) == G()
+        @test representative(S, schr.orb, pt) == one(G)
         @test representative(S, schr.orb, pt^g) == g
         @test representative(S, schr.orb, (pt^g)^h) == g*h
         @test representative(S, schr.orb, pt^(g*h)) == g*h
@@ -194,7 +194,6 @@ end
         @test Word(inv.(S), schr.orb, pt^g) == Word(Int[1])
         @test Word(inv.(S), schr.orb, (pt^g)^h) == Word(Int[2,1])
         @test Word(inv.(S), schr.orb, pt^(g*h)) == Word(Int[2,1])
-
 
         z = g*h*k
         δ = pt^z
@@ -388,7 +387,44 @@ end
     @test perm"(1,3,4)" in A
 end
 
-@testset "GAP Docs examples" begin
+@testset "Iterate over PrmGroup" begin
+	K1 = PrmGroup([perm"(5,6)", perm"(1,2,3,4,5,6)"]) # Symmetric group on 6 symbols
+	elements = [g for g in K1]
+    @test elements isa Vector{Perm{Int64}}
+	uniq_elements = unique(elements)
+    @test order(K1) == length(uniq_elements) == 720
+    @test uniq_elements == elements
+
+	K2 = PrmGroup(Perm{Int16}[perm"(3,4,5)", perm"(1,2,3,4,5)"]) # Alternating group on 5 symbols
+	elements = [g for g in K2]
+    @test elements isa Vector{Perm{Int16}}
+	uniq_elements = unique(elements)
+    @test order(K2) == length(uniq_elements) == 60
+	@test uniq_elements == elements
+end
+
+function test_perf(G::AbstractAlgebra.Group)
+    s = 0
+    for g in G
+        s += g[1]
+    end
+    return s
+end
+
+@testset "test_perf/benchmark iteration" begin
+
+    G = PermGroup(8)
+    K = PrmGroup([perm"(1,5,6,2,4,8)", perm"(1,3,6)(2,5,7,4)(8)"])
+    @test test_perf(G) == test_perf(K) == 181440
+    @info "Native iteration over S8 group:"
+    @btime test_perf($G)
+    # 17.555 ms (241925 allocations: 23.38 MiB) → 181440
+    @info "Iteration over K ≅ S8 PrmGroup:"
+    @btime test_perf($K)
+    # 66.707 ms (1059707 allocations: 55.61 MiB) → 181440
+end
+
+@testset "GAP Docs examples/benchmarks" begin
 
     cube4 = Perm.([
        [1,9,3,11,5,13,7,15,2,10,4,12,6,14,8,16],
@@ -398,6 +434,7 @@ end
        [3,11,1,9,7,15,5,13,4,12,2,10,8,16,6,14]]
        )
     G = PrmGroup(cube4)
+    @info "Schreier-Sims for Rubik cube-4 group:"
     @btime schreier_sims($(gens(G)));
     @test order(G) == 384
 
@@ -411,6 +448,7 @@ end
     ]
 
     rubik = PrmGroup(rubik_gens)
+    @info "Schreier-Sims for Rubik cube-9 group:"
     @btime schreier_sims($(gens(rubik)));
     @test order(rubik) == 43252003274489856000 # fits Int128
 
@@ -444,6 +482,7 @@ end
 
         SL_4_7 = PrmGroup([a,b])
         @test order(SL_4_7) == 2317591180800
+        @info "Schreier-Sims for SL(4,7):"
         @btime schreier_sims($(gens(SL_4_7)));
         # GAP: 23 ms vs 300ms here
     end
@@ -505,23 +544,8 @@ end
 
         G = PrmGroup([a,b,c,d])
         @test order(G) == 192480
+        @info "Schreier-Sims for a direct-product group:"
         @btime schreier_sims($(gens(G)))
         # GAP: 17 ms vs 50 ms here
     end
 end
-
-@testset "Iterate over PrmGroup" begin
-	K1 = PrmGroup([perm"(5,6)", perm"(1,2,3,4,5,6)"]) # Symmetric group on 6 symbols
-	elements = [g for g in K1]
-	uniq_elements = unique(elements)
-	@test uniq_elements == elements
-	@test order(K1) == length(uniq_elements) == 720
-
-	K2 = PrmGroup([perm"(3,4,5)", perm"(1,2,3,4,5)"]) # Alternating group on 5 symbols
-	elements = [g for g in K2]	
-	uniq_elements = unique(elements) 
-	@test uniq_elements == elements
-	@test order(K2) == length(uniq_elements) == 60
-
-end
-
