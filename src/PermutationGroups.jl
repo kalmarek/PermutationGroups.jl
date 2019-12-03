@@ -12,8 +12,8 @@ include("utils.jl")
 include("orbit.jl")
 include("words.jl")
 include("schreier.jl")
+include("groups.jl")
 include("stabchain.jl")
 include("schreier-sims.jl")
-include("groups.jl")
 
 end # module

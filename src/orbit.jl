@@ -40,7 +40,7 @@ for OrbT in [Symbol("Orbit", i) for i in 1:5]
 > Along the points the right transversal is stored as explicit group elements.
 """
         function $OrbT(::Type{Transversal}, gens::Vector{<:GroupElem}, pt::T, op=^) where T
-            orb = $OrbT(pt, parent(first(gens))())
+            orb = $OrbT(pt, one(parent(first(gens))))
             for o in orb
                 for g in gens
                     γ = op(o, g)

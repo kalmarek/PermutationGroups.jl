@@ -57,7 +57,7 @@ end
 > * `sgs::Vector{Vector{<:GroupElem}}` → for each of base element the strong generating set of its stabilizer
 > * `Transversals::Vector{<:Schreier}` → for each of base element the Schreier Tree of its orbit
 """
-struct StabilizerChain{I, GEl, Orb, Schr <: Schreier{GEl, I, Orb}}
+struct StabilizerChain{I, GEl, Orb, Op, Schr <: Schreier{GEl, I, Orb, Op}}
     base::Vector{I}
     sgs::Vector{Vector{GEl}}
     transversals::Vector{Schr}
@@ -69,16 +69,19 @@ end
 > If stabilizer chain is not provided, then it will be recomputed _when needed_.
 """
 mutable struct PrmGroup{I<:Integer, SC<:StabilizerChain} <: AbstractAlgebra.Group
-    gens::Vector{perm{I}}
+    gens::Vector{Generic.Perm{I}}
     stabchain::SC
 
-    function PrmGroup(gens::Vector{perm{I}}) where I<:Integer
+    function PrmGroup(gens::Vector{Generic.Perm{I}}) where I<:Integer
         maxdegree = maximum(degree.(gens))
         new_gens = Generic.emb.(gens, maxdegree)
-        return new{I, StabilizerChain{I, perm{I}, Orbit{I,I}}}(new_gens)
+        sc = Schreier([first(new_gens)], I(1), ^)
+        return new{I,
+            StabilizerChain{I, Perm{I}, Orbit{I,I}, typeof(^), typeof(sc)}}(
+            new_gens)
     end
 
-    function PrmGroup(gens::Vector{perm{I}}, sc::SC) where {I<:Integer, SC<:StabilizerChain}
+    function PrmGroup(gens::Vector{Generic.Perm{I}}, sc::SC) where {I<:Integer, SC<:StabilizerChain}
         return new{I, SC}(gens, sc)
     end
 end
