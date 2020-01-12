@@ -7,8 +7,7 @@ struct CCMatrix{T, C} <: AbstractMatrix{T} # M_r
     r::Int # the index of conjugacy class
     m::Matrix{T} # cache of class coefficients
 
-    function CCMatrix(cc::A, r::Int, T::Type=Int) where {C, 
-A<:AbstractVector{C}}
+    function CCMatrix(cc::A, r::Int, T::Type=Int) where {C, A<:AbstractVector{C}}
         M = -ones(T, length(cc), length(cc))
         new{T, C}(cc, r, M)
     end
@@ -17,8 +16,7 @@ end
 Base.size(M::CCMatrix) = size(M.m)
 Base.IndexStyle(::Type{<:CCMatrix}) = IndexCartesian()
 
-function Base.getindex(M::CCMatrix{T, C}, s::Integer, t::Integer) where {T, 
-        C <: GroupRingElem}
+function Base.getindex(M::CCMatrix{T, C}, s::Integer, t::Integer) where {T, C <: GroupRingElem}
     if isone(-M.m[s,t])
         r = M.r
         g = first(supp(M.cc[t])) # it doesn't matter which we take
@@ -49,7 +47,6 @@ M = [CCMatrix(ccG, i) for i in 1:length(ccG)];
 
 using DynamicPolynomials
 using MultivariatePolynomials
-
 
 function characteristic_polynomial(M::AbstractArray, T::MultivariatePolynomials.AbstractVariable)
     n,m = size(M)
@@ -137,10 +134,8 @@ end
 m = Int(lcm(order.(G)))
 q = find_prime(m)
 
-
 @ncpolyvar T
-println(M[2])
-p = mod(characteristic_polynomial(M[2].m, T), q)
+p = mod(characteristic_polynomial(M[2], T), q)
 
 
 """
