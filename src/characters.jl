@@ -26,25 +26,6 @@ function Base.getindex(M::CCMatrix{T, C}, s::Integer, t::Integer) where {T, C <:
     return M.m[s,t]
 end
 
-N = 4
-G = PermGroup(N)
-RG = GroupRing(G)
-
-ccG = let ptypes = [p.part for p in AllParts(N)]
-    perms_typed = Dict(g => permtype(g) for g in G)
-    ccG = [Set(g for (g,t) in perms_typed if t==pt) for pt in ptypes]
-    [sum(RG.(cc)) for cc in ccG]
-    # conjugacy classes as all-one elements of GroupRing
-end
-
-M = [CCMatrix(ccG, i) for i in 1:length(ccG)];
-@assert M[1] == one(M[1])
-         
-# <a, b> = sum(a(g^-1)*b(g) for g in RepresentativesConjugacyClasses(G) )
-#
-# ** all calculations can happen over sufficiently large prime p **
-
-
 using DynamicPolynomials
 using MultivariatePolynomials
 
@@ -130,13 +111,6 @@ function find_int(m::Int, p::Int)
     end
     return z
 end
-
-m = Int(lcm(order.(G)))
-q = find_prime(m)
-
-@ncpolyvar T
-p = mod(characteristic_polynomial(M[2], T), q)
-
 
 """
 
