@@ -138,3 +138,57 @@ M-eI where e is a new eigenvalue. Maybe this is even better in general *
 To lift them to C (or R if they're all real) we need to do a little bit more,
 but not much ;)
 """
+
+function LinearAlgebra.dot(a::AbstractVector{T}, b::AbstractVector{T}) where T <: AbstractAlgebra.GFElem
+    @assert !isempty(a)
+    @assert length(a) == length(b)
+    return sum(a[i]*b[i] for i = 1:length(a))
+end
+
+"""
+    _projection(a, u) 
+
+Returns projection of a into the subspace spanned by u.
+"""
+function _projection(a::AbstractVector, u::AbstractVector)
+    return dot(a, u)*inv(dot(u, u)).*u
+end
+
+"""
+    _normalize(a::AbstractVector)
+
+Returns a normalized to a unit vector.
+"""
+function _normalize(a::AbstractVector)
+    l = dot(a, a)
+    @assert l!=0
+    return a.*inv(l)
+end
+
+"""
+    gram_schmidt(A::AbstractMatrix)
+
+Return matrices Q and R such that A = QR, where Q is orthogonal and R is an upper triangular Matrix, using the Gram-Schmidt process.
+"""
+function gram_schmidt(A::AbstractMatrix)
+    n, m = size(A)
+    @assert n == m 
+    Q = zeros(parent(A[1,1]), n, n)
+    R = zeros(parent(A[1,1]), n, n)
+
+    Q[:, 1] = _normalize(A[:, 1])
+    R[1, 1] = dot(Q[:, 1], A[:, 1])
+
+    @info Q[:, 1]
+
+    for k = 2:n
+   #     Q[:, k] = _normalize(A[:, k] - sum(_projection(A[:, k], Q[:, j]) for j = 1:k-1))
+        Q[:, k] = A[:, k] - sum(_projection(A[:, k], Q[:, j]) for j = 1:k-1)
+        @info Q[:, k]
+        @info dot(Q[:, k], Q[:, k])
+        for j = 1:k
+            R[j, k] = dot(Q[:, j], A[:, k])
+        end
+    end
+    return Q, R
+end
