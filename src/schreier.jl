@@ -40,12 +40,13 @@ Schreier(gens::Vector{<:GroupElem}, pt, op=^) = Schreier(Orbit, gens, pt, op)
 > `OrbT` must implement _Orbit Protocol_`.
 """
 function Schreier(OrbT::Type{<:AbstractOrbit}, gens::Vector{<:GroupElem}, pt, op=^)
-    schr = Schreier(inv.(gens), OrbT(pt, oftype(pt, 0)), op)
+    schr = Schreier(inv.(gens), OrbT(pt, 0), op)
     for o in schr
+        @show o
         for (idx, g) in enumerate(gens)
             γ = op(o, g)
             if γ ∉ schr
-                push!(schr,(γ, oftype(pt,idx)))
+                push!(schr,(γ, idx))
             end
         end
     end

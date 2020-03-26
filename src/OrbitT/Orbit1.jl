@@ -5,7 +5,7 @@ struct Orbit1{T, S} <: AbstractOrbit{T,S}
     elts::Vector{T}
     vals::Dict{T, S}
 end
-Orbit1(pt::T, val::S) where {T,S} = Orbit1([pt], Dict(pt=>val))
+Orbit1(pt::T, val::S) where {T,S} = Orbit1{T,S}([pt], Dict(pt=>val))
 Orbit1(pt::T) where T = Orbit1(pt, nothing)
 # Orbit1(::Type{T}, ::Type{S}) where {T,S} = Orbit1(T[], Dict{T,S}())
 
@@ -36,4 +36,4 @@ end
 
 @inline Base.first(orb::Orbit1) = orb.elts[1]
 @inline Base.last(orb::Orbit1) = orb.elts[end]
-@inline islast(orb::Orbit1, pt) = pt == last(orb) 
+@inline islast(orb::Orbit1, pt) = pt == last(orb)

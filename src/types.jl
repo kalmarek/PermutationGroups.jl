@@ -40,13 +40,13 @@ end
 > `in`, `iterate`, `length`, `eltype`, `first`. By its definition only
 > `push!(::Schreier, ::Tuple{I,I}) where I<:Integer` is supported.
 """
-struct Schreier{GEl<:GroupElem, I<:Integer, Orb<:AbstractOrbit{I, I}, Op} <: AbstractOrbit{GEl, I}
+struct Schreier{GEl<:GroupElem, S, I<:Integer, Orb<:AbstractOrbit{S, I}, Op} <: AbstractOrbit{GEl, I}
     gens_inv::Vector{GEl}
     orb::Orb
     op::Op
 
-    function Schreier(gens_inv::Vector{GEl}, orb::Orb, op::Op=^) where {GEl<:GroupElem, I<:Integer, Orb<:AbstractOrbit{I, I}, Op}
-        return new{GEl, I, Orb, Op}(gens_inv, orb, op)
+    function Schreier(gens_inv::Vector{GEl}, orb::Orb, op::Op=^) where {S, GEl<:GroupElem, I<:Integer, Orb<:AbstractOrbit{S, I}, Op}
+        return new{GEl, S, I, Orb, Op}(gens_inv, orb, op)
     end
 end
 
