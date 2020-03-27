@@ -44,7 +44,7 @@ end
 # Misc functions that should go to AbstractAlgebra
 
 import Base: one, conj
-import AbstractAlgebra: degree, emb
+import AbstractAlgebra: degree
 
 Base.one(G::Generic.SymmetricGroup{I}) where I = Perm(I(1):G.n)
 Base.one(g::Perm{I}) where I = Perm(I(1):degree(g))
@@ -62,7 +62,7 @@ The action is understood to be `h → g^-1*h*g`.
 `out` will be unaliased, if necessary.
 """
 function Base.conj!(out::Perm, h::Perm, g::Perm)
-    if out === g
+    if out === h
         out = deepcopy(out)
     end
     @inbounds for i in 1:degree(g)

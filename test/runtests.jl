@@ -203,6 +203,19 @@ end
         @test all([pt^schr[o] == o for o in schr.orb])
         @test all(schr[o] == tr[o] for o in tr)
     end
+
+    @testset "conjugacy action" begin
+        G = SymmetricGroup(4)
+        S = [perm"(1,2)(4)", perm"(1,2,3,4)"]
+        pt = perm"(4)"
+        @test Orbit(S, pt) isa Orbit
+        @test length(Orbit(S, pt)) == 1
+
+        pt = perm"(1,2)(4)"
+        @test Orbit(S, pt) isa Orbit
+        @test length(Orbit(S, pt)) == 6
+        @test all(==(permtype(pt)), permtype.(Orbit(S, pt)))
+    end
 end
 
 @testset "Schreier-Sims unit tests" begin
