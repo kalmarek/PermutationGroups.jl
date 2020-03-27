@@ -81,3 +81,10 @@ function AbstractAlgebra.gens(G::Generic.SymmetricGroup)
     a.d[1], a.d[2] = 2, 1
     return [a, b]
 end
+
+function Base.sqrt(x::AbstractAlgebra.FinFieldElem)
+    for i in 0:ceil(Int, order(parent(x))÷2)
+        i^2 == x && return i
+    end
+    throw(DomainError("$x is not a square in $(parent(x))"))
+end

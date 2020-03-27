@@ -19,6 +19,7 @@ include("stabchain.jl")
 include("schreier-sims.jl")
 
 include("eigenspacedecomposition.jl")
+include("characters.jl")
 include("dixon.jl")
 
 end # module

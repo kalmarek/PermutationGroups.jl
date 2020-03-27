@@ -85,6 +85,13 @@ mutable struct PermGroup{I<:Integer, SC<:StabilizerChain} <: AbstractAlgebra.Abs
     end
 end
 
+abstract type AbstractCharacter{T} end # <: AbstractVector{T} ??
+
+mutable struct Character{T, CC} <: AbstractCharacter{T}
+    vals::Vector{T}
+    cc::Vector{CC}
+end
+
 struct EigenSpaceDecomposition{GF <: FinFieldElem}
     eigenspaces::Vector{Generic.MatSpaceElem{GF}}
 end
