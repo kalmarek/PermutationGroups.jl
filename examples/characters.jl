@@ -16,8 +16,9 @@ ccG = conjugacy_classes(G)
 # Multiplication tables for conjugacy classes.
 Ns = [PermutationGroups.CCMatrix(ccG, i) for i in 1:length(ccG)]
 
+using LinearAlgebra
 
-function eigvals(M::Generic.MatSpaceElem{GF}) where GF<:FinFieldElem
+function LinearAlgebra.eigvals(M::Generic.MatSpaceElem{GF}) where GF<:FinFieldElem
     F = base_ring(M)
     Id = identity_matrix(M)
     eigvals = Dict{elem_type(F), Int}()
@@ -32,16 +33,28 @@ function eigvals(M::Generic.MatSpaceElem{GF}) where GF<:FinFieldElem
     return eigvals
 end
 
+function LinearAlgebra.eigen(M::Generic.MatSpaceElem{GF}) where GF<:FinFieldElem
+    F = base_ring(M)
+    Id = identity_matrix(M)
+    eigen = Dict{elem_type(F), Any}()
+    for i in 0:order(F)-1
+        if length(eigen) < size(M, 1)
+            e = F(i)
+            nullity, basis = nullspace(M - e*Id)
+            if nullity > 0
+                eigen[e] = basis
+            end
+        end
+    end
+    return eigen 
+end
+
 F = GF(PermutationGroups.dixon_prime(ccG))
 eigvals(matrix(F, Ns[1]))
 eigvals(matrix(F, Ns[2]))
 eigvals(matrix(F, Ns[3]))
 eigvals(matrix(F, Ns[4]))
 eigvals(matrix(F, Ns[5]))
-
-
-
-using LinearAlgebra
 
 eigs = let p = 23, Ms = M
     F = AbstractAlgebra.GF(p)
