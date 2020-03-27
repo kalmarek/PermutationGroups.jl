@@ -33,7 +33,7 @@ function LinearAlgebra.eigvals(M::Generic.MatSpaceElem{GF}) where GF<:FinFieldEl
     return eigvals
 end
 
-function LinearAlgebra.eigen(M::Generic.MatSpaceElem{GF}) where GF<:FinFieldElem
+function LinearAlgebra.eigen(M::Generic.MatSpaceElem{GF}) where GF <: FinFieldElem
     F = base_ring(M)
     Id = identity_matrix(M)
     eigen = Dict{elem_type(F), Generic.MatSpaceElem{GF}}()
@@ -110,9 +110,7 @@ function sd_basis(Ns::Vector{PermutationGroups.CCMatrix{T, C}}, F::GF) where {T,
     return esd
 end
 
-function _esd2matrix(esd::EigenSpaceDecomposition) 
-    
-end
+function _esd2matrix(esd::EigenSpaceDecomposition) end
 
 basis = sd_basis(Ns, F)
 
