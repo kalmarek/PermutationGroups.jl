@@ -1,6 +1,5 @@
 #########################################################
 # Elementary action/properties of permutation actions
-#########################################################
 
 @inline @inbounds function Base.:^(n::Integer, p::Perm)
     if n <= length(p.d)
@@ -41,18 +40,36 @@ function gensstring(gens::AbstractVector{<:Perm}; width=96)
     return str
 end
 
+#########################################################
+# Misc functions that should go to AbstractAlgebra
+
+import Base: one, conj
+import AbstractAlgebra: degree, emb
+
+Base.one(G::Generic.SymmetricGroup{I}) where I = Perm(I(1):G.n)
+Base.one(g::Perm{I}) where I = Perm(I(1):degree(g))
+
 AbstractAlgebra.degree(p::Perm{I}) where I = I(length(p.d))
+
 function Generic.emb(p::Generic.Perm{I}, n) where I
     return Generic.emb!(Perm(I(n)), p, 1:degree(p))
 end
 
-# TODO: move to AbstractAlgebra
-function fastmul!(out::Perm, g::Perm, h::Perm)
-   out = (out === h ? similar(out) : out)
-   @inbounds for i in eachindex(out.d)
-      out[i] = h[g[i]]
-   end
-   return out
+"""
+    conj!(out::Perm, h::Perm, g::Perm)
+Computes the conjugation action of `g` on `h` and stores the result in `out`.
+The action is understood to be `h → g^-1*h*g`.
+`out` will be unaliased, if necessary.
+"""
+function Base.conj!(out::Perm, h::Perm, g::Perm)
+    if out === g
+        out = deepcopy(out)
+    end
+    @inbounds for i in 1:degree(g)
+        out[g[i]] = g[h[i]]
+    end
+    return out
 end
 
-Base.one(G::Generic.PermGroup) = G()
+Base.conj(h::GroupElem, g::GroupElem) = conj!(h, h, g)
+Base.:(^)(h::Perm, g::Perm) = conj(h,g)

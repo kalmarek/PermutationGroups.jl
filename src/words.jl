@@ -48,7 +48,7 @@ end
 function (pw::Word)(gens::Vector{<:GroupElem}, init=Perm(degree(first(gens))))
     res = init
     @inbounds for i in pw
-        res = fastmul!(res, res, gens[i])
+        res = mul!(res, res, gens[i])
     end
     return res
 end

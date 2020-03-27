@@ -1,15 +1,17 @@
 name = "PermutationGroups"
 uuid = "8bc5a954-2dfc-11e9-10e6-cd969bffa420"
 authors = ["kalmarek <kalmar@amu.edu.pl>"]
-version = "0.1.0"
+version = "0.1.1"
 
 [deps]
 AbstractAlgebra = "c3fe647b-3220-5bb0-a1ea-a7954cac585d"
-BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
-DynamicPolynomials = "7c1d4256-1411-5781-91ec-d7bc3513ac07"
-GroupRings = "0befed6a-bd73-11e8-1e41-a1190947c2f5"
 Markdown = "d6f4376e-aef5-505a-96c1-9c027394607a"
-MultivariatePolynomials = "102ac46a-7ee4-5c85-9060-abc95bfdeaa3"
+Primes = "27ebfcd6-29c5-5fa9-bf4b-fb8fc14df3ae"
+
+[compat]
+AbstractAlgebra = "^0.9.0"
+Primes = "0.4.0"
+julia = "1"
 
 [extras]
 BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
