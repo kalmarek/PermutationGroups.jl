@@ -1,30 +1,20 @@
 using LinearAlgebra
 using AbstractAlgebra
+
+#=
 using GroupRings
-
-struct CCMatrix{T, C} <: AbstractMatrix{T} # M_r
-    cc::Vector{C} # vector of conjugacy classes to fix the order
-    r::Int # the index of conjugacy class
-    m::Matrix{T} # cache of class coefficients
-
-    function CCMatrix(cc::A, r::Int, T::Type=Int) where {C, A<:AbstractVector{C}}
-        M = -ones(T, length(cc), length(cc))
-        new{T, C}(cc, r, M)
-    end
-end
-
-Base.size(M::CCMatrix) = size(M.m)
-Base.IndexStyle(::Type{<:CCMatrix}) = IndexCartesian()
-
 function Base.getindex(M::CCMatrix{T, C}, s::Integer, t::Integer) where {T, C <: GroupRingElem}
     if isone(-M.m[s,t])
         r = M.r
-        g = first(supp(M.cc[t])) # it doesn't matter which we take
-        M.m[s,t] = (M.cc[r]*M.cc[s])[g] # c_RST = r*s = t
-    # we compute much more above: no we obtain the whole row (? or column?)
+        res = M.cc[r]*M.cc[s]
+        for (t, cc) in enumerate(M.cc)
+            g = first(supp(cc)) # it doesn't matter which we take
+            M.m[s,t] = res[g] # c_RST = r*s = t
+        end
     end
     return M.m[s,t]
 end
+=#
 
 using DynamicPolynomials
 using MultivariatePolynomials
