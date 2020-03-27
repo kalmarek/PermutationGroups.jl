@@ -84,3 +84,7 @@ mutable struct PermGroup{I<:Integer, SC<:StabilizerChain} <: AbstractAlgebra.Abs
         return new{I, SC}(gens, sc)
     end
 end
+
+struct EigenSpaceDecomposition{GF <: FinFieldElem}
+    eigenspaces::Vector{Generic.MatSpaceElem{GF}}
+end
