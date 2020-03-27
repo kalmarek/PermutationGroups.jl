@@ -146,7 +146,7 @@ end
 
     Random.seed!(1);
     SIZE=30
-    G = PermGroup(SIZE);
+    G = SymmetricGroup(SIZE);
     gens = [rand(G) for _ in 1:3];
 
     pt = 7
@@ -171,7 +171,7 @@ end
 @testset "Schreier Vectors and Stabilizers" begin
     Random.seed!(1);
     SIZE=30
-    G = PermGroup(SIZE);
+    G = SymmetricGroup(SIZE);
     S = [rand(G) for _ in 1:3];
 
     pt = 1
@@ -342,14 +342,14 @@ end
     @test Meta.parse(m.captures[1]) |> eval == collect(sc.transversals[1])
 end
 
-@testset "PrmGroups" begin
-    @test PrmGroup([perm"(1)"]) isa PrmGroup
-    G = PrmGroup([perm"(1)"])
+@testset "PermGroups" begin
+    @test PermGroup([perm"(1)"]) isa PermGroup
+    G = PermGroup([perm"(1)"])
     @test isdefined(G, :stabchain) == false
     @test order(G) == 1
     @test isdefined(G, :stabchain) == true
 
-    G = PrmGroup([perm"(1,2,3,4)", perm"(1,2)(4)"])
+    G = PermGroup([perm"(1,2,3,4)", perm"(1,2)(4)"])
     @test StabilizerChain(G) isa StabilizerChain
     sc = StabilizerChain(G)
     @test length(sc) == 3
@@ -363,11 +363,11 @@ end
     for N in 6:20
         S = SN(N)
         S = [S; [Perm(randperm(N)) for _ in 1:3]]
-        G = PrmGroup(S)
+        G = PermGroup(S)
         @test order(G) == factorial(N)
     end
 
-    G = PrmGroup([perm"(1,2,3,4)", perm"(1,2)"])
+    G = PermGroup([perm"(1,2,3,4)", perm"(1,2)"])
 
     m = match(r"order (\d+)", string(G))
     @test m === nothing
@@ -378,7 +378,7 @@ end
     m = match(r"order (\d+)", string(G))
     @test parse(Int, m.captures[1]) == 24
 
-    A = PrmGroup([perm"(1,2,3)", perm"(2,3,4)"])
+    A = PermGroup([perm"(1,2,3)", perm"(2,3,4)"])
     @test order(A) == 12
     m = match(r"order (\d+)", string(A))
     @test parse(Int, m.captures[1]) == 12
@@ -387,15 +387,15 @@ end
     @test perm"(1,3,4)" in A
 end
 
-@testset "Iterate over PrmGroup" begin
-	K1 = PrmGroup([perm"(5,6)", perm"(1,2,3,4,5,6)"]) # Symmetric group on 6 symbols
+@testset "Iterate over PermGroup" begin
+	K1 = PermGroup([perm"(5,6)", perm"(1,2,3,4,5,6)"]) # Symmetric group on 6 symbols
 	elements = [g for g in K1]
     @test elements isa Vector{Perm{Int64}}
 	uniq_elements = unique(elements)
     @test order(K1) == length(uniq_elements) == 720
     @test uniq_elements == elements
 
-	K2 = PrmGroup(Perm{Int16}[perm"(3,4,5)", perm"(1,2,3,4,5)"]) # Alternating group on 5 symbols
+	K2 = PermGroup(Perm{Int16}[perm"(3,4,5)", perm"(1,2,3,4,5)"]) # Alternating group on 5 symbols
 	elements = [g for g in K2]
     @test elements isa Vector{Perm{Int16}}
 	uniq_elements = unique(elements)
@@ -413,13 +413,13 @@ end
 
 @testset "test_perf/benchmark iteration" begin
 
-    G = PermGroup(8)
-    K = PrmGroup([perm"(1,5,6,2,4,8)", perm"(1,3,6)(2,5,7,4)(8)"])
+    G = SymmetricGroup(8)
+    K = PermGroup([perm"(1,5,6,2,4,8)", perm"(1,3,6)(2,5,7,4)(8)"])
     @test test_perf(G) == test_perf(K) == 181440
     @info "Native iteration over S8 group:"
     @btime test_perf($G)
     # 17.555 ms (241925 allocations: 23.38 MiB) → 181440
-    @info "Iteration over K ≅ S8 PrmGroup:"
+    @info "Iteration over K ≅ S8 PermGroup:"
     @btime test_perf($K)
     # 66.707 ms (1059707 allocations: 55.61 MiB) → 181440
 end
@@ -433,7 +433,7 @@ end
        [16,8,14,6,12,4,10,2,15,7,13,5,11,3,9,1],
        [3,11,1,9,7,15,5,13,4,12,2,10,8,16,6,14]]
        )
-    G = PrmGroup(cube4)
+    G = PermGroup(cube4)
     @info "Schreier-Sims for Rubik cube-4 group:"
     @btime schreier_sims($(gens(G)));
     @test order(G) == 384
@@ -447,7 +447,7 @@ end
     perm"(41,43,48,46)(42,45,47,44)(14,22,30,38)(15,23,31,39)(16,24,32,40)"
     ]
 
-    rubik = PrmGroup(rubik_gens)
+    rubik = PermGroup(rubik_gens)
     @info "Schreier-Sims for Rubik cube-9 group:"
     @btime schreier_sims($(gens(rubik)));
     @test order(rubik) == 43252003274489856000 # fits Int128
@@ -480,7 +480,7 @@ end
         b = perm"""(  1,  2,  4,  8, 16, 31, 61,113,193,118,198,183,274, 69,128, 94,164,247,317,309,370,319,367,200,291, 67,125,206,293,362, 63,117, 74,134,215,302,368,392,391,  3,  6, 12, 24, 47, 88,155,238,276,287,359, 99,171,259,335,260,337,381,353,390,  9, 18, 35, 68,126,207,295,363, 40, 77, 54,100,172,261,127,104,179,267,341,283,356,153,236,244,323,218,160,214,262,209,168,255,330,377,361,374,346,384,380, 48, 90, 83,149, 96, 91,159,229,308,216,303,180,269,342,130, 50, 93,163,245,192,116,197, 58,107,184, 76,138,220,305,289,144,157,240, 60,111,191,284, 23, 45, 85,152,176,265, 92,161,110,189,281,355,393, 17, 33, 64,119,199,254,313,364,301,252,328,250,246,325,375,372,344,366,290,360,148,233,315,273,187,279,352, 72,132,213,300, 36, 70, 86,154,237,318,324,326, 65,121, 81,146,230,108,186,277,350,388,397,399,400)
         (  5, 10, 20, 39, 75,136,162,135,217,223,158,129,210,298,282, 11, 22, 43, 82,147,232,292,336,379, 21, 41, 28, 55,102,175,264,286,202,101,173,122,203,271,345,358,327,124,205, 52, 97,167,253,263,339,142,226,311,371,394,211,234,243,185,275,349,190, 89,156,170,258,334,294,343,383,396,357,  7, 14, 15, 29, 57,105,181,270,338,120,174,106,182,272,347,386, 13, 26, 51, 95,165,249, 19, 37, 46, 87,151,139,222,307,348,385,278, 25, 49, 44, 84,150,225,310,321,329,376,248,285,351,369,131,212,178,166,251,201, 42, 80,145,228,297,316,373,320,306,241,221,235,239,242,322,296,140, 78,141,224,304,331,299,365,114,194, 30, 59,109,188,280,354, 32, 62,115,195,268,231,314, 79,143,227,312,196,288, 38, 73,133,208, 71, 56,103,177, 27, 53, 98,169,257,333,137,219,266,340,112, 34, 66,123,204,256,332,378,387,382,395,389,398)"""
 
-        SL_4_7 = PrmGroup([a,b])
+        SL_4_7 = PermGroup([a,b])
         @test order(SL_4_7) == 2317591180800
         @info "Schreier-Sims for SL(4,7):"
         @btime schreier_sims($(gens(SL_4_7)));
@@ -542,7 +542,7 @@ end
         c = perm"""(402,403,404,405,406)"""
         d = perm"""(402,403)"""
 
-        G = PrmGroup([a,b,c,d])
+        G = PermGroup([a,b,c,d])
         @test order(G) == 192480
         @info "Schreier-Sims for a direct-product group:"
         @btime schreier_sims($(gens(G)))

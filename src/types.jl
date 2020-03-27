@@ -38,7 +38,7 @@ end
 > `Schreier` almost implements the Orbit Protocol, i.e. it extends the
 > following methods:
 > `in`, `iterate`, `length`, `eltype`, `first`. By its definition only
-> `push!(::Schreier, ::Tuple{I,I}) where I<:Integer` is supported.
+> `push!(::Schreier, ::Tuple{S,I}) where I<:Integer` is supported.
 """
 struct Schreier{GEl<:GroupElem, S, I<:Integer, Orb<:AbstractOrbit{S, I}, Op} <: AbstractOrbit{GEl, I}
     gens_inv::Vector{GEl}
@@ -57,31 +57,30 @@ end
 > * `sgs::Vector{Vector{<:GroupElem}}` → for each of base element the strong generating set of its stabilizer
 > * `Transversals::Vector{<:Schreier}` → for each of base element the Schreier Tree of its orbit
 """
-struct StabilizerChain{I, GEl, Orb, Op, Schr <: Schreier{GEl, I, Orb, Op}}
+struct StabilizerChain{I, GEl, Schr <: Schreier}
     base::Vector{I}
     sgs::Vector{Vector{GEl}}
     transversals::Vector{Schr}
 end
 
 @doc doc"""
-    PrmGroup(gens[, stabchain])
+    PermGroup(gens[, stabchain])
 > Permutation group (i.e. a sub-group of the full symmetric group).
 > If stabilizer chain is not provided, then it will be recomputed _when needed_.
 """
-mutable struct PrmGroup{I<:Integer, SC<:StabilizerChain} <: AbstractAlgebra.Group
+mutable struct PermGroup{I<:Integer, SC<:StabilizerChain} <: AbstractAlgebra.AbstractPermutationGroup
     gens::Vector{Generic.Perm{I}}
     stabchain::SC
 
-    function PrmGroup(gens::Vector{Generic.Perm{I}}) where I<:Integer
+    function PermGroup(gens::Vector{Generic.Perm{I}}) where I<:Integer
         maxdegree = maximum(degree.(gens))
         new_gens = Generic.emb.(gens, maxdegree)
         sc = Schreier([first(new_gens)], I(1), ^)
         return new{I,
-            StabilizerChain{I, Perm{I}, Orbit{I,I}, typeof(^), typeof(sc)}}(
-            new_gens)
+            StabilizerChain{I, Perm{I}, typeof(sc)}}(new_gens)
     end
 
-    function PrmGroup(gens::Vector{Generic.Perm{I}}, sc::SC) where {I<:Integer, SC<:StabilizerChain}
+    function PermGroup(gens::Vector{Generic.Perm{I}}, sc::SC) where {I<:Integer, SC<:StabilizerChain}
         return new{I, SC}(gens, sc)
     end
 end
