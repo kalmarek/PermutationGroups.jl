@@ -1,6 +1,7 @@
 module PermutationGroups
 
 using AbstractAlgebra
+using Primes
 using Markdown
 
 export AbstractOrbit, Orbit, Transversal, Schreier, StabilizerChain, PermGroup
@@ -15,5 +16,6 @@ include("schreier.jl")
 include("groups.jl")
 include("stabchain.jl")
 include("schreier-sims.jl")
+include("dixon.jl")
 
 end # module

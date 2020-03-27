@@ -67,51 +67,6 @@ function factor_mod(p::MultivariatePolynomials.AbstractPolynomialLike, m::Int)
     return [convert.(typeof(p),factors)..., factor_mod(convert(typeof(p),r),m)]
 end
 
-function is_prime(p::Int)
-    if p==1
-        return false
-    else
-        prime = p==2 || p==3
-        if !prime 
-            prime = mod(p,6)==1||mod(p,6)==5
-            if prime 
-                for i = 5:floor(Int, sqrt(p),)
-                    prime = mod(p, i)>0
-                    if !prime
-                        break
-                    end
-                end
-            end
-        end
-        return prime
-    end
-end
-
-function next_prime(z::Int)
-    z += 1
-    while !is_prime(z)
-        z += 1
-    end
-    return z
-end
-
-function find_prime(m::Int) 
-    @assert m < 1000000
-    p = 2
-    while mod(p, m)!=1
-        p = next_prime(p)
-    end
-    return p
-end
-
-function find_int(m::Int, p::Int)
-    z = 2
-    while !(mod(z^m, p)==1) || any([mod(z^m, q)==1 for q in 1:p-1])
-         z+=1
-    end
-    return z
-end
-
 """
 
 eigenvectors = Dict{Polynomial, Vector}()[] # pseudocode
