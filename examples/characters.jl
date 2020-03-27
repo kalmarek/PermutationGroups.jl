@@ -36,14 +36,18 @@ end
 function LinearAlgebra.eigen(M::Generic.MatSpaceElem{GF}) where GF<:FinFieldElem
     F = base_ring(M)
     Id = identity_matrix(M)
-    eigen = Dict{elem_type(F), Any}()
+    eigen = Dict{elem_type(F), Generic.MatSpaceElem{GF}}()
+    ct = 0
     for i in 0:order(F)-1
-        if length(eigen) < size(M, 1)
+        if ct < size(M, 1)
             e = F(i)
             nullity, basis = nullspace(M - e*Id)
             if nullity > 0
+                ct += nullity
                 eigen[e] = basis
             end
+        else
+            break
         end
     end
     return eigen 
@@ -56,6 +60,63 @@ eigvals(matrix(F, Ns[3]))
 eigvals(matrix(F, Ns[4]))
 eigvals(matrix(F, Ns[5]))
 
+
+
+struct EigenSpaceDecomposition{GF <: FinFieldElem}
+    eigenspaces::Vector{Generic.MatSpaceElem{GF}}
+end
+Base.getindex(esd::EigenSpaceDecomposition, s) = getindex(esd.eigenspaces, s)
+Base.iterate(esd::EigenSpaceDecomposition) = iterate(esd.eigenspaces)
+Base.iterate(esd::EigenSpaceDecomposition, s) = iterate(esd.eigenspaces, s)
+Base.length(esd::EigenSpaceDecomposition) = length(esd.eigenspaces)
+_is_diagonal(esd::EigenSpaceDecomposition) = all((size.(esd, 2)) .== 1)
+
+function eigen_space_decomposition(M::Generic.MatSpaceElem{GF}) where GF <: FinFieldElem
+    return EigenSpaceDecomposition(collect(values(eigen(M))))
+end
+
+function _restrict(M::Generic.MatSpaceElem{GF}, basis) where GF <: FinFieldElem
+    return basis*M*basis'
+end
+
+function eigen_space_decomposition(
+                                  M::Generic.MatSpaceElem{GF}, 
+                                  esd::EigenSpaceDecomposition{GF}) where GF <: FinFieldElem
+    esdvector = typeof(esd.eigenspaces)()
+    for basis in esd
+        if size(basis, 2) == 1
+            push!(esdvector, basis)
+        else
+            nesd = eigen_space_decomposition(_restrict(M, basis))
+            for nbasis in nesd
+                push!(esdvector, basis*nbasis)
+            end
+        end
+        return EigenSpaceDecomposition(esdvector)
+    end
+end
+
+function sd_basis(Ns::Vector{PermutationGroups.CCMatrix{T, C}}, F::GF) where {T, C, GF <: FinField}
+    @assert !isempty(Ns)
+    esd = eigen_space_decomposition(matrix(F, Ns[1]))
+    ct = 1
+    while !_is_diagonal(esd)
+        ct += 1
+        esd = eigen_space_decomposition(matrix(F, Ns[ct]), esd)
+        if ct > length(Ns)
+            @error "Matrices are not simultaneously diagonalizable"
+        end
+    end
+    return esd
+end
+
+function _esd2matrix(esd::EigenSpaceDecomposition) 
+    
+end
+
+basis = sd_basis(Ns, F)
+
+#=
 eigs = let p = 23, Ms = M
     F = AbstractAlgebra.GF(p)
     AAMs = [matrix(F, m) for m in Ms] # if we implement our own nullspace we don't need this
@@ -86,3 +147,6 @@ eigs = let p = 23, Ms = M
 
     eigenvectors
 end
+=#
+
+
