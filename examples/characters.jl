@@ -1,33 +1,75 @@
-include("../src/characters.jl")
+using Pkg; Pkg.activate(joinpath(@__DIR__, ".."))
+using AbstractAlgebra
+using Revise
+using PermutationGroups
 
+
+# include("../src/characters.jl")
+# RG = GroupRing(G)
 # Build group ring for the permutation group over 4 elements.
-N = 4
-G = PermGroup(N)
-RG = GroupRing(G)
 
-# Conjugacy classes as all-one elements of GroupRing
-# WTH does all-one elements mean?
-ccG = let ptypes = [p.part for p in AllParts(N)]
-    perms_typed = Dict(g => permtype(g) for g in G)
-    ccG = [Set(g for (g,t) in perms_typed if t==pt) for pt in ptypes]
-    [sum(RG.(cc)) for cc in ccG]
-end
+N = 4
+G = SymmetricGroup(N)
+S = gens(G)
+ccG = conjugacy_classes(G)
 
 # Multiplication tables for conjugacy classes.
-M = [CCMatrix(ccG, i) for i in 1:length(ccG)];
-
-# First class is the conjugacy class of e. Multiplication with e should not change any conjugacy class.
-@assert M[1] == one(M[1])
-
-# In the sequal we need to do exact arithmetics which is why we work over a finite field. 
-# There are probably smarter ways to find a suitable prime...
-m = Int(lcm(order.(G)))
-q = find_prime(m)
-F = AbstractAlgebra.GF(q)
+Ns = [PermutationGroups.CCMatrix(ccG, i) for i in 1:length(ccG)]
 
 
-# hopefully don't need the following
-@ncpolyvar T
-p = mod(characteristic_polynomial(M[2], T), q)
+function eigvals(M::Generic.MatSpaceElem{GF}) where GF<:FinFieldElem
+    F = base_ring(M)
+    Id = identity_matrix(M)
+    eigvals = Dict{elem_type(F), Int}()
+    for i in 0:order(F)-1
+        e = F(i)
+        nullity, basis = nullspace(M - e*Id)
+        if nullity > 0
+            eigvals[e] = nullity
+        end
+        # early break
+    end
+    return eigvals
+end
+
+F = GF(PermutationGroups.dixon_prime(ccG))
+eigvals(matrix(F, Ns[1]))
+eigvals(matrix(F, Ns[2]))
+eigvals(matrix(F, Ns[3]))
+eigvals(matrix(F, Ns[4]))
+eigvals(matrix(F, Ns[5]))
 
 
+
+using LinearAlgebra
+
+eigs = let p = 23, Ms = M
+    F = AbstractAlgebra.GF(p)
+    AAMs = [matrix(F, m) for m in Ms] # if we implement our own nullspace we don't need this
+    Id = identity_matrix(first(AAMs))
+
+    potential_eigenvalues = Set(F(i) for i in 0:p-1)
+    eigenvectors = Dict{elem_type(F), Vector{elem_type(F)}}()
+
+    for m in AAMs[5:5]
+        broken = false
+        for e in potential_eigenvalues
+            nullity, basis = nullspace(m - e*Id)
+            if nullity > 0
+                @show e, nullity, basis
+                # find the "best" eigenvector among basis columns and add it to eigenvectors
+                # basis.entries is a standard julia Array
+                # entries = basis.entries[:,end]
+                eigenvectors[e] = entries
+                if length(eigenvectors) == size(m,1)
+                    broken = true
+                    break
+                end
+                delete!(potential_eigenvalues, e)
+            end
+        end
+        broken && break
+    end
+
+    eigenvectors
+end
