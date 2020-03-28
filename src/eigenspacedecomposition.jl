@@ -38,6 +38,8 @@ Base.getindex(esd::EigenSpaceDecomposition, s) = getindex(esd.eigenspaces, s)
 Base.iterate(esd::EigenSpaceDecomposition) = iterate(esd.eigenspaces)
 Base.iterate(esd::EigenSpaceDecomposition, s) = iterate(esd.eigenspaces, s)
 Base.length(esd::EigenSpaceDecomposition) = length(esd.eigenspaces)
+Base.push!(esd::EigenSpaceDecomposition, a...) = push!(esd.eigenspaces, a...)
+Base.append!(esd::EigenSpaceDecomposition, a) = append!(esd.eigenspaces)
 LinearAlgebra.isdiag(esd::EigenSpaceDecomposition) = all(es -> isone(size(es,2)), esd)
 
 function _restrict(M::MatrixElem{R}, basis::MatrixElem{R}) where R <: RingElem
@@ -47,48 +49,39 @@ end
 _dim(esd::EigenSpaceDecomposition) = isempty(esd.eigenspaces) ? 0 : sum(_dim, esd)
 _dim(M::MatrixElem) = size(M,2)
 
-function eigen_space_decomposition(
-                                  M::Generic.MatSpaceElem{GF},
-                                  esd::EigenSpaceDecomposition{GF}) where GF <: FinFieldElem
-    eigenspaces = EigenSpaceDecomposition(Vector{typeof(M)}())
-    sizehint!(eigenspaces, length(esd))
-    dim = _dim(esd)
+function refine(esd::EigenSpaceDecomposition{R}, M::MatElem{R}) where R <: RingElem
     @debug esd
+
+    new_esd = EigenSpaceDecomposition{R}()
+    sizehint!(new_esd.eigenspaces, length(esd))
+
     for subspace in esd
-        if _dim(subspace) == 1
-            push!(eigenspaces, subspace)
+        if isone(_dim(subspace))
+            push!(new_esd, subspace)
         else
-            nesd = EigenSpaceDecomposition(_restrict(M, subspace))
-            @debug _dim.(nesd)
-            if _dim(nesd) == _dim(subspace) #length(nesd) > 0
-                for nsubspace in nesd
-                    push!(eigenspaces, subspace*nsubspace)
-                end
-            else
-                @warn "the subspace does not fully split!: $(_dim.(nesd))"
-                push!(eigenspaces, subspace)
+            sub_esd = EigenSpaceDecomposition(_restrict(M, subspace))
+            @debug _dim.(sub_esd)
+            for nsubspace in sub_esd
+                push!(new_esd, subspace*nsubspace)
             end
         end
     end
-    nesd = EigenSpaceDecomposition(eigenspaces)
-    @debug _dim.(eigenspaces)
 
-    @assert length(nesd) >= length(esd)
-    @assert _dim(nesd) == dim
-    return nesd
+    @debug _dim.(new_esd)
+
+    @assert length(new_esd) >= length(esd)
+    @assert _dim(new_esd) == _dim(esd)
+    return new_esd
 end
 
 function sd_basis(Ns::Vector{CCMatrix{T, C}}, ring::Ring) where {T, C}
     @assert !isempty(Ns)
-    esd = EigenSpaceDecomposition([matrix(F, Ns[1])])
-    ct = 1
-    while !isdiag(esd)
-        ct += 1
-        esd = eigen_space_decomposition(matrix(F, Ns[ct]), esd)
-        if ct > length(Ns)
-            @error "Matrices are not simultaneously diagonalizable"
-        end
-        @info [isone(size(es,2)) for es in esd]
+    esd = EigenSpaceDecomposition([matrix(ring, first(Ns))])
+
+    for N in Iterators.rest(Ns, 2)
+        esd = refine(esd, matrix(ring, N))
+        @debug N [isone(size(es,2)) for es in esd]
+        isdiag(esd) && return esd
     end
     return esd
 end
