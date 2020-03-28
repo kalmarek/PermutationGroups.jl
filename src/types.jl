@@ -103,6 +103,11 @@ struct CCMatrix{T, C} <: AbstractMatrix{T} # M_r
     end
 end
 
-struct EigenSpaceDecomposition{GF <: FinFieldElem}
-    eigenspaces::Vector{Generic.MatSpaceElem{GF}}
+struct EigenSpaceDecomposition{R <: RingElement}
+    eigenspaces::Vector{Generic.MatSpaceElem{R}}
+
+    EigenSpaceDecomposition{R}() where R = new{R}([])
+    function EigenSpaceDecomposition(v::AbstractVector{<:MatrixElem{R}}) where R<:RingElement
+        return new{R}(v)
+    end
 end

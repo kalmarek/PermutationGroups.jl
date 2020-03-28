@@ -5,7 +5,8 @@ using AbstractAlgebra
 using Primes
 using Markdown
 
-import AbstractAlgebra.mul!
+import AbstractAlgebra: AbstractPermutationGroup, AbstractPerm, Group, Ring, 
+mul!
 
 export AbstractOrbit, Orbit, Transversal, Schreier, StabilizerChain, PermGroup
 export firstmoved, fixes, fixedpoints, lastmoved
