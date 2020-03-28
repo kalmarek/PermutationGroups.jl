@@ -92,6 +92,17 @@ mutable struct Character{T, CC} <: AbstractCharacter{T}
     cc::Vector{CC}
 end
 
+struct CCMatrix{T, C} <: AbstractMatrix{T} # M_r
+    cc::Vector{C} # vector of conjugacy classes to fix the order
+    r::Int # the index of conjugacy class
+    m::Matrix{T} # cache of class coefficients
+
+    function CCMatrix(cc::A, r::Int, T::Type=Int) where {C, A<:AbstractVector{C}}
+        M = -ones(T, length(cc), length(cc))
+        new{T, C}(cc, r, M)
+    end
+end
+
 struct EigenSpaceDecomposition{GF <: FinFieldElem}
     eigenspaces::Vector{Generic.MatSpaceElem{GF}}
 end

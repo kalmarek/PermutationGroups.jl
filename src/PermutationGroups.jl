@@ -5,6 +5,8 @@ using AbstractAlgebra
 using Primes
 using Markdown
 
+import AbstractAlgebra.mul!
+
 export AbstractOrbit, Orbit, Transversal, Schreier, StabilizerChain, PermGroup
 export firstmoved, fixes, fixedpoints, lastmoved
 export base, conjugacy_classes, getinv, representative, schreier_sims, sgs, sift

@@ -19,7 +19,7 @@ function LinearAlgebra.eigen(M::Generic.MatSpaceElem{GF}) where GF <: FinFieldEl
     return eigen
 end
 
-EigenSpaceDecomposition{T}() = EigenSpaceDecomposition{T}(T[])
+EigenSpaceDecomposition{T}() where T = EigenSpaceDecomposition{T}(T[])
 
 function EigenSpaceDecomposition(M::Generic.MatSpaceElem{GF}) where GF <: FinFieldElem
     return EigenSpaceDecomposition(collect(values(eigen(M))))
@@ -69,7 +69,7 @@ function eigen_space_decomposition(
             end
         end
     end
-    nesd = eigenspaces)
+    nesd = EigenSpaceDecomposition(eigenspaces)
     @debug _dim.(eigenspaces)
 
     @assert length(nesd) >= length(esd)
@@ -77,7 +77,7 @@ function eigen_space_decomposition(
     return nesd
 end
 
-function sd_basis(Ns::Vector{PermutationGroups.CCMatrix{T, C}}, F::GF) where {T, C, GF <: FinField}
+function sd_basis(Ns::Vector{CCMatrix{T, C}}, F::GF) where {T, C, GF <: FinField}
     @assert !isempty(Ns)
     esd = EigenSpaceDecomposition([matrix(F, Ns[1])])
     ct = 1

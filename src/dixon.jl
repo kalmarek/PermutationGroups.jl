@@ -13,22 +13,11 @@ end
 
 function dixon_prime(ordG::Integer, exponent::Integer)
     p = 2floor(Int, sqrt(ordG))
-    while p < 1000
+    while true
         p = nextprime(p+1)
-        iszero((p-1) % exponent) && break
+        isone(p % exponent) && break # we need -1 to be in the field
     end
     return p
-end
-
-struct CCMatrix{T, C} <: AbstractMatrix{T} # M_r
-    cc::Vector{C} # vector of conjugacy classes to fix the order
-    r::Int # the index of conjugacy class
-    m::Matrix{T} # cache of class coefficients
-
-    function CCMatrix(cc::A, r::Int, T::Type=Int) where {C, A<:AbstractVector{C}}
-        M = -ones(T, length(cc), length(cc))
-        new{T, C}(cc, r, M)
-    end
 end
 
 Base.size(M::CCMatrix) = size(M.m)
