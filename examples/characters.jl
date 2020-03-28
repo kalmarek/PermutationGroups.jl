@@ -5,20 +5,19 @@ using PermutationGroups
 
 using Test
 
-let G = SymmetricGroup(4)
+sd = let G = SymmetricGroup(4)
     S = gens(G)
     ccG = conjugacy_classes(G)
 
     # Multiplication tables for conjugacy classes.
     Ns = [PermutationGroups.CCMatrix(ccG, i) for i in 1:length(ccG)]
 
-
     F = GF(PermutationGroups.dixon_prime(ccG))
-    basis = sd_basis(Ns, F)
+    basis = PermutationGroups.sd_basis(Ns, F)
 end
 
 
-let G = PermGroup([perm"(1,2,4,5,3)", perm"(2,5,3,4)"]);
+sd = let G = PermGroup([perm"(1,2,4,5,3)", perm"(2,5,3,4)"]);
     @test order(G) == 20
 
     S = gens(G)
@@ -35,8 +34,8 @@ let G = PermGroup([perm"(1,2,4,5,3)", perm"(2,5,3,4)"]);
     Ns = [PermutationGroups.CCMatrix(ccG, i) for i in 1:length(ccG)]
 
     # F = GF(PermutationGroups.dixon_prime(ccG))
-    F = GF(67)
-    basis = sd_basis(Ns, F)
+    F = GF(101)
+    basis = PermutationGroups.sd_basis(Ns, F)
 end
 
 

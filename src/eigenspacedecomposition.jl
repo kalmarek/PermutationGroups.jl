@@ -26,12 +26,16 @@ function EigenSpaceDecomposition(M::MatrixElem{R}) where R <: RingElement
     return EigenSpaceDecomposition([M])
 end
 
-function Base.show(io::IO, esd::EigenSpaceDecomposition)
-    print(io, "Splitting of a vector space of dimension ", _dim(esd), "into")
-    println(io, _dim.(esd), "-dimensional subspaces:" )
+function Base.show(io::IO, ::MIME"text/plain", esd::EigenSpaceDecomposition{R}) where R
+    println(io, "$R module of dim $(_dim(esd)) spliting:")
+    println(io, _dim.(esd), "-subspaces (basis vectors row-wise):")
     for subspace in esd
-        println(io, subspace)
+        println(io, subspace')
     end
+end
+
+function Base.show(io::IO, esd::EigenSpaceDecomposition{R}) where R
+    print(io, _dim.(esd),"-eigenspace splitting over ", R)
 end
 
 Base.getindex(esd::EigenSpaceDecomposition, s) = getindex(esd.eigenspaces, s)
@@ -46,8 +50,8 @@ function _restrict(M::MatrixElem{R}, basis::MatrixElem{R}) where R <: RingElem
     return basis'*M*basis
 end
 
-_dim(esd::EigenSpaceDecomposition) = isempty(esd.eigenspaces) ? 0 : sum(_dim, esd)
 _dim(M::MatrixElem) = size(M,2)
+_dim(esd::EigenSpaceDecomposition) = mapreduce(_dim, +, esd, init=0)
 
 function refine(esd::EigenSpaceDecomposition{R}, M::MatElem{R}) where R <: RingElem
     @debug esd
