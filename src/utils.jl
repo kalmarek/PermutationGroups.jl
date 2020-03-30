@@ -88,3 +88,17 @@ function Base.sqrt(x::AbstractAlgebra.FinFieldElem)
     end
     throw(DomainError("$x is not a square in $(parent(x))"))
 end
+
+# iteration for MatrixElems
+
+function Base.iterate(m::MatrixElem, s=1)
+    s > length(m) && return nothing
+    i,j = Tuple(CartesianIndices(size(m))[s])
+    return m[i,j], s+1
+end
+
+Base.eltype(::Type{T}) where T<:MatrixElem = elem_type(T)
+Base.IndexStyle(::Type{<:MatrixElem}) = IndexCartesian
+Base.IteratorSize(::Type{<:MatrixElem}) = Base.HasShape{2}()
+Base.vec(m::MatrixElem) = [m[i,j] for i in 1:nrows(m) for j in 1:ncols(m)]
+Base.Matrix(m::Generic.MatSpaceElem) = m.entries
