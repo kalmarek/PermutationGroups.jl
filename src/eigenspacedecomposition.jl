@@ -64,6 +64,18 @@ function Base.show(io::IO, esd::EigenSpaceDecomposition{R}) where R
 end
 
 Base.length(esd::EigenSpaceDecomposition) = length(esd.eigspace_ptrs)-1
+
+function getindex(esd::EigenSpaceDecomposition, i::Integer)
+    @boundscheck 1<= i <= length(esd)
+    return esd.basis[:, esd.eigspace_ptrs[i]:esd.eigspace_ptrs[i+1]]
+end
+
+function Base.iterate(esd::EigenSpaceDecomposition, s=1)
+    s == length(esd) && nothing
+    first_last = esd.eigspace_ptrs[s]:esd.eigspace_ptrs[s+1]-1
+    return (esd.basis[:, first_last], s+1)
+end
+
 # right eigenspaces for left, (row-)eigenspaces), inv switches places
 _change_basis(M::MatrixElem, basis::MatrixElem) = inv(basis)*M*basis
 
