@@ -19,39 +19,35 @@ function LinearAlgebra.eigen(M::Generic.MatSpaceElem{GF}) where GF <: FinFieldEl
     return eigen
 end
 
-function EigenSpaceDecomposition(M::MatrixElem{R}) where R <: RingElement
-    esd = EigenSpaceDecomposition(collect(values(eigen(M))))
-    _dim(esd) == _dim(M) && return esd
-    @warn "the subspace of dimension $(_dim(M)) does not fully split over $(R)" dims=(_dim.(esd))
-    return EigenSpaceDecomposition([M])
-end
+_dim(M::MatrixElem) = size(M, 2) # we're column based
+_dims_to_ptrs!(dims) = (pushfirst!(dims, 1); cumsum!(dims, dims))
 
-function Base.show(io::IO, ::MIME"text/plain", esd::EigenSpaceDecomposition{R}) where R
-    println(io, "$R module of dim $(_dim(esd)) spliting:")
-    println(io, _dim.(esd), "-subspaces (basis vectors row-wise):")
-    for subspace in esd
-        println(io, subspace')
     end
+EigenSpaceDecomposition(R::Ring, nrows::Integer, ncols::Integer) =
+    new{typeof(R)}(identity_matrix(R, dim, dim), [1, ncols+1])
+
+EigenSpaceDecomposition(M::MatrixElem) =
+    EigenSpaceDecomposition(eigen_decomposition!(deepcopy(M))...)
+
+function Base.show(io::IO, ::MIME"text/plain", esd::EigenSpaceDecomposition)
+    R = parent(first(esd))
+    println(io, diff(esd.eigspace_ptrs),
+        " - spliting of $R module of dim $(_dim(esd.basis)).")
+    println(io, esd.basis)
 end
 
 function Base.show(io::IO, esd::EigenSpaceDecomposition{R}) where R
-    print(io, _dim.(esd),"-eigenspace splitting over ", R)
+    print(io, diff(esd.eigspace_ptrs), "-eigenspace splitting over ", R)
 end
 
-Base.getindex(esd::EigenSpaceDecomposition, s) = getindex(esd.eigenspaces, s)
-Base.iterate(esd::EigenSpaceDecomposition) = iterate(esd.eigenspaces)
-Base.iterate(esd::EigenSpaceDecomposition, s) = iterate(esd.eigenspaces, s)
-Base.length(esd::EigenSpaceDecomposition) = length(esd.eigenspaces)
-Base.push!(esd::EigenSpaceDecomposition, a...) = push!(esd.eigenspaces, a...)
-Base.append!(esd::EigenSpaceDecomposition, a) = append!(esd.eigenspaces)
-LinearAlgebra.isdiag(esd::EigenSpaceDecomposition) = all(es -> isone(size(es,2)), esd)
+Base.length(esd::EigenSpaceDecomposition) = length(esd.eigspace_ptrs)-1
 
 function _restrict(M::MatrixElem{R}, basis::MatrixElem{R}) where R <: RingElem
     return basis'*M*basis
 end
 
-_dim(M::MatrixElem) = size(M,2)
-_dim(esd::EigenSpaceDecomposition) = mapreduce(_dim, +, esd, init=0)
+LinearAlgebra.isdiag(esd::EigenSpaceDecomposition) =
+    all(isone, diff(esd.eigspace_ptrs))
 
 function refine(esd::EigenSpaceDecomposition{R}, M::MatElem{R}) where R <: RingElem
     @debug esd
