@@ -41,10 +41,7 @@ function Base.show(io::IO, esd::EigenSpaceDecomposition{R}) where R
 end
 
 Base.length(esd::EigenSpaceDecomposition) = length(esd.eigspace_ptrs)-1
-
-function _restrict(M::MatrixElem{R}, basis::MatrixElem{R}) where R <: RingElem
-    return basis'*M*basis
-end
+_change_basis(M::MatrixElem, basis::MatrixElem) = inv(basis)*M*basis
 
 LinearAlgebra.isdiag(esd::EigenSpaceDecomposition) =
     all(isone, diff(esd.eigspace_ptrs))
