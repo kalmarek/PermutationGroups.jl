@@ -1,9 +1,10 @@
 using Pkg; Pkg.activate(joinpath(@__DIR__, ".."))
 using AbstractAlgebra
+using LinearAlgebra
+using Test
 using Revise
 using PermutationGroups
 
-using Test
 
 sd = let G = SymmetricGroup(4)
     S = gens(G)
@@ -11,13 +12,23 @@ sd = let G = SymmetricGroup(4)
 
     # Multiplication tables for conjugacy classes.
     Ns = [PermutationGroups.CCMatrix(ccG, i) for i in 1:length(ccG)]
+    # @show Ns
 
     F = GF(PermutationGroups.dixon_prime(ccG))
+
     basis = PermutationGroups.sd_basis(Ns, F)
+    ib, b = inv(basis.basis), basis.basis
+    for N in Ns
+        @test isdiag(Matrix(ib*matrix(F,N)*b))
+    end
+    basis
 end
 
+sd.basis*sd.basis'
 
-sd = let G = PermGroup([perm"(1,2,4,5,3)", perm"(2,5,3,4)"]);
+
+sd = let
+    G = PermGroup([perm"(1,2,4,5,3)", perm"(2,5,3,4)"]);
     @test order(G) == 20
 
     S = gens(G)
@@ -31,28 +42,27 @@ sd = let G = PermGroup([perm"(1,2,4,5,3)", perm"(2,5,3,4)"]);
         ]
 
     @test sum(length, ccG) == 20
-    Ns = [PermutationGroups.CCMatrix(ccG, i) for i in 1:length(ccG)]
+    Ns = (PermutationGroups.CCMatrix(ccG, i) for i in 1:length(ccG))
 
-    # F = GF(PermutationGroups.dixon_prime(ccG))
-    F = GF(101)
+    F = GF(PermutationGroups.dixon_prime(ccG))
+    # F = GF(41)
     basis = PermutationGroups.sd_basis(Ns, F)
+
+    ib, b = inv(basis.basis), basis.basis
+    for N in Ns
+        @test isdiag(Matrix(ib*matrix(F,N)*b))
+    end
+    basis
 end
 
 
-A = matrix(GF(691), [
-     0   1  0  0
-     0   0  5  0
-     0   0  0  5
-     5   0  0  0]
-    )
+
+
+
 
 # GAP output, read row-wise
 # [ [      1,      1,      1,      1,      1 ],
-  # [      1,      1,     -1,     -1,      1 ],
-  # [      1,     -1,  -E(4),   E(4),      1 ],
-  # [      1,     -1,   E(4),  -E(4),      1 ],
-  # [      4,      0,      0,      0,     -1 ] ]
-
-
-
-
+# [      1,      1,     -1,     -1,      1 ],
+# [      1,     -1,  -E(4),   E(4),      1 ],
+# [      1,     -1,   E(4),  -E(4),      1 ],
+# [      4,      0,      0,      0,     -1 ] ]
