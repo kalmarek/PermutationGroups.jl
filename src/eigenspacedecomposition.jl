@@ -22,7 +22,22 @@ end
 _dim(M::MatrixElem) = size(M, 2) # we're column based
 _dims_to_ptrs!(dims) = (pushfirst!(dims, 1); cumsum!(dims, dims))
 
+function eigen_decomposition!(M::MatrixElem{R}, eigspace_ptrs=Vector{Int}()) where R <: RingElement
+    eigspace_ptrs = Vector{Int}()
+    eigenvalues = eigen(M)
+    sizehint!(eigspace_ptrs, length(eigenvalues)+1)
+    push!(eigspace_ptrs, 1)
+    for basis in values(eigenvalues)
+        dim = _dim(basis)
+        cd = eigspace_ptrs[end]
+        ran = cd:cd+dim-1
+        M[:, ran] = basis
+        push!(eigspace_ptrs, cd+dim)
     end
+    @assert eigspace_ptrs[end] == _dim(M)+1
+    return M, eigspace_ptrs
+end
+
 EigenSpaceDecomposition(R::Ring, nrows::Integer, ncols::Integer) =
     new{typeof(R)}(identity_matrix(R, dim, dim), [1, ncols+1])
 
@@ -46,29 +61,14 @@ _change_basis(M::MatrixElem, basis::MatrixElem) = inv(basis)*M*basis
 LinearAlgebra.isdiag(esd::EigenSpaceDecomposition) =
     all(isone, diff(esd.eigspace_ptrs))
 
-function refine(esd::EigenSpaceDecomposition{R}, M::MatElem{R}) where R <: RingElem
-    @debug esd
-
-    new_esd = EigenSpaceDecomposition{R}()
-    sizehint!(new_esd.eigenspaces, length(esd))
-
-    for subspace in esd
-        if isone(_dim(subspace))
-            push!(new_esd, subspace)
-        else
-            sub_esd = EigenSpaceDecomposition(_restrict(M, subspace))
-            @debug _dim.(sub_esd)
-            for nsubspace in sub_esd
-                push!(new_esd, subspace*nsubspace)
-            end
-        end
-    end
-
-    @debug _dim.(new_esd)
-
-    @assert length(new_esd) >= length(esd)
-    @assert _dim(new_esd) == _dim(esd)
-    return new_esd
+function refine!(esd::EigenSpaceDecomposition{R}, M::MatrixElem{R}) where R
+    m = _change_basis(M, esd.basis)
+    @debug "matrices: original (M) and after base change (m)" M m
+    m, eigspace_ptrs = eigen_decomposition!(m, esd.eigspace_ptrs)
+    esd.basis.entries .= m.entries
+    resize!(esd.eigspace_ptrs, length(eigspace_ptrs))
+    esd.eigspace_ptrs .= eigspace_ptrs
+    return esd
 end
 
 function sd_basis(Ns::Vector{CCMatrix{T, C}}, ring::Ring) where {T, C}
