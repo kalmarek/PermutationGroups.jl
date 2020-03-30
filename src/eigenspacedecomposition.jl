@@ -54,13 +54,12 @@ EigenSpaceDecomposition(M::MatrixElem) =
 
 function Base.show(io::IO, ::MIME"text/plain", esd::EigenSpaceDecomposition)
     R = parent(esd.basis)
-    println(io, tuple(diff(esd.eigspace_ptrs)...),
-        " - spliting of $R module of dim $(_dim(esd.basis)).")
-    println(io, esd.basis)
+    println(io, tuple(diff(esd.eigspace_ptrs)...), "-splitting over ", parent(esd.basis))
+    print(io, esd.basis)
 end
 
 function Base.show(io::IO, esd::EigenSpaceDecomposition{R}) where R
-    print(io, diff(esd.eigspace_ptrs), "-eigenspace splitting over ", R)
+    print(io, tuple(diff(esd.eigspace_ptrs)...), "-splitting over ", parent(esd.basis))
 end
 
 Base.length(esd::EigenSpaceDecomposition) = length(esd.eigspace_ptrs)-1
