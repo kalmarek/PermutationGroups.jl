@@ -53,8 +53,8 @@ EigenSpaceDecomposition(M::MatrixElem) =
     EigenSpaceDecomposition(eigen_decomposition!(deepcopy(M))...)
 
 function Base.show(io::IO, ::MIME"text/plain", esd::EigenSpaceDecomposition)
-    R = parent(first(esd))
-    println(io, diff(esd.eigspace_ptrs),
+    R = parent(esd.basis)
+    println(io, tuple(diff(esd.eigspace_ptrs)...),
         " - spliting of $R module of dim $(_dim(esd.basis)).")
     println(io, esd.basis)
 end
