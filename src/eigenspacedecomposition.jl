@@ -1,25 +1,33 @@
-function LinearAlgebra.eigen(M::Generic.MatSpaceElem{GF}) where GF <: FinFieldElem
+function LinearAlgebra.eigen(M::Generic.MatrixElem{GF}) where GF <: FinFieldElem
     @assert ==(size(M)...)
     F = base_ring(M)
     Id = identity_matrix(M)
-    eigen = Dict{elem_type(F), typeof(M)}()
-    count = 0
+    eigen = Dict{Int, typeof(M)}()
+    cumdim = 0
     for i in 0:order(F)-1
-        count >= size(M, 1) && break
-
-        e = F(i)
-        nullity, basis = nullspace(M - e*Id)
-        @debug e nullity, basis
+        cumdim >= _dim(M) && break
+        nullity, basis = nullspace(M - i*Id) # looking for right eigenspaces
         if nullity > 0
-            count += nullity
-            !iszero(basis[1,1]) && multiply_column!(basis, inv(basis[1,1]), 1)
-            eigen[e] = basis
+            @debug "eigenvalue over F found: " e nullity, basis
+            cumdim += nullity
+
+            # for j in 1:ncols(basis)
+            j = 1
+            for i in 1:nrows(basis)
+                if !iszero(basis[i, j]) && !isone(basis[i, j])
+                    multiply_column!(basis, inv(basis[i,j]), j)
+                    break
+                end
+            end
+            # end
+
+            eigen[i] = basis
         end
     end
     return eigen
 end
 
-_dim(M::MatrixElem) = size(M, 2) # we're column based
+_dim(M::MatrixElem) = size(M, 2) # we're right eigenspaces, hence column-based
 _dims_to_ptrs!(dims) = (pushfirst!(dims, 1); cumsum!(dims, dims))
 
 function eigen_decomposition!(M::MatrixElem{R}, eigspace_ptrs=Vector{Int}()) where R <: RingElement
@@ -31,7 +39,7 @@ function eigen_decomposition!(M::MatrixElem{R}, eigspace_ptrs=Vector{Int}()) whe
         dim = _dim(basis)
         cd = eigspace_ptrs[end]
         ran = cd:cd+dim-1
-        M[:, ran] = basis
+        M[:, ran] = basis # we're column based
         push!(eigspace_ptrs, cd+dim)
     end
     @assert eigspace_ptrs[end] == _dim(M)+1
@@ -56,6 +64,7 @@ function Base.show(io::IO, esd::EigenSpaceDecomposition{R}) where R
 end
 
 Base.length(esd::EigenSpaceDecomposition) = length(esd.eigspace_ptrs)-1
+# right eigenspaces for left, (row-)eigenspaces), inv switches places
 _change_basis(M::MatrixElem, basis::MatrixElem) = inv(basis)*M*basis
 
 LinearAlgebra.isdiag(esd::EigenSpaceDecomposition) =
@@ -71,13 +80,12 @@ function refine!(esd::EigenSpaceDecomposition{R}, M::MatrixElem{R}) where R
     return esd
 end
 
-function sd_basis(Ns::Vector{CCMatrix{T, C}}, ring::Ring) where {T, C}
+function sd_basis(Ns, ring::Ring)
     @assert !isempty(Ns)
-    esd = EigenSpaceDecomposition([matrix(ring, first(Ns))])
-
+    esd = EigenSpaceDecomposition(matrix(ring, first(Ns)))
     for N in Iterators.rest(Ns, 2)
-        esd = refine(esd, matrix(ring, N))
-        @debug N [isone(size(es,2)) for es in esd]
+        esd = refine!(esd, matrix(ring, N))
+        @debug N esd.eigspace_ptrs
         isdiag(esd) && return esd
     end
     return esd
