@@ -5,7 +5,6 @@ using Test
 using Revise
 using PermutationGroups
 
-
 sd = let G = SymmetricGroup(4)
     S = gens(G)
     ccG = conjugacy_classes(G)
