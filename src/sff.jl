@@ -19,6 +19,13 @@ function Base.show(io::IO, sff::SFF)
 end
 
 function roots(sff::SFF)
+    roots = AbstractAlgebra.GFElem{Int64}[]
+    for f in sff.facts
+        if degree(f) == 1
+            push!(roots, -f.coeffs[1])
+        end
+    end
+    return roots
 end
 
 function pth_root(a, T, char::Int)
