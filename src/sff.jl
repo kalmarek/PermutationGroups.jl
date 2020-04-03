@@ -18,6 +18,9 @@ function Base.show(io::IO, sff::SFF)
     print(io, "( $(sff.facts[end]) )^$(sff.mults[end])")
 end
 
+function roots(sff::SFF)
+end
+
 function pth_root(a, T, char::Int)
     @assert derivative(a) == 0
     k = Int((length(a.coeffs)-1)/char)
