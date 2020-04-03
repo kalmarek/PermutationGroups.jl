@@ -1,51 +1,62 @@
-"""
-   Algorithm: SFF (Square-Free Factorization)
-   Input: A monic polynomial f in Fq[x] where q=p^m
-   Output: Square-free factorization of f
-   R ← 1
-   # Make w be the product (without multiplicity) of all factors of f that have 
-   # multiplicity not divisible by p
-   c ← gcd(f, f′)
-   w ← f/c 
-   
-   # Step 1: Identify all factors in w
-   i←1 
-   while w ≠ 1 do
-       y ← gcd(w, c)
-       fac ← w/y
-       R ← R·faci
-       w ← y; c ← c/y; i ← i+1 
-   end while
-   # c is now the product (with multiplicity) of the remaining factors of f
-   
-   # Step 2: Identify all remaining factors using recursion
-   # Note that these are the factors of f that have multiplicity divisible by p
-   if c ≠ 1 then
-       c ← c1/p
-       R ← R·SFF(c)p
-   end if 
-   
-   Output(R)
-"""
-#=
-F = GF(2)
-M = matrix(F, [1 0; 1 1])
-R, T = PolynomialRing(F, string(gensym()))
-p = minpoly(R, M)
-=#
 export square_free_factorization
-function square_free_factorization(f, char)    
-    factors = typeof(f)[]
-    c = gcd(f, derivative(f))
-    _, w = divides(f, c)
-    while !(w == 1)
-        y = gcd(w, c)
-        _, fac = divides(w, y)
-        push!(factors, fac)
-        w = y
-        _, c = divides(c, y)
+
+mutable struct SFF{T}
+    facts::Vector{T}
+    mults::Vector{Int}
+end
+
+SFF{T}() where T= SFF(T[], Int[])
+
+function Base.:^(sff::SFF, e::Int)
+    return SFF(sff.facts, sff.mults.*e)
+end
+
+function Base.show(io::IO, sff::SFF)
+    for i = 1:length(sff.mults)-1
+        print(io, "( $(sff.facts[i]) )^$(sff.mults[i]) * ")
     end
-    
-    # do we have to care about the second step?
+    print(io, "( $(sff.facts[end]) )^$(sff.mults[end])")
+end
+
+function pth_root(a, T, char::Int)
+    @assert derivative(a) == 0
+    k = Int((length(a.coeffs)-1)/char)
+    b = a.coeffs[1]
+    for i = 1:k
+        b += a.coeffs[i*char+1]*T^i
+    end
+    return b
+end
+
+function square_free_factorization(a, T, char) 
+    @assert last(a.coeffs) == 1 "Input not monic."
+    i = 1
+    factors = SFF{typeof(a)}()
+    b = derivative(a)
+    if !( b == 0)
+        c = gcd(a, b)
+
+        _, w = divides(a, c)
+        while !(w == 1)
+            y = gcd(w, c)
+            _, z = divides(w, y)
+            if !(z == 1)
+                push!(factors.facts, z)
+                push!(factors.mults, i)
+            end
+            i += 1
+            w = y
+            _, c = divides(c, y)
+        end
+        if !( c == 1)
+            c = pth_root(c, T, char)
+            nsff = square_free_factorization(c, T, char)^char
+            append!(factors.facts, nsff.facts)
+            append!(factors.mults, nsff.mults)
+        end
+    else
+        a = pth_root(a, T, char)
+        factors = square_free_factorization(a, T, char)^char
+    end
     return factors
 end
