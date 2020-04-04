@@ -28,17 +28,17 @@ function (χ::AbstractClassFunction)(g::GroupElem)
     throw(DomainError(g, "element does not belong to conjugacy classes of χ"))
 end
 
-function LinearAlgebra.dot(v::AbstractCharacter{T}, w::AbstractCharacter{T}) where T<:FinFieldElem
+function LinearAlgebra.dot(χ::AbstractClassFunction{T}, ψ::AbstractClassFunction{T}) where T <: FinFieldElem
     # TODO: @assert v.cc == w.cc
 
-    F = parent(first(v.vals)) # TODO make something better here
-    ord = F(sum(length, v.cc))
-    val = mapreduce(
-        (i, cc) -> v.vals[i]*w.vals[i]*inv(length(cc)),
-        +,
-        enumerate(v.cc),
-        init = F(0)
-    )
-    val *= inv(ord)
-    return sqrt(val)
+    R = parent(χ[1]) # TODO make something better here
+    val = zero(R)
+
+    for (i, cc) in enumerate(χ.cc)
+        val += R(length(cc)) * χ[i] * ψ[-i]
+    end
+
+    orderG = R(sum(length, χ.cc))
+    val *= inv(orderG)
+    return val
 end
