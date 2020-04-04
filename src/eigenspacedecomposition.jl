@@ -4,9 +4,9 @@ function LinearAlgebra.eigen(M::Generic.MatrixElem{GF}) where GF <: FinFieldElem
     Id = identity_matrix(M)
     eigen = Dict{Int, typeof(M)}()
     cumdim = 0
-    for i in 0:Int(order(F))-1
+    for e in 0:Int(order(F))-1
         cumdim >= _dim(M) && break
-        nullity, basis = nullspace(M - i*Id) # looking for right eigenspaces
+        nullity, basis = nullspace(M - e*Id) # looking for right eigenspaces
         if nullity > 0
             @debug "eigenvalue over F found: " e nullity, basis
             cumdim += nullity
@@ -21,7 +21,7 @@ function LinearAlgebra.eigen(M::Generic.MatrixElem{GF}) where GF <: FinFieldElem
             end
             # end
 
-            eigen[i] = basis
+            eigen[e] = basis
         end
     end
     return eigen
