@@ -54,33 +54,33 @@ for OrbT in [Symbol("Orbit", i) for i in 1:5]
     end
 end
 
-conjugacy_classes(G::AbstractAlgebra.Group) = conjugacy_classes(gens(G), order(G))
+conjugacy_classes(G::AbstractAlgebra.Group) = conjugacy_classes_orbit(G)
 
-function conjugacy_classes(S::AbstractVector{<:GroupElem},
-        ordG=order(parent(first(S))))
+function conjugacy_classes_orbit(G::AbstractAlgebra.AbstractPermutationGroup)
 
-    G = parent(first(S))
-    id = one(first(S))
+    id = one(G)
+    S = gens(G)
+    ordG = order(G)
 
     cclasses = [Orbit([id], Dict(id=>nothing))]
-    perm_ts = Dict(permtype(id) => [1])
+    perm_types = Dict(permtype(id) => [1])
     elts_counted = 1
 
     for g in G
-        g_type = permtype(id)
-        if haskey(perm_ts, g_type)
-            for idx in perm_ts[g_type]
+        g_type = permtype(g)
+        if haskey(perm_types, g_type)
+            for idx in perm_types[g_type]
                 g in cclasses[idx] && @goto nextelement
             end
             orb = Orbit(S, g, ^)
             elts_counted += length(orb)
             push!(cclasses, orb)
-            push!(perm_ts[g_type], lastindex(cclasses))
+            push!(perm_types[g_type], lastindex(cclasses))
         else
             orb = Orbit(S, g, ^)
             elts_counted += length(orb)
             push!(cclasses, orb)
-            perm_ts[g_type] = [lastindex(cclasses)]
+            perm_types[g_type] = [lastindex(cclasses)]
         end
 
         elts_counted == ordG && break
