@@ -70,13 +70,15 @@ function getindex(esd::EigenSpaceDecomposition, i::Integer)
 end
 
 function Base.iterate(esd::EigenSpaceDecomposition, s=1)
-    s == length(esd) && nothing
+    s > length(esd) && return nothing
     first_last = esd.eigspace_ptrs[s]:esd.eigspace_ptrs[s+1]-1
     return (esd.basis[:, first_last], s+1)
 end
 
 # right eigenspaces for left, (row-)eigenspaces), inv switches places
 _change_basis(M::MatrixElem, basis::MatrixElem) = inv(basis)*M*basis
+
+Base.eltype(::EigenSpaceDecomposition{R, M}) where {R, M} = M
 
 LinearAlgebra.isdiag(esd::EigenSpaceDecomposition) =
     all(isone, diff(esd.eigspace_ptrs))
