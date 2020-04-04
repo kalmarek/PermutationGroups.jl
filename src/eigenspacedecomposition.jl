@@ -4,7 +4,7 @@ function LinearAlgebra.eigen(M::Generic.MatrixElem{GF}) where GF <: FinFieldElem
     Id = identity_matrix(M)
     eigen = Dict{Int, typeof(M)}()
     cumdim = 0
-    for i in 0:order(F)-1
+    for i in 0:Int(order(F))-1
         cumdim >= _dim(M) && break
         nullity, basis = nullspace(M - i*Id) # looking for right eigenspaces
         if nullity > 0
@@ -85,7 +85,14 @@ function refine!(esd::EigenSpaceDecomposition{R}, M::MatrixElem{R}) where R
     m = _change_basis(M, esd.basis)
     @debug "matrices: original (M) and after base change (m)" M m
     m, eigspace_ptrs = eigen_decomposition!(m, esd.eigspace_ptrs)
-    esd.basis.entries .= m.entries
+
+    @assert size(m) == size(esd.basis)
+    for i in 1:nrows(esd.basis)
+        for j in 1:ncols(esd.basis)
+            esd.basis[i,j] = m[i,j]
+        end
+    end
+
     resize!(esd.eigspace_ptrs, length(eigspace_ptrs))
     esd.eigspace_ptrs .= eigspace_ptrs
     return esd

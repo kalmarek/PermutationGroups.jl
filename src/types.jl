@@ -103,8 +103,8 @@ struct CCMatrix{T, C} <: AbstractMatrix{T} # M_r
     end
 end
 
-struct EigenSpaceDecomposition{R <: RingElement}
-    basis::Generic.MatSpaceElem{R}
+struct EigenSpaceDecomposition{R <: RingElement, M <: MatrixElem}
+    basis::M
     eigspace_ptrs::Vector{Int}
 
     function EigenSpaceDecomposition(
@@ -114,6 +114,6 @@ struct EigenSpaceDecomposition{R <: RingElement}
         @assert eigspace_ptrs[1] == 1
         @assert eigspace_ptrs[end] == _dim(basis)+1
 
-        return new{R}(basis, eigspace_ptrs)
+        return new{R, typeof(basis)}(basis, eigspace_ptrs)
     end
 end
