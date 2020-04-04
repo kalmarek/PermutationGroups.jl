@@ -6,7 +6,7 @@ using Revise
 using PermutationGroups
 
 
-sd = let G = SymmetricGroup(4)
+chars = let G = SymmetricGroup(4)
     S = gens(G)
     ccG = conjugacy_classes(G)
 
@@ -19,16 +19,22 @@ sd = let G = SymmetricGroup(4)
     basis = PermutationGroups.sd_basis(Ns, F)
     ib, b = inv(basis.basis), basis.basis
     for N in Ns
+        # basis actually diagonalizes all Ns
         @test isdiag(Matrix(ib*matrix(F,N)*b))
     end
-    basis
+    display(basis)
+    chars = [PermutationGroups.Character(vec(v), ccG) for v in basis]
+
+    # orthogonality of characters:
+    @test isdiag([dot(χ, ψ) for χ in chars, ψ in chars])
+
+    chars
 end
 
-sd.basis*sd.basis'
+hcat([χ.vals for χ in chars])
 
 
-sd = let
-    G = PermGroup([perm"(1,2,4,5,3)", perm"(2,5,3,4)"]);
+chars = let G = PermGroup([perm"(1,2,4,5,3)", perm"(2,5,3,4)"]);
     @test order(G) == 20
 
     S = gens(G)
@@ -47,12 +53,23 @@ sd = let
     F = GF(PermutationGroups.dixon_prime(ccG))
     # F = GF(41)
     basis = PermutationGroups.sd_basis(Ns, F)
-
+    display(basis)
     ib, b = inv(basis.basis), basis.basis
     for N in Ns
+        # basis actually diagonalizes all Ns
         @test isdiag(Matrix(ib*matrix(F,N)*b))
     end
-    basis
+
+    χ = [PermutationGroups.Character(vec(v), ccG) for v in basis]
+
+    # orthogonality of characters:
+    @test isdiag([dot(χ[i], χ[j]) for i in 1:length(χ), j in 1:length(χ)])
+
+    χ
+end
+
+hcat([χ.vals for χ in chars])
+
 end
 
 
