@@ -6,28 +6,18 @@ function LinearAlgebra.eigen(M::Generic.MatrixElem{GF}) where GF <: FinFieldElem
     cumdim = 0
     for e in 0:Int(order(F))-1
         cumdim >= _dim(M) && break
-        nullity, basis = nullspace(M - e*Id) # looking for right eigenspaces
+        nullity, basis = left_kernel(M - e*Id) # looking for right eigenspaces
         if nullity > 0
-            @debug "eigenvalue over F found: " e nullity, basis
+            rref!(basis)
             cumdim += nullity
-
-            # for j in 1:ncols(basis)
-            j = 1
-            for i in 1:nrows(basis)
-                if !iszero(basis[i, j]) && !isone(basis[i, j])
-                    multiply_column!(basis, inv(basis[i,j]), j)
-                    break
-                end
-            end
-            # end
-
+            @debug "eigenvalue over $F:" M e nullity basis
             eigen[e] = basis
         end
     end
     return eigen
 end
 
-_dim(M::MatrixElem) = size(M, 2) # we're right eigenspaces, hence column-based
+_dim(M::MatrixElem) = size(M, 1) # we're left eigenspaces, hence row-based
 _dims_to_ptrs!(dims) = (pushfirst!(dims, 1); cumsum!(dims, dims))
 
 function eigen_decomposition!(M::MatrixElem{R}, eigspace_ptrs=Vector{Int}()) where R <: RingElement
@@ -39,7 +29,7 @@ function eigen_decomposition!(M::MatrixElem{R}, eigspace_ptrs=Vector{Int}()) whe
         dim = _dim(basis)
         cd = eigspace_ptrs[end]
         ran = cd:cd+dim-1
-        M[:, ran] = basis # we're column based
+        M[ran, :] = basis # we're row based
         push!(eigspace_ptrs, cd+dim)
     end
     @assert eigspace_ptrs[end] == _dim(M)+1
@@ -58,7 +48,7 @@ function Base.show(io::IO, ::MIME"text/plain", esd::EigenSpaceDecomposition)
     print(io, esd.basis)
 end
 
-function Base.show(io::IO, esd::EigenSpaceDecomposition{R}) where R
+function Base.show(io::IO, esd::EigenSpaceDecomposition)
     print(io, tuple(diff(esd.eigspace_ptrs)...), "-splitting over ", parent(esd.basis))
 end
 
@@ -66,17 +56,18 @@ Base.length(esd::EigenSpaceDecomposition) = length(esd.eigspace_ptrs)-1
 
 function getindex(esd::EigenSpaceDecomposition, i::Integer)
     @boundscheck 1<= i <= length(esd)
-    return esd.basis[:, esd.eigspace_ptrs[i]:esd.eigspace_ptrs[i+1]]
+    return esd.basis[esd.eigspace_ptrs[i]:esd.eigspace_ptrs[i+1], :] # row based
 end
 
 function Base.iterate(esd::EigenSpaceDecomposition, s=1)
     s > length(esd) && return nothing
     first_last = esd.eigspace_ptrs[s]:esd.eigspace_ptrs[s+1]-1
-    return (esd.basis[:, first_last], s+1)
+    return (esd.basis[first_last, :], s+1) # row based
 end
 
-# right eigenspaces for left, (row-)eigenspaces), inv switches places
-_change_basis(M::MatrixElem, basis::MatrixElem) = inv(basis)*M*basis
+# right eigenspaces: inverse on the left
+# for left, (row-)eigenspaces), inverse on the right
+_change_basis(M::MatrixElem, basis::MatrixElem) = basis*M*inv(basis)
 
 Base.eltype(::EigenSpaceDecomposition{R, M}) where {R, M} = M
 

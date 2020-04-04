@@ -101,27 +101,15 @@ mutable struct Character{T, CC} <: AbstractClassFunction{T}
         R = parent(first(v))
         id = one(first(first(ccls)))
         if !isone(χ(id))
-            w = inv(χ(id))
-            χ.vals .*= w
+            χ.vals .*= inv(χ(id))
         end
-
 
         # computing the degree of χ:
-        res = zero(R)
-        for (i, cc) in enumerate(ccls)
-            res += inv(R(length(cc)))*χ[i]*χ[-i]
-        end
-
-        order_G = R(sum(length, ccls))
-        res *= inv(order_G)
-
-        deg_χ = sqrt(inv(res))
+        deg_χ = sqrt(inv(dot(χ, χ)))
+        @debug χ.vals, deg_χ
 
         # renormalizing χ
         χ.vals .*= deg_χ
-        for (i, cc) in enumerate(ccls)
-            χ.vals[i] *= inv(R(length(cc)))
-        end
 
         return χ
     end
