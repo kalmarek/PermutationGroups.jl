@@ -85,11 +85,46 @@ mutable struct PermGroup{I<:Integer, SC<:StabilizerChain} <: AbstractAlgebra.Abs
     end
 end
 
-abstract type AbstractCharacter{T} end # <: AbstractVector{T} ??
+abstract type AbstractClassFunction{T} end # <: AbstractVector{T} ??
 
-mutable struct Character{T, CC} <: AbstractCharacter{T}
+mutable struct Character{T, CC} <: AbstractClassFunction{T}
     vals::Vector{T}
     cc::Vector{CC}
+    inv_of::Vector{Int16}
+
+    function Character(v::AbstractVector{T}, ccls::AbstractVector{CCl},
+        inv_of=_inv_of(Int16, ccls)) where {T, CCl}
+
+        χ = new{T, CCl}(v, ccls, inv_of)
+
+        # initial normalization
+        R = parent(first(v))
+        id = one(first(first(ccls)))
+        if !isone(χ(id))
+            w = inv(χ(id))
+            χ.vals .*= w
+        end
+
+
+        # computing the degree of χ:
+        res = zero(R)
+        for (i, cc) in enumerate(ccls)
+            res += inv(R(length(cc)))*χ[i]*χ[-i]
+        end
+
+        order_G = R(sum(length, ccls))
+        res *= inv(order_G)
+
+        deg_χ = sqrt(inv(res))
+
+        # renormalizing χ
+        χ.vals .*= deg_χ
+        for (i, cc) in enumerate(ccls)
+            χ.vals[i] *= inv(R(length(cc)))
+        end
+
+        return χ
+    end
 end
 
 struct CCMatrix{T, C} <: AbstractMatrix{T} # M_r
