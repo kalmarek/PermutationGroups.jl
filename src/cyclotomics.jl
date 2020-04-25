@@ -42,6 +42,7 @@ function zumbroich_plain(n::Integer, m::Integer=1)
     w = (sum.(Iterators.product(exps...))) .% n
     return sort!(vec(w))
 end
+
 ###############################################################################
 #
 # Forbidden residues, i.e. the complement of the Zumbroich basis
@@ -120,6 +121,7 @@ end
 
 zumbroich = zumbroich_complement
 
+###############################################################################
 #
 #   Cyclotomics
 
@@ -178,6 +180,38 @@ Base.deepcopy_internal(α::Cyclotomic, ::IdDict) = Cyclotomic(deepcopy(α.coeffs
 Base.iszero(α::Cyclotomic) = all(iszero, values(α))
 # Base.isone(α::Cyclotomic) = isone(c[0]) && all(iszero(α.coeffs[i]) for i in 1:length(conductor))
 
+####
+#   normalform (reduction to Zumbroich basis)
+
+normalform(α::Cyclotomic, n=conductor(α)) = normalform!(deepcopy(α), n)
+
+function normalform!(α::Cyclotomic, n=conductor(c))
+    n == conductor(α) || throw("Embeddings are not implemented yet")
+
+    basis, forbidden = let
+        b, f = Cyclotomics._zumbroich_complement(n)
+        BitSet(b), f
+    end
+    @show forbidden
+
+    all(in(basis), exponents(α)) && return α
+
+    for ((p, q), forbidden_residues) in forbidden
+        # @debug p forbidden_residues
+        for i in exponents(α)
+            if i % q ∈ forbidden_residues
+                # @debug "removing $(α[i])*ζ^$i from" α
+                ndivp = div(n, p)
+                for e in 1:p-1
+                    α[i+e*ndivp] -= α[i]
+                end
+                α[i] = 0
+                # @debug "after removal:" α
+            end
+        end
+    end
+    return α
+end
 
 ####
 #   Arithmetic
@@ -262,4 +296,5 @@ function Base.show(io::IO, α::Cyclotomic{T}) where T
         end
     end
 end
+
 end # of module Cyclotomics
