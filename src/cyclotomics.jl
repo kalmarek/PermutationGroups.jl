@@ -14,11 +14,11 @@ function J(k::Integer, p::Integer)
         return ifelse(iszero(k), 0:0, 0:1)
     else
         pm1 = convert(Int, p) - 1
-        return ifelse(iszero(k), 1:pm1, -pm1>>1:pm1>>1 )
+        return ifelse(iszero(k), 1:pm1, -pm1>>1:pm1>>1)
     end
 end
 
-function zumbroich_plain(n::Integer, m::Integer=1)
+function zumbroich_plain(n::Integer, m::Integer = 1)
 
     # following the description of
     # https://www.gap-system.org/Manuals/doc/ref/chap60_mj.html#X7F52BEA0862E06F2
@@ -30,11 +30,11 @@ function zumbroich_plain(n::Integer, m::Integer=1)
     factors_m = factor(m)
 
     exps = Vector{Int}[]
-    sizehint!(exps, 2length(factors_n))
+    sizehint!(exps, 2 * length(factors_n))
 
     for (p, ν) in factors_n
-        for k in factors_m[p]:ν-1
-            push!(exps, [div(n, p^(k+1))*j for j in J(k,p)])
+        for k = factors_m[p]:ν-1
+            push!(exps, [div(n, p^(k + 1)) * j for j in J(k, p)])
         end
     end
 
@@ -46,13 +46,13 @@ end
 #
 # Forbidden residues, i.e. the complement of the Zumbroich basis
 
-function _forbidden_residues(n, p, ν, q=p^ν)
+function _forbidden_residues(n, p, ν, q = p^ν)
     k = div(n, q)
     if isodd(p)
-        a = (p^(ν-1) - 1) >> 1
+        a = (p^(ν - 1) - 1) >> 1
         return BitSet((k*(-a+q):k:k*(a+q)) .% q)
     else # iseven(p)
-        return BitSet((k*(q >> 1):k:k*(q-1)) .% q)
+        return BitSet((k*(q>>1):k:k*(q-1)) .% q)
     end
 end
 
@@ -60,10 +60,13 @@ struct ForbiddenResidues{I}
     primes_powers::Vector{Tuple{I,I,BitSet}}
 end
 
-function ForbiddenResidues(n::Integer, pf::Primes.Factorization{I}=factor(n)) where I
+function ForbiddenResidues(
+    n::Integer,
+    pf::Primes.Factorization{I} = factor(n),
+) where {I}
     l = length(pf)
-    primes_powers = Vector{Tuple{I,I, BitSet}}(undef, l)
-    for (i, (p,ν)) in enumerate(pf)
+    primes_powers = Vector{Tuple{I,I,BitSet}}(undef, l)
+    for (i, (p, ν)) in enumerate(pf)
         pν = p^ν
         primes_powers[i] = (p, pν, _forbidden_residues(n, p, ν, pν))
     end
@@ -72,8 +75,8 @@ end
 
 Base.length(fr::ForbiddenResidues) = length(fr.primes_powers)
 
-Base.iterate(fr::ForbiddenResidues, s=1) =
-    (s > length(fr) ? nothing : (fr.primes_powers[s], s+1))
+Base.iterate(fr::ForbiddenResidues, s = 1) =
+    (s > length(fr) ? nothing : (fr.primes_powers[s], s + 1))
 
 @inline function Base.in(n::Integer, fr::ForbiddenResidues)
     @assert n ≥ 0
@@ -83,19 +86,19 @@ Base.iterate(fr::ForbiddenResidues, s=1) =
     return false
 end
 
-function _zumbroich_complement_old(n::Integer, factor_n=factor(n))
+function _zumbroich_complement_old(n::Integer, factor_n = factor(n))
     # following the wonderful documenting comments at the top of
     # https://github.com/gap-system/gap/blob/master/src/cyclotom.c
 
     factor_n = factor(n)
-    forbidden = [(p,p^ν)=>_forbidden_residues(n, p, ν, p^ν) for (p, ν) in factor_n]
+    forbidden =
+        [(p, p^ν) => _forbidden_residues(n, p, ν, p^ν) for (p, ν) in factor_n]
     isone(n) && return [0], forbidden
 
     exps = Vector{typeof(n)}(undef, totient(factor_n))
-    # @show forbidden
     count = 0
-    for i in 0:n-1
-        for ((_,q), forbidden_residues) in forbidden
+    for i = 0:n-1
+        for ((_, q), forbidden_residues) in forbidden
             if i % q ∈ forbidden_residues
                 @goto next_i
             end
@@ -109,7 +112,7 @@ function _zumbroich_complement_old(n::Integer, factor_n=factor(n))
 end
 
 
-function _zumbroich_complement(n::Integer, factor_n=factor(n))
+function _zumbroich_complement(n::Integer, factor_n = factor(n))
 
     # following the wonderful documenting comments at the top of
     # https://github.com/gap-system/gap/blob/master/src/cyclotom.c
@@ -120,7 +123,7 @@ function _zumbroich_complement(n::Integer, factor_n=factor(n))
 
     exps = Vector{typeof(n)}(undef, totient(factor_n))
     count = 0
-    for i in 0:n-1
+    for i = 0:n-1
         i ∈ forbidden && continue
         count += 1
         exps[count] = i
@@ -139,17 +142,17 @@ function zumbroich_direct(n::Integer)
     factor_n = factor(n)
 
     if iseven(n)
-        for k in 1:factor_n[2]-1
-            basis = union!(basis, basis .+ (n>>(k+1)))
+        for k = 1:factor_n[2]-1
+            basis = union!(basis, basis .+ (n >> (k + 1)))
         end
     end
 
     for (p, ν) in factor_n
         p == 2 && continue
-        for k in 0:ν-1
-            ran = div(n, p^(k+1)).*J(k, p)
+        for k = 0:ν-1
+            ran = div(n, p^(k + 1)) .* J(k, p)
             new_basis = typeof(basis)()
-            sizehint!(new_basis, length(basis)*length(ran))
+            sizehint!(new_basis, length(basis) * length(ran))
             for b in basis
                 append!(new_basis, ran .+ b)
             end
