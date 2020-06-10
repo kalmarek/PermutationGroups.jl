@@ -5,7 +5,6 @@ using Primes
 export zumbroich, Cyclotomic, exponents, conductor
 
 
-
 ###############################################################################
 #
 #   Zumproich basis implementation
@@ -57,8 +56,34 @@ function _forbidden_residues(n, p, ν, q=p^ν)
     end
 end
 
-function _zumbroich_complement(n::Integer, )
+struct ForbiddenResidues{I}
+    primes_powers::Vector{Tuple{I,I,BitSet}}
+end
 
+function ForbiddenResidues(n::Integer, pf::Primes.Factorization{I}=factor(n)) where I
+    l = length(pf)
+    primes_powers = Vector{Tuple{I,I, BitSet}}(undef, l)
+    for (i, (p,ν)) in enumerate(pf)
+        pν = p^ν
+        primes_powers[i] = (p, pν, _forbidden_residues(n, p, ν, pν))
+    end
+    return ForbiddenResidues(primes_powers)
+end
+
+Base.length(fr::ForbiddenResidues) = length(fr.primes_powers)
+
+Base.iterate(fr::ForbiddenResidues, s=1) =
+    (s > length(fr) ? nothing : (fr.primes_powers[s], s+1))
+
+@inline function Base.in(n::Integer, fr::ForbiddenResidues)
+    @assert n ≥ 0
+    for (_, q, residues) in fr
+        n % q ∈ residues && return true
+    end
+    return false
+end
+
+function _zumbroich_complement_old(n::Integer, factor_n=factor(n))
     # following the wonderful documenting comments at the top of
     # https://github.com/gap-system/gap/blob/master/src/cyclotom.c
 
@@ -83,8 +108,29 @@ function _zumbroich_complement(n::Integer, )
     return exps, forbidden
 end
 
-zumbroich_complement(n::Integer) = first(_zumbroich_complement(n))
 
+function _zumbroich_complement(n::Integer, factor_n=factor(n))
+
+    # following the wonderful documenting comments at the top of
+    # https://github.com/gap-system/gap/blob/master/src/cyclotom.c
+
+    forbidden = ForbiddenResidues(n, factor_n)
+
+    isone(n) && return [0], forbidden
+
+    exps = Vector{typeof(n)}(undef, totient(factor_n))
+    count = 0
+    for i in 0:n-1
+        i ∈ forbidden && continue
+        count += 1
+        exps[count] = i
+        # count == length(exps) && break
+    end
+    @assert count == length(exps)
+    return exps, forbidden
+end
+
+zumbroich_complement(n::Integer) = first(_zumbroich_complement(n))
 
 function zumbroich_direct(n::Integer)
     isone(n) && return [0]
