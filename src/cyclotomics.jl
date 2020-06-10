@@ -1,6 +1,7 @@
 module Cyclotomics
 
 using Primes
+using SparseArrays
 
 export zumbroich, Cyclotomic, exponents, conductor
 
@@ -173,27 +174,45 @@ zumbroich = zumbroich_complement
 ###############################################################################
 #
 #   Cyclotomics
+"""
+    Cyclotomic(n, coeffs::AbstractVector)
+Element of `n`-th cyclotomic field with coefficients stored as `coeffs`.
 
+To access the internals of a cyclotomic use API functions:
+ * `conductor` - the conductor of a cyclotomic, i.e. the `n` used currently for storage. This might not be the minimal embeding field of a cyclotomic.
+ * `getindex`/`setindex!` - use `α[i]` to access the coefficient at `i`-th power of a cyclotomic (in a circular fashion)
+ * `values`/`exponents` - paired iterators over _non zero_ coefficients/exponents corresponding to _non-zero_ coefficients
+ * `normalform!` - bring a cyclotomic to its unique representation as given by Zumbroich basis (also available in non-modifying form).
+
+!!! warning "Beware!"
+
+    `hash` function will not reduce a cyclotomic to its minimal embedding field, as this may be a very expensive operation, and will compute the `hash` of a cyclotomic _at current embeding_. Therefore _equal cyclotomics_ in different embeddings may have _different hashes_! To avoid this pitfall use `normalform!(α, minimalfield(α))`.
+"""
 struct Cyclotomic{T, A<:AbstractVector{T}} <: Number
+    n::Int
     coeffs::A
 end
 
-Cyclotomic{T}(α::Cyclotomic) where T = Cyclotomic(convert.(T, α.coeffs))
-Cyclotomic(v::V) where V<:AbstractVector = Cyclotomic{eltype(v), V}(v)
+Cyclotomic(v::V) where V<:AbstractVector = Cyclotomic{eltype(v), V}(length(v), v)
+Cyclotomic{T}(α::Cyclotomic) where T = Cyclotomic(conductor(α), convert.(T, α.coeffs))
 
-function E(i, n)
+"""
+    E(n[, i=1])
+Return the `i`-th power of `n`-th root of unity with sparse vector as storage.
+"""
+function E(n, i=1)
     k = totient(n)
     i = (0 <= i < n ? i : mod(i, n))
     coeffs = sparsevec([i+1], [1], n);
     sizehint!(coeffs.nzind, k)
     sizehint!(coeffs.nzval, k)
-    return Cyclotomic(coeffs)
+    return Cyclotomic(n, coeffs)
 end
 
 ####
 #   Low-level interface
 
-conductor(α::Cyclotomic) = length(α.coeffs)
+conductor(α::Cyclotomic) = α.n
 
 _to_index(α::Cyclotomic, idx::Integer) = mod(idx, conductor(α)) + 1
 
