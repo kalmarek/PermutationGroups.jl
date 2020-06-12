@@ -9,4 +9,6 @@ include("schreier.jl")
 include("stabchain.jl")
 include("dixon.jl")
 
+include("cyclotomics.jl")
+
 include("benchmark.jl")

@@ -213,93 +213,110 @@ end
 #   Low-level interface
 
 conductor(α::Cyclotomic) = α.n
+coeffs(α::Cyclotomic) = α.coeffs
 
 _to_index(α::Cyclotomic, idx::Integer) = mod(idx, conductor(α)) + 1
 
 Base.@propagate_inbounds function Base.getindex(α::Cyclotomic, exp::Integer)
-    return α.coeffs[_to_index(α, exp)]
+    return coeffs(α)[_to_index(α, exp)]
 end
 
 Base.getindex(α::Cyclotomic, itr) = [α[i] for i in itr]
 
 Base.@propagate_inbounds function Base.setindex!(α::Cyclotomic, val, exp::Integer)
-    α.coeffs[_to_index(α, exp)] = val
+    coeffs(α)[_to_index(α, exp)] = val
     return val
 end
 
-# general definitions
-Base.values(α::Cyclotomic) = (c for c in α.coeffs if !iszero(c))
-exponents(α::Cyclotomic) = (e for e in 0:conductor(α)-1 if !iszero(α[e]))
+Base.firstindex(::Cyclotomic) = 0
+Base.lastindex(α::Cyclotomic) = conductor(α) - 1
+Base.eachindex(α::Cyclotomic) = firstindex(α):lastindex(α)
+
+# general definitions for iteration
+Base.values(α::Cyclotomic) = (c for c in coeffs(α) if !iszero(c))
+exponents(α::Cyclotomic) = (e for e in eachindex(α) if !iszero(α[e]))
 
 # sparse storage definitions
 Base.values(α::Cyclotomic{T, <:SparseVector}) where T =
-    (c for c in α.coeffs.nzval if !iszero(c))
+    (c for c in coeffs(α).nzval if !iszero(c))
 exponents(α::Cyclotomic{T, <:SparseVector}) where T =
-    (e-1 for (i,e) in enumerate(α.coeffs.nzind) if !iszero(α[e-1]))
+    (e-1 for e in coeffs(α).nzind if !iszero(α[e-1]))
 
-Base.similar(α::Cyclotomic, T::DataType=eltype(α)) = Cyclotomic(similar(α.coeffs, T))
+Base.valtype(::Type{Cyclotomic{T}}) where T = T
+Base.valtype(::Cyclotomic{T}) where T = T
 
-Base.eltype(::Type{Cyclotomic{T}}) where T = T
-Base.eltype(α::Cyclotomic{T}) where T = T
+Base.similar(α::Cyclotomic, T=valtype(α)) = Cyclotomic(similar(coeffs(α), T))
 
-Base.deepcopy_internal(α::Cyclotomic, ::IdDict) = Cyclotomic(deepcopy(α.coeffs))
+Base.deepcopy_internal(α::Cyclotomic, ::IdDict) = Cyclotomic(deepcopy(coeffs(α)))
 
-# TODO: hash, predicates: ==, iszero, isone
-Base.iszero(α::Cyclotomic) = all(iszero, values(α))
-# Base.isone(α::Cyclotomic) = isone(c[0]) && all(iszero(α.coeffs[i]) for i in 1:length(conductor))
+function Base.hash(α::Cyclotomic, h::UInt)
+    normalform!(α)
+    return hash(coeffs(α), hash(conductor(α), hash(Cyclotomic, h)))
+end
+
+function Base.:(==)(α::Cyclotomic, β::Cyclotomic)
+    conductor(α) == conductor(β) || throw("Embeddings are not implemented yet")
+    normalform!(α)
+    normalform!(β)
+    return coeffs(α) == coeffs(β)
+end
+
+Base.iszero(α::Cyclotomic) = all(iszero, values(α)) || (normalform!(α); all(iszero, values(α)))
+Base.isone(α::Cyclotomic) = throw("Not implemented")
 
 ####
 #   normalform (reduction to Zumbroich basis)
 
 normalform(α::Cyclotomic, n=conductor(α)) = normalform!(deepcopy(α), n)
 
-function normalform!(α::Cyclotomic, n=conductor(c))
+function normalform!(α::Cyclotomic{T}, n=conductor(α)) where T
     n == conductor(α) || throw("Embeddings are not implemented yet")
 
-    basis, forbidden = let
-        b, f = Cyclotomics._zumbroich_complement(n)
-        BitSet(b), f
+    basis, forbidden = let (b, fb) =_zumbroich_complement(n)
+        BitSet(b), fb
     end
-    @show forbidden
 
     all(in(basis), exponents(α)) && return α
 
-    for ((p, q), forbidden_residues) in forbidden
+    β = Cyclotomic{T, Vector{T}}(conductor(α), coeffs(α))
+
+    for (p, q, forbidden_residues) in forbidden
+        for i in exponents(β)
         # @debug p forbidden_residues
-        for i in exponents(α)
             if i % q ∈ forbidden_residues
                 # @debug "removing $(α[i])*ζ^$i from" α
                 ndivp = div(n, p)
                 for e in 1:p-1
-                    α[i+e*ndivp] -= α[i]
+                    β[i+e*ndivp] -= β[i]
                 end
-                α[i] = 0
+                β[i] = 0
                 # @debug "after removal:" α
             end
         end
     end
+    α.coeffs .= coeffs(β)
     return α
 end
 
 ####
 #   Arithmetic
 
-Base.zero!(α::Cyclotomic) = (α.coeffs .= 0; α)
+zero!(α::Cyclotomic) = (coeffs(α) .= 0; α)
 Base.zero(α::Cyclotomic) = (res = similar(α); zero!(res))
 Base.one(α::Cyclotomic) = (o = zero(α); o[0] = 1; o)
 
-AbstractAlgebra.add!(out::Cyclotomic, α::Cyclotomic, β::Cyclotomic) =
-    (out.coeffs .= α.coeffs .+ β.coeffs; out)
+add!(out::Cyclotomic, α::Cyclotomic, β::Cyclotomic) =
+    (coeffs(out) .= coeffs(α) .+ coeffs(β); out)
 sub!(out::Cyclotomic, α::Cyclotomic, β::Cyclotomic) =
-    (out.coeffs .= α.coeffs .- β.coeffs; out)
-AbstractAlgebra.mul!(out::Cyclotomic, α::Cyclotomic, c::Number) =
-    (out.coeffs .= α.coeffs .* c; out)
-div!(out::Cyclotomic, α::Cyclotomic, c::Number) =
-    (out.coeffs .= div.(α.coeffs, c); out)
+    (coeffs(out) .= coeffs(α) .- coeffs(β); out)
+mul!(out::Cyclotomic, α::Cyclotomic, c::Real) =
+    (coeffs(out) .= coeffs(α) .* c; out)
+div!(out::Cyclotomic, α::Cyclotomic, c::Real) =
+    (coeffs(out) .= div.(coeffs(α), c); out)
 
-AbstractAlgebra.add!(α::Cyclotomic, β::Cyclotomic) = add!(α, α, β)
+add!(α::Cyclotomic, β::Cyclotomic) = add!(α, α, β)
 sub!(α::Cyclotomic, β::Cyclotomic) = sub!(α, α, β)
-AbstractAlgebra.mul!(α::Cyclotomic{T}, c::T) where T = mul!(α, α, c)
+mul!(α::Cyclotomic{T}, c::T) where T = mul!(α, α, c)
 div!(α::Cyclotomic{T}, c::T) where T = div!(α, α, c)
 
 function Base.:+(α::Cyclotomic{T}, β::Cyclotomic{S}) where {T,S}
@@ -312,31 +329,48 @@ function Base.:-(α::Cyclotomic{T}, β::Cyclotomic{S}) where {T,S}
     return sub!(similar(α, promote_type(T, S)), α, β)
 end
 
-function Base.:+(α::Cyclotomic{T}, r::R) where {T, R<:Real}
-    res = similar(α, promote_type(T, R))
-    res.coeffs .= α.coeffs
-    res.coeffs[0] += r
-    return res
+for op in (:+, :-)
+    @eval begin
+        function Base.$op(α::Cyclotomic{T}, r::R) where {T, R<:Real}
+            res = similar(α, promote_type(T, R))
+            coeffs(res) .= coeffs(α)
+            res[0] = $op(res[0], r)
+            return res
+        end
+    end
 end
 
-function Base.:-(α::Cyclotomic{T}, r::R) where {T, R<:Real}
-    res = similar(α, promote_type(T, R))
-    res.coeffs .= α.coeffs
-    res.coeffs[0] -= r
-    return res
-end
-
-Base.:-(α::Cyclotomic) = Cyclotomic(-α.coeffs)
+Base.:+(r::Real, α::Cyclotomic) = α + r
+Base.:-(r::Real, α::Cyclotomic) = (res = -α; res[0] += r; res)
+Base.:-(α::Cyclotomic) = Cyclotomic(-coeffs(α))
 Base.:*(c::T, α::Cyclotomic{S}) where {S,T<:Number} =
     mul!(similar(α, promote_type(S,T)), α, c)
 Base.:*(α::Cyclotomic, c::T) where T<:Number = c*α
-Base.:(//)(α::Cyclotomic, c::Number) = Cyclotomic(α.coeffs.//c)
-Base.:(/)(α::Cyclotomic, c::Number) = Cyclotomic(α.coeffs./c)
+Base.:(//)(α::Cyclotomic, c::Number) = Cyclotomic(coeffs(α).//c)
+Base.:(/)(α::Cyclotomic, c::Number) = Cyclotomic(coeffs(α)./c)
 
 function Base.div(α::Cyclotomic, c::Number)
-    res = similar(α, first(Base.return_types(div, (eltype(α), typeof(c)))))
+    res = similar(α, first(Base.return_types(div, (valtype(α), typeof(c)))))
     return div!(res, α, c)
 end
+
+function mul!(out::Cyclotomic{T}, α::Cyclotomic, β::Cyclotomic) where T
+    if out === α || out === β
+        out = deepcopy(out)
+    end
+    tmp = Cyclotomic{T, Vector{T}}(conductor(out), zeros(T, conductor(out)))
+
+    for (αe, αc) in zip(exponents(α), values(α))
+        for (βe, βc) in zip(exponents(β), values(β))
+            tmp[αe + βe] += αc*βc
+        end
+    end
+    zero!(out)
+    out.coeffs .= coeffs(tmp)
+    return out
+end
+
+Base.:*(α::Cyclotomic, β::Cyclotomic) = mul!(similar(α), α, β)
 
 ####
 #   IO
@@ -344,6 +378,22 @@ end
 function subscriptify(n::Int)
     subscript_0 = Int(0x2080) # Char(0x2080) -> subscript 0
     return join((Char(subscript_0 + i) for i in reverse(digits(n))))
+end
+
+function superscriptify(n::Int)
+    superscripts = Dict(
+    0 => "⁰",
+    1 => "¹",
+    2 => "²",
+    3 => "³",
+    4 => "⁴",
+    5 => "⁵",
+    6 => "⁶",
+    7 => "⁷",
+    8 => "⁸",
+    9 => "⁹",
+)
+    return join(superscripts[d] for d in reverse(digits(n)))
 end
 
 function Base.show(io::IO, α::Cyclotomic{T}) where T
@@ -358,9 +408,8 @@ function Base.show(io::IO, α::Cyclotomic{T}) where T
                 continue
             end
             sign_str = (val >= zero(T) ? (i == 1 ? "" : " +") : " ")
-            coeff_str = isone(val) ? "" : "$val*"
-            exp_str = isone(exp) ? "" : "^$exp"
-            print(io, sign_str, coeff_str, ζ, exp_str)
+            exp_str = isone(exp) ? "" : "$(superscriptify(exp))"
+            print(io, sign_str, val, "*", ζ, exp_str)
         end
     end
 end
