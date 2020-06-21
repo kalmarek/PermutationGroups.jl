@@ -30,12 +30,12 @@ using .Cyclotomics
     end
 
     @testset "elementary ops" begin
-        @test Cyclotomics.E(5) isa Number
-        @test Cyclotomics.E(5) isa Cyclotomic{Int}
-        @test Cyclotomics.E(5, 0) isa Cyclotomic{Int}
-        @test Cyclotomics.E(5, 6) isa Cyclotomic{Int}
+        @test E(5) isa Number
+        @test E(5) isa Cyclotomic{Int}
+        @test E(5, 0) isa Cyclotomic{Int}
+        @test E(5, 6) isa Cyclotomic{Int}
 
-        E₅ = Cyclotomics.E(5)
+        E₅ = E(5)
         @test valtype(E₅) == Int
         @test Cyclotomic{Float64}(E₅) isa Cyclotomic{Float64}
 
@@ -56,7 +56,7 @@ using .Cyclotomics
     end
 
     @testset "indexing" begin
-        x = Cyclotomics.E(5)
+        x = E(5)
         @test x[0] == 0
         @test x[1] == 1
         @test all(iszero, x[2:5])
@@ -74,8 +74,8 @@ using .Cyclotomics
     end
 
     @testset "aritmetic: +, -, module: *, //" begin
-        x = Cyclotomics.E(5)
-        y = Cyclotomics.E(5,2)
+        x = E(5)
+        y = E(5,2)
 
         @test 2x isa Cyclotomic{Int}
         @test 2.0x isa Cyclotomic{Float64}
@@ -106,8 +106,8 @@ using .Cyclotomics
     end
 
     @testset "*, powering" begin
-        x = Cyclotomics.E(5)
-        y = Cyclotomics.E(5,2)
+        x = E(5)
+        y = E(5,2)
 
         w = x*(x+2y)
         @test x*y isa Cyclotomic{Int}
@@ -133,32 +133,32 @@ using .Cyclotomics
         @test ((1+x^3)^2)[3] == 2
     end
 
-    begin
-        @testset "normal form" begin
-            x = Cyclotomics.E(45) + Cyclotomics.E(45, 5);
-            x.coeffs
-            @test deepcopy(x) !== x
+    @testset "normal form" begin
+        x = E(45) + E(45, 5);
+        x.coeffs
+        @test deepcopy(x) !== x
 
-            y = Cyclotomics.normalform(x);
+        y = Cyclotomics.normalform(x);
 
-            e = Cyclotomics.E(45)
-            w = e + e^2 + e^8 + e^11 + e^17 + e^26 + e^29 + e^38 + e^44
+        e = E(45)
+        w = e + e^2 + e^8 + e^11 + e^17 + e^26 + e^29 + e^38 + e^44
 
-            @test w == y
-            @test x.coeffs != y.coeffs
-            @test y.coeffs == w.coeffs
+        @test w == y
+        @test x.coeffs != y.coeffs
+        @test y.coeffs == w.coeffs
 
-            @test deepcopy(x) == deepcopy(y)
+        @test deepcopy(x) == deepcopy(y)
 
-            @test hash(deepcopy(x)) == hash(deepcopy(y))
-            @test length(Set([deepcopy(x), deepcopy(y), deepcopy(x), deepcopy(y)])) == 1
+        @test hash(deepcopy(x)) == hash(deepcopy(y))
+        @test length(Set([deepcopy(x), deepcopy(y), deepcopy(x), deepcopy(y)])) == 1
 
-            @test iszero(1 + x - x - 1)
+        @test iszero(1 + x - x - 1)
 
-            @test_broken isreal(1+x-x)
-            @test_broken isone(sum(-Cyclotomics.E(5)^i for i in 1:4))
-        end
+        @test_broken isreal(1+x-x)
+        @test_broken isone(sum(-E(5)^i for i in 1:4))
 
+        #tests against GAP
+        @test E(45)^13 == -E(45, 28) - E(45)^43
     end
 
 end
