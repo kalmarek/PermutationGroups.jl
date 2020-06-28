@@ -267,10 +267,10 @@ Base.isone(α::Cyclotomic) = throw("Not implemented")
 ####
 #   normalform (reduction to Zumbroich basis)
 
-normalform(α::Cyclotomic, n=conductor(α)) = normalform!(deepcopy(α), n)
+normalform(α::Cyclotomic) = normalform!(deepcopy(α))
 
-function normalform!(α::Cyclotomic{T}, n=conductor(α)) where T
-    n == conductor(α) || throw("Embeddings are not implemented yet")
+function normalform!(α::Cyclotomic{T}, tmp=Cyclotomic{T, Vector{T}}(conductor(α), coeffs(α))) where T
+    n = conductor(α)
 
     basis, forbidden = let (b, fb) =_zumbroich_complement(n)
         BitSet(b), fb
@@ -278,23 +278,32 @@ function normalform!(α::Cyclotomic{T}, n=conductor(α)) where T
 
     all(in(basis), exponents(α)) && return α
 
-    β = Cyclotomic{T, Vector{T}}(conductor(α), coeffs(α))
-
-    for (p, q, forbidden_residues) in forbidden
-        for i in exponents(β)
-        # @debug p forbidden_residues
-            if i % q ∈ forbidden_residues
-                # @debug "removing $(α[i])*ζ^$i from" α
-                ndivp = div(n, p)
-                for e in 1:p-1
-                    β[i+e*ndivp] -= β[i]
-                end
-                β[i] = 0
-                # @debug "after removal:" α
-            end
+    for fb in forbidden
+        for exp in exponents(tmp)
+            exp in basis && continue
+            _replace_exponent!(tmp, exp, fb)
         end
     end
-    α.coeffs .= coeffs(β)
+
+    α.coeffs .= coeffs(tmp)
+    return α
+end
+
+function _replace_exponent!(α::Cyclotomic, exp::Integer, fb)
+    val = α[exp]
+    p, q, forbidden_exps = fb
+
+    # @debug p forbidden_exps
+    if exp % q ∈ forbidden_exps
+        # @debug "removing $(α[exp])*ζ^$exp from" α
+        m = conductor(α) ÷ p
+        for i in 1:p-1
+            α[exp + i*m] -= val
+            # exp + i*m is not guaranteed to be allowed, but it's larger than exp and hence will be dealt later
+        end
+        α[exp] = 0
+        # @debug "after removal:" α
+    end
     return α
 end
 
