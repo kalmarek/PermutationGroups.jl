@@ -215,7 +215,12 @@ end
 conductor(α::Cyclotomic) = α.n
 coeffs(α::Cyclotomic) = α.coeffs
 
-_to_index(α::Cyclotomic, idx::Integer) = mod(idx, conductor(α)) + 1
+function _to_index(α::Cyclotomic, idx::Integer)
+    # return mod(idx, conductor(α)) + 1
+    0 <= idx < conductor(α) && return idx + 1
+    conductor(α) <= idx && return (idx % conductor(α))+1
+    return (idx % conductor(α)) + conductor(α) + 1
+end
 
 Base.@propagate_inbounds function Base.getindex(α::Cyclotomic, exp::Integer)
     return α.coeffs[_to_index(α, exp)]
@@ -244,15 +249,17 @@ Base.values(α::Cyclotomic) = (α[i] for i in eachindex(α) if !iszero(α[i]))
 exponents(α::Cyclotomic)   = (i    for i in eachindex(α) if !iszero(α[i]))
 
 # sparse storage definitions
-# Base.values(α::Cyclotomic{T, <:SparseVector}) where T =
-#     (c for c in coeffs(α).nzval if !iszero(c))
-# exponents(α::Cyclotomic{T, <:SparseVector}) where T =
-#     (e-1 for e in coeffs(α).nzind if !iszero(α[e-1]))
+Base.values(α::Cyclotomic{T, <:SparseVector}) where T =
+    (c for c in coeffs(α).nzval if !iszero(c))
+exponents(α::Cyclotomic{T, <:SparseVector}) where T =
+    (e-1 for (i,e) in enumerate(coeffs(α).nzind) if !iszero(coeffs(α).nzval[i]))
 
 Base.valtype(::Type{Cyclotomic{T}}) where T = T
 Base.valtype(::Cyclotomic{T}) where T = T
 
-Base.similar(α::Cyclotomic, T=valtype(α), n::Integer=conductor(α)) = Cyclotomic(similar(coeffs(α), T, n))
+Base.similar(α::Cyclotomic, T::Type=valtype(α)) = similar(α, T, conductor(α))
+Base.similar(α::Cyclotomic, m::Integer) = similar(α, valtype(α), m)
+Base.similar(α::Cyclotomic, T::Type, n::Integer) = Cyclotomic(similar(coeffs(α), T, n))
 
 function Base.hash(α::Cyclotomic, h::UInt)
     normalform!(α)
@@ -281,15 +288,25 @@ Base.isone(α::Cyclotomic) = throw("Not implemented")
 
 normalform(α::Cyclotomic) = normalform!(deepcopy(α))
 
-function normalform!(α::Cyclotomic{T}, tmp=Cyclotomic{T, Vector{T}}(conductor(α), coeffs(α))) where T
-    n = conductor(α)
-    @debug "normalizing cyclotomic" conductor(α) coeffs(α)
-
-    basis, forbidden = let (b, fb) =_zumbroich_complement(n)
-        BitSet(b), fb
+function isnormalized(α::Cyclotomic, basis)
+    # return all(in(basis), exponents(α))
+    for e in exponents(α)
+        !(e in basis) && return false
     end
+    return true
+end
 
-    all(in(basis), exponents(α)) && return α
+function normalform!(α::Cyclotomic{T};
+    tmp=Cyclotomic{T, Vector{T}}(conductor(α), coeffs(α)),
+    basis_forbidden = _zumbroich_complement(conductor(α))
+    ) where T
+    # @debug "normalizing:" conductor(α) coeffs(α)
+
+    basis, forbidden = basis_forbidden
+
+    isnormalized(α, BitSet(basis)) && return α
+
+    tmp.coeffs .= coeffs(α)
 
     for fb in forbidden
         for exp in exponents(tmp)
@@ -310,7 +327,7 @@ function _replace_exponent!(α::Cyclotomic, exp::Integer, fb)
     if exp % q ∈ forbidden_exps
         # @debug "removing $(α[exp])*ζ^$exp from" α
         m = conductor(α) ÷ p
-        @debug " " collect(α[exp .+ 1:m:m*(p-1)])
+        # @debug " " collect(α[exp .+ 1:m:m*(p-1)])
 
         # TODO: this doesn't work
         # α[exp .+ 1:m:m*(p-1)] .-= val
@@ -326,8 +343,9 @@ function _replace_exponent!(α::Cyclotomic, exp::Integer, fb)
 end
 
 function embed(α::Cyclotomic, m::Integer)
-    conductor(α) == m && return copy(α)
+    conductor(α) == m && return deepcopy(α)
     if conductor(α) > m
+        @assert conductor(α) % m == 0 "Embeding of ℚ(ζ$(subscriptify(m))) ↪ ℚ(ζ$(subscriptify(conductor(α)))) is not possible."
         return reduced_embedding(α, m)
     else
         k, _r = divrem(m, conductor(α))
@@ -342,11 +360,15 @@ function embed(α::Cyclotomic, m::Integer)
     end
 end
 
-_all_equal(α::Cyclotomic, exps, value) = all(==(value), (α[e] for e in exps))
+function _all_equal(α::Cyclotomic, exps, value)
+    # return all(==(value), (α[e] for e in exps))
+    for e in exps
+        α[e] == value || return false
+    end
+    return true
+end
 
 function reduced_embedding(α::Cyclotomic{T,V}, m::Integer=1) where {T, V}
-    @assert conductor(α) % m == 0 "The embedding field must be a subfiled of α"
-
     k = gcd(exponents(α)...)
     @debug "gcd(exponents(α)) = $k" collect(exponents(α))
 
@@ -363,8 +385,8 @@ function reduced_embedding(α::Cyclotomic{T,V}, m::Integer=1) where {T, V}
 
     if k > 1
         # the trivial reduction E(n)^e → E(n÷k)^(e÷k)
-        @debug "Performing trivial reduction from ℚ(ζ$(subscriptify(n))) → ℚ(ζ$(subscriptify(n÷k)))"
-        for (e,v) in zip(exponents(α), values(α))
+        @debug "Performing trivial reduction from ℚ(ζ$(subscriptify(conductor(α)))) → ℚ(ζ$(subscriptify(conductor(tmp))))"
+        @inbounds for (e,v) in zip(exponents(α), values(α))
             tmp[div(e,k)] = α[e]
         end
     else
