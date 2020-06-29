@@ -1,5 +1,5 @@
-include(joinpath(@__DIR__, "..", "src", "cyclotomics.jl")
-using .Cyclotomics
+# include(joinpath(@__DIR__, "..", "src", "cyclotomics.jl"))
+# using .Cyclotomics
 
 @testset "Cyclotomics" begin
 
@@ -148,6 +148,8 @@ using .Cyclotomics
         @test y.coeffs == w.coeffs
 
         @test deepcopy(x) == deepcopy(y)
+        @test x !== deepcopy(x)
+        @test x.coeffs === copy(x).coeffs
 
         @test hash(deepcopy(x)) == hash(deepcopy(y))
         @test length(Set([deepcopy(x), deepcopy(y), deepcopy(x), deepcopy(y)])) == 1
@@ -156,9 +158,33 @@ using .Cyclotomics
 
         @test_broken isreal(1+x-x)
         @test_broken isone(sum(-E(5)^i for i in 1:4))
+    end
 
-        #tests against GAP
-        @test E(45)^13 == -E(45, 28) - E(45)^43
+
+    @testset "embedding" begin
+        let x = E(45)^5 + E(45)^10
+            @test conductor(Cyclotomics.reduced_embedding(x)) == 9
+            y = Cyclotomics.reduced_embedding(x)
+            @test y == E(9)^2 - E(9)^4 - E(9)^7
+            Cyclotomics.normalform!(x)
+            @test_broken conductor(Cyclotomics.reduced_embedding(x)) == 9
+        end
+    end
+
+    @testset "tests against GAP" begin
+        @test E(9) == -E(9)^4 - E(9)^7
+        @test E(9)^3 == E(3)
+        @test E(6) == -E(3)^2
+
+        @test E(45)^ 4 == -E(45)^19-E(45)^34
+        @test E(45)^13 == -E(45)^28-E(45)^43
+        @test E(45)^14 == -E(45)^29-E(45)^44
+        @test E(45)^22 == -E(45)^ 7-E(45)^37
+
+        @test_broken E(5) + E(3) == -E(15)^2-2*E(15)^8-E(15)^11-E(15)^13-E(15)^14
+        @test (E(5) + E(5)^4) ^ 2 == -2*E(5)-E(5)^2-E(5)^3-2*E(5)^4
+        @test_broken E(5) / E(3) == E(15)^13
+        @test_broken E(5) * E(3) == E(15)^8
     end
 
 end
