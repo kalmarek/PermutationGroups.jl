@@ -218,14 +218,21 @@ coeffs(α::Cyclotomic) = α.coeffs
 _to_index(α::Cyclotomic, idx::Integer) = mod(idx, conductor(α)) + 1
 
 Base.@propagate_inbounds function Base.getindex(α::Cyclotomic, exp::Integer)
-    return coeffs(α)[_to_index(α, exp)]
+    return α.coeffs[_to_index(α, exp)]
 end
 
 Base.getindex(α::Cyclotomic, itr) = [α[i] for i in itr]
 
 Base.@propagate_inbounds function Base.setindex!(α::Cyclotomic, val, exp::Integer)
-    coeffs(α)[_to_index(α, exp)] = val
+    α.coeffs[_to_index(α, exp)] = val
     return val
+end
+
+Base.@propagate_inbounds function Base.setindex!(α::Cyclotomic, val, itr)
+    for exp in itr
+        α[exp] = val
+    end
+    return itr
 end
 
 Base.firstindex(::Cyclotomic) = 0
@@ -233,21 +240,19 @@ Base.lastindex(α::Cyclotomic) = conductor(α) - 1
 Base.eachindex(α::Cyclotomic) = firstindex(α):lastindex(α)
 
 # general definitions for iteration
-Base.values(α::Cyclotomic) = (c for c in coeffs(α) if !iszero(c))
-exponents(α::Cyclotomic) = (e for e in eachindex(α) if !iszero(α[e]))
+Base.values(α::Cyclotomic) = (α[i] for i in eachindex(α) if !iszero(α[i]))
+exponents(α::Cyclotomic)   = (i    for i in eachindex(α) if !iszero(α[i]))
 
 # sparse storage definitions
-Base.values(α::Cyclotomic{T, <:SparseVector}) where T =
-    (c for c in coeffs(α).nzval if !iszero(c))
-exponents(α::Cyclotomic{T, <:SparseVector}) where T =
-    (e-1 for e in coeffs(α).nzind if !iszero(α[e-1]))
+# Base.values(α::Cyclotomic{T, <:SparseVector}) where T =
+#     (c for c in coeffs(α).nzval if !iszero(c))
+# exponents(α::Cyclotomic{T, <:SparseVector}) where T =
+#     (e-1 for e in coeffs(α).nzind if !iszero(α[e-1]))
 
 Base.valtype(::Type{Cyclotomic{T}}) where T = T
 Base.valtype(::Cyclotomic{T}) where T = T
 
-Base.similar(α::Cyclotomic, T=valtype(α)) = Cyclotomic(similar(coeffs(α), T))
-
-Base.deepcopy_internal(α::Cyclotomic, ::IdDict) = Cyclotomic(deepcopy(coeffs(α)))
+Base.similar(α::Cyclotomic, T=valtype(α), n::Integer=conductor(α)) = Cyclotomic(similar(coeffs(α), T, n))
 
 function Base.hash(α::Cyclotomic, h::UInt)
     normalform!(α)
@@ -310,9 +315,10 @@ end
 ####
 #   Arithmetic
 
-zero!(α::Cyclotomic) = (coeffs(α) .= 0; α)
-Base.zero(α::Cyclotomic) = (res = similar(α); zero!(res))
-Base.one(α::Cyclotomic) = (o = zero(α); o[0] = 1; o)
+zero!(α::Cyclotomic{T}) where T = (coeffs(α) .= zero(T); α)
+Base.zero(α::Cyclotomic, m::Integer=conductor(α)) =
+    (res = similar(α, m); zero!(res))
+Base.one(α::Cyclotomic{T}) where T = (res = zero(α); res[0] = one(T); res)
 
 add!(out::Cyclotomic, α::Cyclotomic, β::Cyclotomic) =
     (coeffs(out) .= coeffs(α) .+ coeffs(β); out)
@@ -417,8 +423,9 @@ function Base.show(io::IO, α::Cyclotomic{T}) where T
                 continue
             end
             sign_str = (val >= zero(T) ? (i == 1 ? "" : " +") : " ")
+            val_str = "$val"
             exp_str = isone(exp) ? "" : "$(superscriptify(exp))"
-            print(io, sign_str, val, "*", ζ, exp_str)
+            print(io, sign_str, val_str, "*", ζ, exp_str)
         end
     end
 end
