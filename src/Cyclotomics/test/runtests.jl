@@ -1,5 +1,5 @@
-# include(joinpath(@__DIR__, "..", "src", "cyclotomics.jl"))
-# using .Cyclotomics
+using Test
+using Cyclotomics
 
 @testset "Cyclotomics" begin
 
@@ -14,18 +14,19 @@
         @test 1 in fb
         @test !(2 in fb)
 
-        @test Cyclotomics.zumbroich_complement(9) == [ 2, 3, 4, 5, 6, 7 ]
+        @test Cyclotomics.zumbroich(9) == [ 2, 3, 4, 5, 6, 7 ]
 
         @test !any(in(fb), Cyclotomics.zumbroich(9))
 
         @test Cyclotomics.zumbroich_plain(8) ==
-            Cyclotomics.zumbroich_complement(8) == [ 0, 1, 2, 3 ]
-        @test Cyclotomics.zumbroich_plain(9) ==     Cyclotomics.zumbroich_complement(9) == [ 2, 3, 4, 5, 6, 7 ]
+            Cyclotomics.zumbroich(8) == [ 0, 1, 2, 3 ]
+        @test Cyclotomics.zumbroich_plain(9) ==
+            Cyclotomics.zumbroich(9) == [ 2, 3, 4, 5, 6, 7 ]
 
-        @test Cyclotomics.zumbroich_complement(45) == [ 1, 2, 3, 6, 7, 8, 11, 12, 16, 17, 19, 21, 24, 26, 28, 29, 33, 34, 37, 38, 39, 42, 43, 44 ]
+        @test Cyclotomics.zumbroich(45) == [ 1, 2, 3, 6, 7, 8, 11, 12, 16, 17, 19, 21, 24, 26, 28, 29, 33, 34, 37, 38, 39, 42, 43, 44 ]
 
         @test all(Cyclotomics.zumbroich_plain(i) ==
-            Cyclotomics.zumbroich_complement(i) ==
+            Cyclotomics.zumbroich(i) ==
             Cyclotomics.zumbroich_direct(i) for i in 1:5000)
     end
 
