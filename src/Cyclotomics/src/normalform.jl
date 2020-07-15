@@ -75,7 +75,7 @@ function embed(α::Cyclotomic, m::Integer)
     end
 end
 
-function reduced_embedding(α::Cyclotomic{T,V}, m::Integer=1) where {T, V}
+function _tmp_for_reduced_embedding(α::Cyclotomic{T}) where T
     k = gcd(exponents(α)...)
     @debug "gcd(exponents(α)) = $k" collect(exponents(α))
 
@@ -98,12 +98,17 @@ function reduced_embedding(α::Cyclotomic{T,V}, m::Integer=1) where {T, V}
         end
     else
         @debug "No trivial reduction is possible"
-        tmp.coeffs .= coeffs(α)
+        copyto!(tmp.coeffs, coeffs(α))
     end
+    return tmp
+end
 
-    normalform!(tmp)
+function reduced_embedding(α::Cyclotomic{T,V}, m::Integer=1;
+    tmp = _tmp_for_reduced_embedding(α)) where {T, V}
 
     basis, forbidden = Cyclotomics.zumbroich_viacomplement(conductor(tmp))
+
+    normalform!(tmp, basis_forbidden=(basis, forbidden))
 
     phi_nc = length(basis)
     nz = count(!iszero, coeffs(tmp))
