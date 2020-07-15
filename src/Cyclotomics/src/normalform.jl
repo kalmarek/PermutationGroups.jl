@@ -3,26 +3,34 @@
 
 normalform(α::Cyclotomic) = normalform!(deepcopy(α))
 
-function normalform!(α::Cyclotomic{T};
-    tmp=Cyclotomic{T, Vector{T}}(conductor(α), coeffs(α)),
-    basis_forbidden = zumbroich_viacomplement(conductor(α))
-    ) where T
+function normalform!(
+    α::Cyclotomic{T},
+    tmp = Cyclotomic{T,Vector{T}}(conductor(α), coeffs(α));
+    basis_forbidden = zumbroich_viacomplement(conductor(α)),
+) where {T}
     # @debug "normalizing:" conductor(α) coeffs(α)
+    isnormalized(α, BitSet(first(basis_forbidden))) && return α
+
+    copyto!(coeffs(tmp), coeffs(α))
+    normalform!(tmp, basis_forbidden = basis_forbidden)
+    copyto!(coeffs(α), coeffs(tmp))
+
+    return α
+end
+
+function normalform!(
+    α::Cyclotomic{T,<:DenseVector};
+    basis_forbidden = zumbroich_viacomplement(conductor(α)),
+) where {T}
 
     basis, forbidden = basis_forbidden
-
     isnormalized(α, BitSet(basis)) && return α
-
-    tmp.coeffs .= coeffs(α)
-
     for fb in forbidden
-        for exp in exponents(tmp)
+        for exp in exponents(α)
             exp in basis && continue
-            _replace_exponent!(tmp, exp, fb)
+            _replace_exponent!(α, exp, fb)
         end
     end
-
-    α.coeffs .= coeffs(tmp)
     return α
 end
 
