@@ -56,6 +56,24 @@ using Cyclotomics
         @test deepcopy(E₅).coeffs == E₅.coeffs
     end
 
+    @testset "io strings" begin
+        @test string(E(5)) == " +1*E(5)^1"
+        @test string(-E(5)) == " -1*E(5)^1"
+
+        using Base.Meta
+        x = E(5) + 2E(5)^2
+        @test string(x) == " +1*E(5)^1 +2*E(5)^2"
+        @test eval(Base.Meta.parse(string(x))) == x
+
+        x = E(5) - 2E(5)^2
+        @test string(x) == " +1*E(5)^1 -2*E(5)^2"
+        @test eval(Base.Meta.parse(string(x))) == x
+
+        x = -E(5) + 2E(5)^2
+        @test string(x) == " -1*E(5)^1 +2*E(5)^2"
+        @test eval(Base.Meta.parse(string(x))) == x
+    end
+
     @testset "indexing" begin
         x = E(5)
         @test x[0] == 0
