@@ -1,5 +1,6 @@
 using Test
 using Cyclotomics
+import Cyclotomics.Cyclotomic
 
 @testset "Cyclotomics" begin
 
