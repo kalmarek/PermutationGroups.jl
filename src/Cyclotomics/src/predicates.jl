@@ -19,18 +19,25 @@ end
 
 Base.iszero(α::Cyclotomic) =
     all(iszero, values(α)) || (normalform!(α); all(iszero, values(α)))
-Base.isone(α::Cyclotomic) = throw("Not implemented")
+
+Base.isreal(α::Cyclotomic) = conductor(reduced_embedding(α)) == 1
+
+function Base.isone(α::Cyclotomic)
+    β = reduced_embedding(α)
+    conductor(β) == 1 || return false
+    return isone(β[0])
+end
 
 function isnormalized(α::Cyclotomic, basis)
     # return all(in(basis), exponents(α))
     for e in exponents(α)
-        !(e in basis) && return false
+        e in basis || return false
     end
     return true
 end
 
-function _all_equal(α::Cyclotomic, exps, value)
-    # return all(==(value), (α[e] for e in exps))
+function _all_equal(α::Cyclotomic, exps, value = α[first(exps)])
+    # return all(e -> α[e] == val, exps)
     for e in exps
         α[e] == value || return false
     end

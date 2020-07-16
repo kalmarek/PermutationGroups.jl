@@ -176,10 +176,9 @@ import Cyclotomics.Cyclotomic
 
         @test iszero(1 + x - x - 1)
 
-        @test_broken isreal(1+x-x)
-        @test_broken isone(sum(-E(5)^i for i in 1:4))
+        @test isreal(1+x-x)
+        @test isone(sum(-E(5)^i for i in 1:4))
     end
-
 
     @testset "embedding" begin
         let x = E(45)^5 + E(45)^10
