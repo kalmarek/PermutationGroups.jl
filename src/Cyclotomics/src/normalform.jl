@@ -106,8 +106,22 @@ function _tmp_for_reduced_embedding(α::Cyclotomic{T}) where T
     return tmp
 end
 
-function reduced_embedding(α::Cyclotomic{T,V}, m::Integer=1;
-    tmp = _tmp_for_reduced_embedding(α)) where {T, V}
+"""
+    reduced_embedding(α::Cyclotomic{T,V}[, m::Integer=1[,
+        tmp = _tmp_for_reduced_embedding(normalform!(α))]])
+Return the reduced embedding of `α` into `m`-th cyclotomic field.
+
+If temporary element `tmp` is provided, then
+ * `α` must already be in its normal form, and
+ * `gcd(exponents(α)) == 1`, so that no trivial reduction is possible.
+"""
+function reduced_embedding(α::Cyclotomic{T,V}, m::Integer=1,
+    tmp = _tmp_for_reduced_embedding(normalform!(α))) where {T, V}
+
+    if conductor(tmp) == 1
+        res = Cyclotomic{T, V}(conductor(tmp), coeffs(tmp))
+        return res
+    end
 
     basis, forbidden = Cyclotomics.zumbroich_viacomplement(conductor(tmp))
 
@@ -120,11 +134,15 @@ function reduced_embedding(α::Cyclotomic{T,V}, m::Integer=1;
         phi_nc == nz && # tmp is supported on φ(n) elements
         _all_equal(tmp, exponents(tmp)) # all nz coeffs of tmp are equal
 
-        val = tmp[first(exponents(tmp))]
-        @debug "Cyclotomic is real:" α = -val
+        val = if iseven(length(forbidden))
+            tmp[first(exponents(tmp))]
+        else
+            -tmp[first(exponents(tmp))]
+        end
+        @debug "Cyclotomic is real:" α = val
         res = Cyclotomic{T, V}(m, similar(coeffs(α), m))
         zero!(res)
-        res[0] = -val
+        res[0] = val
         return res
     end
 
