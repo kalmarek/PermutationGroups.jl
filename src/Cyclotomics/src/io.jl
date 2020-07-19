@@ -23,6 +23,7 @@ function superscriptify(n::Int)
 end
 
 function Base.show(io::IO, α::Cyclotomic{T}) where T
+    α = reduced_embedding(α)
     ζ = "ζ"*subscriptify(conductor(α))
     if iszero(α)
         print(io, zero(T))
