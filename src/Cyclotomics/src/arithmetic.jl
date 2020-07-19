@@ -113,14 +113,13 @@ function inv!(out::Cyclotomic{T, <:DenseVector}, α::Cyclotomic, tmp=similar(out
 
     one!(out)
     tmp2 = deepcopy(out)
-
     basis, fb = zumbroich_viacomplement(conductor(α))
     lb = length(basis)
     conjugates_counter = 0
 
     for i in 2:conductor(α)-1
-        conjugates_counter == lb-1 && break # break finish
-        all(x->gcd(i, first(x)) == 1, fb) || continue
+        conjugates_counter == lb-1 && break
+        any(x->gcd(i, first(x)) > 1, fb) && continue
         conjugates_counter += 1
         mul!(tmp2, out, conj!(tmp, α, i))
         copyto!(coeffs(out), coeffs(tmp2))
@@ -132,8 +131,8 @@ function inv!(out::Cyclotomic{T, <:DenseVector}, α::Cyclotomic, tmp=similar(out
     # 1 = α·out/(α·out) = α · out/norm_ℚ(α), hence
     # α¯¹ = out/norm_ℚ(α)
 
-    norm_ℚ = reduced_embedding(mul!(tmp2, out,α))
-    @assert conductor(norm_ℚ) == 1 # norm_ℚ is real
+    norm_ℚ = reduced_embedding(mul!(tmp2, out, α))
+    @assert conductor(norm_ℚ) == 1 "$norm_ℚ" # norm_ℚ is real
     norm_α = norm_ℚ[0]
 
     out = mul!(out, out, inv(norm_α))

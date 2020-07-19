@@ -25,7 +25,10 @@ function Base.isone(α::Cyclotomic)
     return isone(β[0])
 end
 
-function isnormalized(α::Cyclotomic, basis)
+function isnormalized(
+    α::Cyclotomic,
+    basis = first(zumbroich_viacomplement(conductor(α))),
+)
     # return all(in(basis), exponents(α))
     for e in exponents(α)
         e in basis || return false
