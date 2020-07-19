@@ -96,3 +96,5 @@ Base.valtype(::Cyclotomic{T}) where T = T
 Base.similar(α::Cyclotomic, T::Type=valtype(α)) = similar(α, T, conductor(α))
 Base.similar(α::Cyclotomic, m::Integer) = similar(α, valtype(α), m)
 Base.similar(α::Cyclotomic, T::Type, n::Integer) = Cyclotomic(similar(coeffs(α), T, n))
+
+dense(α::Cyclotomic{T}) where T = Cyclotomic{T, Vector{T}}(conductor(α), coeffs(α))
