@@ -90,3 +90,19 @@ for (op, fn) in ((:+, :add!), (:-, :sub!), (:*, :mul!))
         end
     end
 end
+
+function Base.conj!(out::Cyclotomic, α::Cyclotomic, n::Integer=-1)
+    zero!(out)
+    for (exp, c) in zip(exponents(α), values(α))
+        out[n*exp] = c
+    end
+    return out
+end
+
+function Base.conj(α::Cyclotomic, n::Integer=-1)
+    return conj!(similar(α), α, n)
+end
+
+galois_conj(α::Cyclotomic, n::Integer=-1) =
+    (@assert gcd(n, conductor(α)) == 1; conj(α, n))
+
