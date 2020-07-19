@@ -2,9 +2,9 @@
 #   Arithmetic
 
 zero!(α::Cyclotomic{T}) where T = (coeffs(α) .= zero(T); α)
-Base.zero(α::Cyclotomic, m::Integer=conductor(α)) =
-    (res = similar(α, m); zero!(res))
-Base.one(α::Cyclotomic{T}) where T = (res = zero(α); res[0] = one(T); res)
+one!(α::Cyclotomic{T}) where T = (zero!(α); α[0] = one(α[0]); α)
+Base.zero(α::Cyclotomic, m::Integer=conductor(α)) = zero!(similar(α, m))
+Base.one(α::Cyclotomic) = one!(similar(α))
 
 ############################
 # Module structure:
@@ -50,9 +50,7 @@ sub!(out::Cyclotomic, α::Cyclotomic, β::Cyclotomic) =
     (coeffs(out) .= coeffs(α) .- coeffs(β); out)
 
 function mul!(out::Cyclotomic{T}, α::Cyclotomic, β::Cyclotomic) where T
-    tmp = Cyclotomic{T, Vector{T}}(conductor(out), zeros(T, conductor(out)))
-    mul!(tmp, α, β)
-    copyto!(coeffs(out), coeffs(tmp))
+    copyto!(coeffs(out), coeffs(mul!(dense(out), α, β)))
     return out
 end
 
@@ -104,9 +102,7 @@ galois_conj(α::Cyclotomic, n::Integer=-1) =
     (@assert gcd(n, conductor(α)) == 1; conj(α, n))
 
 function inv!(out::Cyclotomic{T}, α::Cyclotomic) where T
-    tmp = Cyclotomic{T, Vector{T}}(conductor(out), Vector{T}(undef, conductor(out)))
-    inv!(tmp, α)
-    copyto!(coeffs(out), coeffs(tmp))
+    copyto!(coeffs(out), coeffs(inv!(dense(out), α)))
     return out
 end
 
@@ -115,8 +111,7 @@ function inv!(out::Cyclotomic{T, <:DenseVector}, α::Cyclotomic, tmp=similar(out
         out = similar(out)
     end
 
-    zero!(out)
-    out[0] = one(T)
+    one!(out)
     tmp2 = deepcopy(out)
 
     basis, fb = zumbroich_viacomplement(conductor(α))
@@ -143,7 +138,7 @@ function inv!(out::Cyclotomic{T, <:DenseVector}, α::Cyclotomic, tmp=similar(out
 
     out = mul!(out, out, inv(norm_α))
 
-    return out, N_α
+    return out
 end
 
 Base.inv(α::Cyclotomic) = inv!(similar(α), α)
