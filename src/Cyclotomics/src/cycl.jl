@@ -67,21 +67,30 @@ end
 #     return itr
 # end
 
-Base.firstindex(::Cyclotomic) = 0
-Base.lastindex(α::Cyclotomic) = conductor(α) - 1
-Base.eachindex(α::Cyclotomic) = firstindex(α):lastindex(α)
-
 # general definitions for iteration
-Base.values(α::Cyclotomic) = (α[i] for i in eachindex(α) if !iszero(α[i]))
-exponents(α::Cyclotomic)   = (i    for i in eachindex(α) if !iszero(α[i]))
+function Base.iterate(α::Cyclotomic, state=0)
+    idx = findnext(!iszero, coeffs(α), state+1)
+    isnothing(idx) && return nothing
+    return (idx-1, coeffs(α)[idx]), idx
+end
 
-# sparse storage definitions
-Base.values(α::Cyclotomic{T, <:SparseVector}) where T =
-    (c for c in coeffs(α).nzval if !iszero(c))
-exponents(α::Cyclotomic{T, <:SparseVector}) where T =
-    (e-1 for (i,e) in enumerate(coeffs(α).nzind) if !iszero(coeffs(α).nzval[i]))
+Base.IteratorSize(::Type{<:Cyclotomic}) = Base.HasLength()
+Base.length(α::Cyclotomic) = count(!iszero, coeffs(α))
+Base.eltype(::Type{<:Cyclotomic{T}}) where T = Tuple{Int, T}
 
-Base.valtype(::Type{Cyclotomic{T}}) where T = T
+"""
+    exponents(α::Cyclotomic)
+Return an iterator over non-zero exponents of `α`, beginning at `0`-th one.
+Matched iterator over coefficients is provided by @ref(values).
+"""
+exponents(α::Cyclotomic) = (first(i) for i in α)
+
+"""
+    values(α::Cyclotomic)
+Return an iterator over non-zero coefficients of `α`, beginning at `0`-th one.
+Matched iterator over exponents is provided by @ref(exponents).
+"""
+Base.values(α::Cyclotomic) = (last(i) for i in α)
 Base.valtype(::Cyclotomic{T}) where T = T
 
 Base.similar(α::Cyclotomic, T::Type=valtype(α)) = similar(α, T, conductor(α))

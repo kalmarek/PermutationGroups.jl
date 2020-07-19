@@ -66,8 +66,8 @@ function mul!(
     end
     zero!(out)
 
-    for (αe, αc) in zip(exponents(α), values(α))
-        for (βe, βc) in zip(exponents(β), values(β))
+    for (αe, αc) in α
+        for (βe, βc) in β
             out[αe+βe] += αc * βc
         end
     end
@@ -93,7 +93,7 @@ end
 
 function Base.conj!(out::Cyclotomic, α::Cyclotomic, n::Integer=-1)
     zero!(out)
-    for (exp, c) in zip(exponents(α), values(α))
+    for (exp, c) in α
         out[n*exp] = c
     end
     return out
