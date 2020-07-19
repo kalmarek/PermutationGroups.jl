@@ -178,6 +178,9 @@ import Cyclotomics.Cyclotomic
 
         @test isreal(1+x-x)
         @test isone(sum(-E(5)^i for i in 1:4))
+        @test isone(E(5)^5)
+        x = E(5)^5
+        @test x == sum(-E(5)^i for i in 1:4)
     end
 
     @testset "embedding" begin
@@ -186,7 +189,7 @@ import Cyclotomics.Cyclotomic
             y = Cyclotomics.reduced_embedding(x)
             @test y == E(9)^2 - E(9)^4 - E(9)^7
             Cyclotomics.normalform!(x)
-            @test_broken conductor(Cyclotomics.reduced_embedding(x)) == 9
+            @test conductor(Cyclotomics.reduced_embedding(x)) == 9
         end
     end
 
@@ -194,16 +197,57 @@ import Cyclotomics.Cyclotomic
         @test E(9) == -E(9)^4 - E(9)^7
         @test E(9)^3 == E(3)
         @test E(6) == -E(3)^2
+        @test E(12)//3 == -1//3*E(12)^7
 
         @test E(45)^ 4 == -E(45)^19-E(45)^34
         @test E(45)^13 == -E(45)^28-E(45)^43
         @test E(45)^14 == -E(45)^29-E(45)^44
         @test E(45)^22 == -E(45)^ 7-E(45)^37
 
-        @test_broken E(5) + E(3) == -E(15)^2-2*E(15)^8-E(15)^11-E(15)^13-E(15)^14
+        @test E(5) + E(3) == -E(15)^2-2*E(15)^8-E(15)^11-E(15)^13-E(15)^14
         @test (E(5) + E(5)^4) ^ 2 == -2*E(5)-E(5)^2-E(5)^3-2*E(5)^4
         @test_broken E(5) / E(3) == E(15)^13
-        @test_broken E(5) * E(3) == E(15)^8
+        @test E(5) * E(3) == E(15)^8
     end
 
+    @testset "conjugation and inverse" begin
+
+        function rand1(α::Cyclotomics.Cyclotomic, u::AbstractRange, k=5)
+            x = zero(eltype(u))*α
+            for (idx, c) in zip(rand(0:conductor(α), k), rand(u, k))
+                x[idx] = c
+            end
+            return x
+        end
+
+        let x = E(45) + E(45)^2
+            @test conj(x,1) == x
+            y = prod(conj(x,i) for i in 2:conductor(x) if gcd(conductor(x), i)==1)
+            @test isreal(x*y)
+            @test y ==
+            E(45)^2+E(45)^3-E(45)^6-E(45)^8+E(45)^11-E(45)^12-2*E(45)^16+
+            E(45)^17+E(45)^19+E(45)^21-2*E(45)^24-E(45)^26-E(45)^28+
+            2*E(45)^29-E(45)^34+E(45)^37-2*E(45)^42-E(45)^43+E(45)^44
+        end
+
+        for x = [E(45)^5 + E(45)^10,
+                E(45) - E(45)^5,
+                rand1(E(45), -5:5, 3),
+                rand1(E(45), -1:1, 5)]
+
+            @test isone(x*inv(x//big(1)))
+        end
+
+        let x = E(45)^5 + big(1)*E(45)^10;
+            y = Cyclotomics.normalform(x)
+            @test inv(y) == -E(9)^2+E(9)^3-E(9)^4 == inv(x)
+            @test inv(y)*x == inv(x)*x == one(x)
+        end
+
+        let x = E(45)^5 + big(1)*E(45)^10;
+            y = Cyclotomics.reduced_embedding(x)
+            @test inv(y) == -E(9)^2+E(9)^3-E(9)^4 == inv(x)
+            @test inv(y)*x == inv(x)*x == one(x)
+        end
+    end
 end
