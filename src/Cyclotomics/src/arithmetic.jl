@@ -77,16 +77,13 @@ end
 
 for (op, fn) in ((:+, :add!), (:-, :sub!), (:*, :mul!))
     @eval begin
-        Base.$op(α::Cyclotomic, β::Cyclotomic) =
-            $op(α, β, Val{conductor(α)==conductor(β)}())
-
-        function Base.$op(α::Cyclotomic{T}, β::Cyclotomic{S}, ::Val{true}) where {T,S}
-            return $fn(similar(α, promote_type(T, S)), α, β)
-        end
-
-        function Base.$op(α::Cyclotomic, β::Cyclotomic, ::Val{false})
-            l = lcm(conductor(α), conductor(β))
-            return $op(embed(α, l), embed(β, l), Val{true}())
+        function Base.$op(α::Cyclotomic{T}, β::Cyclotomic{S}) where {T,S}
+            if conductor(α)==conductor(β)
+                return $fn(similar(α, promote_type(T, S)), α, β)
+            else
+                l = lcm(conductor(α), conductor(β))
+                return $op(embed(α, l), embed(β, l))
+            end
         end
     end
 end

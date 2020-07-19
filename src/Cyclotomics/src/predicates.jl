@@ -3,18 +3,15 @@ function Base.hash(α::Cyclotomic, h::UInt)
     return hash(coeffs(α), hash(conductor(α), hash(Cyclotomic, h)))
 end
 
-Base.:(==)(α::Cyclotomic, β::Cyclotomic) =
-    ==(α, β, Val{conductor(α) == conductor(β)}())
-
-function Base.:(==)(α::Cyclotomic, β::Cyclotomic, ::Val{true})
-    normalform!(α)
-    normalform!(β)
-    return coeffs(α) == coeffs(β)
-end
-
-function Base.:(==)(α::Cyclotomic, β::Cyclotomic, ::Val{false})
-    l = lcm(conductor(α), conductor(β))
-    return ==(embed(α, l), embed(β, l), Val{true}())
+function Base.:(==)(α::Cyclotomic, β::Cyclotomic)
+    if conductor(α) == conductor(β)
+        normalform!(α)
+        normalform!(β)
+        return coeffs(α) == coeffs(β)
+    else
+        l = lcm(conductor(α), conductor(β))
+        return embed(α, l) == embed(β, l)
+    end
 end
 
 Base.iszero(α::Cyclotomic) =
