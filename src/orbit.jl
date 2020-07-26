@@ -53,3 +53,39 @@ for OrbT in [Symbol("Orbit", i) for i in 1:5]
         end
     end
 end
+
+conjugacy_classes(G::AbstractAlgebra.Group) = conjugacy_classes_orbit(G)
+
+function conjugacy_classes_orbit(G::AbstractAlgebra.AbstractPermutationGroup)
+
+    id = one(G)
+    S = gens(G)
+    ordG = order(G)
+
+    cclasses = [Orbit([id], Dict(id=>nothing))]
+    perm_types = Dict(permtype(id) => [1])
+    elts_counted = 1
+
+    for g in G
+        g_type = permtype(g)
+        if haskey(perm_types, g_type)
+            for idx in perm_types[g_type]
+                g in cclasses[idx] && @goto nextelement
+            end
+            orb = Orbit(S, g, ^)
+            elts_counted += length(orb)
+            push!(cclasses, orb)
+            push!(perm_types[g_type], lastindex(cclasses))
+        else
+            orb = Orbit(S, g, ^)
+            elts_counted += length(orb)
+            push!(cclasses, orb)
+            perm_types[g_type] = [lastindex(cclasses)]
+        end
+
+        elts_counted == ordG && break
+        @label nextelement
+    end
+    @assert elts_counted == ordG
+    return cclasses
+end

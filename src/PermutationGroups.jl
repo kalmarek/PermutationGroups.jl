@@ -3,9 +3,11 @@ module PermutationGroups
 using AbstractAlgebra
 using Markdown
 
+import AbstractAlgebra: AbstractPermutationGroup, AbstractPerm, Group, mul!
+
 export AbstractOrbit, Orbit, Transversal, Schreier, StabilizerChain, PermGroup
 export firstmoved, fixes, fixedpoints, lastmoved
-export base, getinv, representative, schreier_sims, sgs, sift
+export base, conjugacy_classes, getinv, representative, schreier_sims, sgs, sift
 
 include("types.jl")
 include("utils.jl")

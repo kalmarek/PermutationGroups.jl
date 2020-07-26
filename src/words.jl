@@ -45,7 +45,7 @@ end
 > Computes the evaluation of group word `w` as a group element in generators
 > `gens`. Optional `init` element is by default the identity.
 """
-function (pw::Word)(gens::Vector{<:GroupElem}, init=Perm(degree(first(gens))))
+function (pw::Word)(gens::Vector{<:GroupElem}, init=one(first(gens)))
     res = init
     @inbounds for i in pw
         res = mul!(res, res, gens[i])
@@ -63,4 +63,4 @@ function representative(gens::Vector{<:GroupElem}, orb::AbstractOrbit{I, <:Integ
     perm_word = Word(gens_inv, orb, pt, op)
     g = perm_word(gens_inv)
     return inv(g)
-end 
+end
