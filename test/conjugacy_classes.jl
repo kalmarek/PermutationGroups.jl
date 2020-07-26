@@ -28,14 +28,3 @@
         @test all(permtype(g) == permtype(first(cc)) for g in cc)
     end
 end
-
-@testset "Dixon algorithm" begin
-    G = SymmetricGroup(4)
-    ccG = conjugacy_classes(G)
-    @test exponent(G) == 12
-    @test exponent(ccG) == 12
-
-    @test PermutationGroups.dixon_prime(G) == PermutationGroups.dixon_prime(ccG)
-    @test PermutationGroups.dixon_prime(20, 20) == 41
-
-end

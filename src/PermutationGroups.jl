@@ -5,8 +5,7 @@ using AbstractAlgebra
 using Primes
 using Markdown
 
-import AbstractAlgebra: AbstractPermutationGroup, AbstractPerm, Group, Ring, 
-mul!
+import AbstractAlgebra: AbstractPermutationGroup, AbstractPerm, Group, mul!
 
 export AbstractOrbit, Orbit, Transversal, Schreier, StabilizerChain, PermGroup
 export firstmoved, fixes, fixedpoints, lastmoved
@@ -20,9 +19,5 @@ include("schreier.jl")
 include("groups.jl")
 include("stabchain.jl")
 include("schreier-sims.jl")
-
-include("eigenspacedecomposition.jl")
-include("characters.jl")
-include("dixon.jl")
 
 end # module
