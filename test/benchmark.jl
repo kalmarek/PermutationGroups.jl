@@ -1,5 +1,5 @@
 
-function test_perf(G::AbstractAlgebra.Group)
+function test_perf(G::PermutationGroups.AbstractAlgebra.Group)
     s = 0
     for g in G
         s += g[1]
@@ -9,7 +9,7 @@ end
 
 @testset "test_perf/benchmark iteration" begin
 
-    G = SymmetricGroup(8)
+    G = PermutationGroups.AbstractAlgebra.SymmetricGroup(8)
     K = PermGroup([perm"(1,5,6,2,4,8)", perm"(1,3,6)(2,5,7,4)(8)"])
     @test test_perf(G) == test_perf(K) == 181440
     @info "Native iteration over S8 group:"

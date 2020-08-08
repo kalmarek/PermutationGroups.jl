@@ -1,6 +1,5 @@
 using PermutationGroups
 using Random
-using AbstractAlgebra
 using Test
 using BenchmarkTools
 
