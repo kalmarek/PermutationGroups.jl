@@ -1,7 +1,7 @@
 @testset "Schreier Vectors and Stabilizers" begin
     Random.seed!(1);
     SIZE=30
-    G = SymmetricGroup(SIZE);
+    G = PermutationGroups.AbstractAlgebra.SymmetricGroup(SIZE);
     S = [rand(G) for _ in 1:3];
 
     pt = 1

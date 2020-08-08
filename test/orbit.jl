@@ -1,4 +1,4 @@
-function manual_orbit(gens::Vector{GEl}, pt::T, op=^) where {GEl <: GroupElem, T}
+function manual_orbit(gens::Vector{GEl}, pt::T, op=^) where {GEl <: PermutationGroups.AbstractAlgebra.GroupElem, T}
     G = parent(gens[1])
     Δ = [pt]
     Δ_set = Set(Δ)
@@ -55,7 +55,7 @@ end
     @test fixedpoints(Perm(Int8[1,2,3,4,5])) isa Vector{Int}
     @test fixedpoints(perm"(1,3,5)") == [2,4]
 
-    g = perm(Int8[1,3,4,2]) # (1)(2,3,4)
+    g = Perm(Int8[1,3,4,2]) # (1)(2,3,4)
     @test fixes(g, 1) == true
     @test fixes(g, 5) == true
     @test [2,1,1,1]^g isa Vector{Int}
@@ -80,7 +80,7 @@ end
 
     @test degree(perm"(1,3)") == 3
     @test degree(perm"(1,3)(5)") == 5
-
+    Generic = PermutationGroups.AbstractAlgebra.Generic
     @test Generic.emb(perm"(1,3)", 5) ≠ perm"(1,3)"
     @test Generic.emb(perm"(1,3)", 5) == perm"(1,3)(5)"
 end
@@ -141,7 +141,7 @@ end
 
     Random.seed!(1);
     SIZE=30
-    G = SymmetricGroup(SIZE);
+    G = PermutationGroups.AbstractAlgebra.SymmetricGroup(SIZE);
     gens = [rand(G) for _ in 1:3];
 
     pt = 7
