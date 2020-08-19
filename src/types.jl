@@ -84,3 +84,5 @@ mutable struct PermGroup{I<:Integer, SC<:StabilizerChain} <: AbstractAlgebra.Abs
         return new{I, SC}(gens, sc)
     end
 end
+
+PermGroup(gens::Vararg{Perm{I}, N}) where {I, N} = PermGroup(collect(gens))
