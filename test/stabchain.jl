@@ -77,12 +77,13 @@ end
 
 @testset "PermGroups" begin
     @test PermGroup([perm"(1)"]) isa PermGroup
-    G = PermGroup([perm"(1)"])
+	@test PermGroup(perm"(1)") isa PermGroup
+    G = PermGroup(perm"(1)")
     @test isdefined(G, :stabchain) == false
     @test order(G) == 1
     @test isdefined(G, :stabchain) == true
 
-    G = PermGroup([perm"(1,2,3,4)", perm"(1,2)(4)"])
+	G = PermGroup(perm"(1,2,3,4)", perm"(1,2)(4)")
     @test StabilizerChain(G) isa StabilizerChain
     sc = StabilizerChain(G)
     @test length(sc) == 3
@@ -100,7 +101,7 @@ end
         @test order(G) == factorial(N)
     end
 
-    G = PermGroup([perm"(1,2,3,4)", perm"(1,2)"])
+    G = PermGroup(perm"(1,2,3,4)", perm"(1,2)")
 
     m = match(r"order (\d+)", string(G))
     @test m === nothing
@@ -111,7 +112,7 @@ end
     m = match(r"order (\d+)", string(G))
     @test parse(Int, m.captures[1]) == 24
 
-    A = PermGroup([perm"(1,2,3)", perm"(2,3,4)"])
+    A = PermGroup(perm"(1,2,3)", perm"(2,3,4)")
     @test order(A) == 12
     m = match(r"order (\d+)", string(A))
     @test parse(Int, m.captures[1]) == 12
