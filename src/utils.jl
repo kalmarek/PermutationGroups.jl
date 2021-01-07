@@ -22,8 +22,7 @@ for (fname, findname) in [(:firstmoved, :findfirst), (:lastmoved, :findlast)]
     @eval begin
         function $fname(p::Generic.Perm{I}, op=^) where I
             k = $findname(i -> i != p.d[i], eachindex(p.d))
-            k == nothing && return zero(I)
-            # isnothing(k) && return zero(I)
+            k === nothing && return zero(I)
             return I(k)
         end
     end
@@ -81,4 +80,3 @@ function AbstractAlgebra.gens(G::Generic.SymmetricGroup)
     a.d[1], a.d[2] = 2, 1
     return [a, b]
 end
-

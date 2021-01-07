@@ -7,7 +7,7 @@ using BenchmarkTools
     include("orbit.jl")
     include("schreier.jl")
     include("stabchain.jl")
-    include("conjugacy_classes.jl")
-
+    include("conj.jl")
+    
     include("benchmark.jl")
 end
