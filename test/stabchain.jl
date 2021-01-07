@@ -81,6 +81,8 @@ end
     G = PermGroup(perm"(1)")
     @test isdefined(G, :stabchain) == false
     @test order(G) == 1
+	@test order(G) isa BigInt
+	@test order(Int, G) isa Int
     @test isdefined(G, :stabchain) == true
 
 	G = PermGroup(perm"(1,2,3,4)", perm"(1,2)(4)")
@@ -88,6 +90,8 @@ end
     sc = StabilizerChain(G)
     @test length(sc) == 3
     @test order(sc) == factorial(4)
+	@test order(sc) isa BigInt
+	@test order(Int, sc) isa Int
 
     @test length(base(G)) == 3
     @test order(G) == factorial(4)
