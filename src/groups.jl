@@ -46,7 +46,9 @@ sgs(G::PermGroup) = sgs(StabilizerChain(G))
 > stabiliser chain for `G` has been already stored in `G`, it will be used for the
 > computation.
 """
-AbstractAlgebra.order(G::PermGroup) = order(StabilizerChain(G))
+AbstractAlgebra.order(G::PermGroup) = order(BigInt, StabilizerChain(G))
+AbstractAlgebra.order(::Type{T}, G::PermGroup) where T =
+	order(T, StabilizerChain(G))
 
 @doc doc"""
     in(g::perm, G::PermGroup)
