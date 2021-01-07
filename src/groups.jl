@@ -18,7 +18,7 @@ AbstractAlgebra.gens(G::PermGroup) = G.gens
 > cached copy.
 > !!! NOTE: !!! It is users responsibility to ensure that the cached copy is
 > completed by call to `schreier_sims!` if the `base` or `gens` are changed
-> manually after groups creation. 
+> manually after groups creation.
 """
 function StabilizerChain(G::PermGroup)
     if !(isdefined(G, :stabchain))
@@ -31,7 +31,7 @@ end
     base(G::PermGroup)
 > Get the base of the group `G`.
 """
-base(G::PermGroup) = StabilizerChain(G).base
+base(G::PermGroup) = base(StabilizerChain(G))
 
 @doc doc"""
     sgs(G::PermGroup)
