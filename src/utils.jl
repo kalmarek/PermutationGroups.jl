@@ -57,8 +57,8 @@ end
 """
     conj!(out::Perm, h::Perm, g::Perm)
 Computes the conjugation action of `g` on `h` and stores the result in `out`.
-The action is understood to be `h → g^-1*h*g`.
-`out` will be unaliased, if necessary.
+
+The action is understood to be `h → g^-1*h*g`. `out` will be unaliased, if necessary.
 """
 function Base.conj!(out::Perm, h::Perm, g::Perm)
     if out === h
