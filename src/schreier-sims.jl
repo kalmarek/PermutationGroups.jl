@@ -1,6 +1,6 @@
 @doc doc"""
     schreier_sims!(sc::StabilizerChain)
-> Complete the `sc`, i.e. run the _full, deterministic_ Schreier-Sims algorithm on `sc`.
+Complete the `sc`, i.e. run the _full, deterministic_ Schreier-Sims algorithm on `sc`.
 """
 function schreier_sims!(sc::StabilizerChain)
     depth = length(sc)
@@ -50,7 +50,7 @@ end
 
 @doc doc"""
     schreier_sims(gens::Vector{perm}, B::Vector{<:Integer}) → StabilizerChain
-> complete `gens` to strong generator set by including `B` as (partial) base.
+Complete `gens` to strong generator set by including `B` as (partial) base.
 """
 function schreier_sims(gens::AbstractVector{Perm{I}}, B::AbstractVector{I}=I[]) where I<:Integer
     sc = StabilizerChain(gens, B)

@@ -28,17 +28,6 @@ for (fname, findname) in [(:firstmoved, :findfirst), (:lastmoved, :findlast)]
     end
 end
 
-function gensstring(gens::AbstractVector{<:Perm}; width=96)
-    str = ""
-    ellipsis = " … "
-
-    str = join(gens, ", ")
-    if length(str) > width
-        str = str[1:width - length(ellipsis)] * ellipsis
-    end
-    return str
-end
-
 #########################################################
 # Misc functions that should go to AbstractAlgebra
 
@@ -57,8 +46,8 @@ end
 """
     conj!(out::Perm, h::Perm, g::Perm)
 Computes the conjugation action of `g` on `h` and stores the result in `out`.
-The action is understood to be `h → g^-1*h*g`.
-`out` will be unaliased, if necessary.
+
+The action is understood to be `h → g^-1*h*g`. `out` will be unaliased, if necessary.
 """
 function Base.conj!(out::Perm, h::Perm, g::Perm)
     if out === h
