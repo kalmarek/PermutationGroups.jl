@@ -71,7 +71,7 @@
     m = match(r"size (\d+)", string(sc))
     @test parse(Int, m.captures[1]) == 20
 
-    m = match(r"Orbit:\s+(\[.*\])", string(sc))
+    m = match(r"Orbit:\s+(\[.*\])", sprint(show, MIME"text/plain"(), sc))
     @test Meta.parse(m.captures[1]) |> eval == collect(sc.transversals[1])
 end
 

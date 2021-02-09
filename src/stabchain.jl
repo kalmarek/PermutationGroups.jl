@@ -35,14 +35,20 @@ function initial_bsgs(gens::AbstractVector{Perm{I}}, B::AbstractVector{I}=I[]) w
     return B, S
 end
 
-function Base.show(io::IO, sc::StabilizerChain)
-    println(io, "StabilizerChain with base $(base(sc)) of size $(order(sc))")
+function Base.show(io::IO, ::MIME"text/plain", sc::StabilizerChain)
+    println(io, "StabilizerChain of size $(order(sc)) with base $(base(sc))")
     for i in 1:length(sc)
         b, S, Δ = sc[i]
         println(io, "Orbit:\t", collect(Δ))
-        println(io, "Stab:\t⟨$(gensstring(S))⟩")
+        println(io, "Stabilized by:")
+		Base.print_array(io, S)
+		println(io, "")
     end
 end
+
+Base.show(io::IO, sc::StabilizerChain) =
+	print(io, "StabilizerChain of size $(order(sc)) with base $(base(sc))")
+
 
 @doc doc"""
     StabilizerChain(gens, B)
