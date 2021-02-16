@@ -52,8 +52,11 @@ end
     @test firstmoved(g) == 2
     @test firstmoved(Perm(5)) == 0
     @test fixedpoints(perm"(1,2,3,4,5)") isa Vector{Int}
+    @test nfixedpoints(perm"(1,2,3,4,5)") == 0
     @test fixedpoints(Perm(Int8[1,2,3,4,5])) isa Vector{Int}
     @test fixedpoints(perm"(1,3,5)") == [2,4]
+    @test nfixedpoints(perm"(1,3,5)") == 2
+    @test nfixedpoints(perm"(1,3,5)(6)") == 3
 
     g = Perm(Int8[1,3,4,2]) # (1)(2,3,4)
     @test fixes(g, 1) == true
