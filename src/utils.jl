@@ -34,9 +34,6 @@ end
 import Base: one, conj
 import AbstractAlgebra: degree
 
-Base.one(G::Generic.SymmetricGroup{I}) where I = Perm(G.n)
-Base.one(g::Perm{I}) where I = Perm(degree(g))
-
 AbstractAlgebra.degree(p::Perm{I}) where I = I(length(p.d))
 
 function Generic.emb(p::Generic.Perm{I}, n) where I
@@ -62,10 +59,11 @@ end
 Base.conj(h::GroupElem, g::GroupElem) = conj!(h, h, g)
 Base.:(^)(h::Perm, g::Perm) = conj(h,g)
 
-function AbstractAlgebra.gens(G::Generic.SymmetricGroup)
+
+AbstractAlgebra.degree(S::Generic.SymmetricGroup) = S.n
+function AbstractAlgebra.gens(G::Generic.SymmetricGroup{I}) where I
     a = one(G)
-    b = one(G)
-    circshift!(b.d, a.d, -1)
     a.d[1], a.d[2] = 2, 1
+    b = Perm(circshift(I(1):degree(G), -1))
     return [a, b]
 end
