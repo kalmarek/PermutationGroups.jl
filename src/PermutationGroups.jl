@@ -10,7 +10,7 @@ export AbstractPermutationGroup, AbstractPerm, Group, GroupElem
 export @perm_str, Perm, degree, order, permtype, gens
 
 export AbstractOrbit, Orbit, Transversal, Schreier, StabilizerChain, PermGroup
-export firstmoved, fixes, fixedpoints, lastmoved
+export firstmoved, fixes, fixedpoints, lastmoved, nfixedpoints
 export base, getinv, representative, schreier_sims, sgs, sift
 
 include("types.jl")
