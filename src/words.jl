@@ -20,7 +20,7 @@ end
 Base.hash(pw::Word, h::UInt) = hash(Word, hash(pw.gens_ptrs, h))
 
 @doc doc"""
-    Word(orb, gens_inv, pt, [^])
+    Word(orb, gens_inv, pt[, op=^])
 Return a `Word` `w` consising of pointers to inverses of generators `gens_inv`.
 
 The group element `r` such that `first(orb)^r = pt` can be reconstructed via
@@ -41,7 +41,7 @@ function Word(gens_inv::Vector{<:GroupElem}, orb::AbstractOrbit{T, I}, pt, op=^)
 end
 
 @doc doc"""
-    (w::Word)(gens, [init])
+    (w::Word)(gens[, init])
 Computes the evaluation of group word `w` as a group element in generators `gens`.
 
 Optional `init` element is by default the group identity.
@@ -55,7 +55,7 @@ function (pw::Word)(gens::Vector{<:GroupElem}, init=one(first(gens)))
 end
 
 @doc doc"""
-    representative(orb, gens, pt, [^])
+    representative(orb, gens, pt[, ^])
 Return a representative of the coset of `Stab(orb)` which takes `first(orb)`
 to `pt` i.e. an element `g` of `⟨gens⟩` such that `first(orb)^g = pt`.
 """
