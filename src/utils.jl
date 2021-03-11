@@ -69,8 +69,14 @@ Base.:(^)(h::Perm, g::Perm) = conj(h,g)
 
 AbstractAlgebra.degree(S::Generic.SymmetricGroup) = S.n
 function AbstractAlgebra.gens(G::Generic.SymmetricGroup{I}) where I
+    if G.n == 1
+        return [one(G)]
+    end
     a = one(G)
     a.d[1], a.d[2] = 2, 1
+    if G.n == 2
+        return [a]
+    end
     b = Perm(circshift(I(1):degree(G), -1))
     return [a, b]
 end
