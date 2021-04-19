@@ -67,21 +67,29 @@ end
 Permutation group (i.e. a sub-group of the full symmetric group).
 If stabilizer chain is not provided, then it will be recomputed _when needed_.
 """
-mutable struct PermGroup{I<:Integer, SC<:StabilizerChain} <: AbstractAlgebra.AbstractPermutationGroup
-    gens::Vector{Generic.Perm{I}}
+mutable struct PermGroup{I<:Integer,SC<:StabilizerChain} <: AbstractPermutationGroup
+    deg::I
+    gens::Vector{Perm{I}}
     stabchain::SC
 
-    function PermGroup(gens::Vector{Generic.Perm{I}}) where I<:Integer
-        maxdegree = maximum(degree.(gens))
-        new_gens = Generic.emb.(gens, maxdegree)
+    function PermGroup(
+        gens::AbstractVector{Perm{I}};
+        maxdegree = maximum(degree.(gens)),
+    ) where {I<:Integer}
+        new_gens = emb.(gens, maxdegree)
         sc = Schreier([first(new_gens)], I(1), ^)
-        return new{I,
-            StabilizerChain{I, Perm{I}, typeof(sc)}}(new_gens)
+        return new{I,StabilizerChain{I,Perm{I},typeof(sc)}}(maxdegree, new_gens)
     end
 
-    function PermGroup(gens::Vector{Generic.Perm{I}}, sc::SC) where {I<:Integer, SC<:StabilizerChain}
-        return new{I, SC}(gens, sc)
+    function PermGroup(gens::AbstractVector{Perm{I}}, sc::SC) where {I<:Integer,SC<:StabilizerChain}
+        return new{I,SC}(maximum(degree.(gens))gens, sc)
     end
 end
 
-PermGroup(gens::Vararg{Perm{I}, N}) where {I, N} = PermGroup(collect(gens))
+PermGroup(gens::Vararg{P,N}) where {P<:AbstractPerm,N} = PermGroup(collect(gens))
+PermGroup(gens::AbstractVector{<:AbstractPerm}) = PermGroup(perm.(gens))
+
+struct Permutation{I, GT<:PermGroup} <: AbstractPerm
+    perm::Perm{I}
+    parent::GT
+end

@@ -36,14 +36,6 @@ for (fname, findname) in [(:firstmoved, :findfirst), (:lastmoved, :findlast)]
     end
 end
 
-#########################################################
-# Misc functions that should go to AbstractAlgebra
-
-import Base: one, conj
-import AbstractAlgebra: degree
-
-AbstractAlgebra.degree(p::Perm{I}) where I = I(length(p.d))
-
 function Generic.emb(p::Generic.Perm{I}, n) where I
     return Generic.emb!(Perm(I(n)), p, 1:degree(p))
 end
@@ -64,13 +56,4 @@ function Base.conj!(out::Perm, h::Perm, g::Perm)
     return out
 end
 
-Base.conj(h::GroupElem, g::GroupElem) = conj!(h, h, g)
-Base.:(^)(h::Perm, g::Perm) = conj(h,g)
-
-AbstractAlgebra.degree(S::Generic.SymmetricGroup) = S.n
-function AbstractAlgebra.gens(G::Generic.SymmetricGroup{I}) where I
-    a = one(G)
-    a.d[1], a.d[2] = 2, 1
-    b = Perm(circshift(I(1):degree(G), -1))
-    return [a, b]
-end
+degree(p::Perm{I}) where I = I(length(p.d))
