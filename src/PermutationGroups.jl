@@ -1,17 +1,20 @@
 module PermutationGroups
 
-using AbstractAlgebra
+using GroupsCore
 using Markdown
 
-import AbstractAlgebra: AbstractPermutationGroup, AbstractPerm, Group, GroupElem, Generic.Perm,
-    mul!, @perm_str, degree, order, permtype, gens
+import GroupsCore.AbstractAlgebra:
+    AbstractPermutationGroup,
+    AbstractPerm,
+    Generic.Perm,
+    @perm_str,
+    permtype
 
-export AbstractPermutationGroup, AbstractPerm, Group, GroupElem
 export @perm_str, Perm, degree, order, permtype, gens
 
 export AbstractOrbit, Orbit, Transversal, Schreier, StabilizerChain, PermGroup
 export firstmoved, fixes, fixedpoints, lastmoved, nfixedpoints
-export base, getinv, representative, schreier_sims, sgs, sift
+export base, representative, schreier_sims, sgs, sift
 
 include("types.jl")
 include("utils.jl")
