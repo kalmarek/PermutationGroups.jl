@@ -39,13 +39,18 @@ following methods:
 `in`, `iterate`, `length`, `eltype`, `first`. By its definition only
 `push!(::Schreier, ::Tuple{S,I}) where I<:Integer` is supported.
 """
-struct Schreier{GEl<:GroupElem, S, I<:Integer, Orb<:AbstractOrbit{S, I}, Op} <: AbstractOrbit{GEl, I}
+struct Schreier{GEl<:GroupElement,S,I<:Integer,Orb<:AbstractOrbit{S,I},Op} <:
+       AbstractOrbit{GEl,I}
     gens_inv::Vector{GEl}
     orb::Orb
     op::Op
 
-    function Schreier(gens_inv::Vector{GEl}, orb::Orb, op::Op=^) where {S, GEl<:GroupElem, I<:Integer, Orb<:AbstractOrbit{S, I}, Op}
-        return new{GEl, S, I, Orb, Op}(gens_inv, orb, op)
+    function Schreier(
+        gens_inv::Vector{GEl},
+        orb::Orb,
+        op::Op = ^,
+    ) where {S,GEl<:GroupElement,I<:Integer,Orb<:AbstractOrbit{S,I},Op}
+        return new{GEl,S,I,Orb,Op}(gens_inv, orb, op)
     end
 end
 
@@ -53,10 +58,10 @@ end
     StabilizerChain(base, sgs, transversals)
 `StabilizerChain` struct with fields
  * `base::Vector{<:Integer}` →  stores the base of the chain
- * `sgs::Vector{Vector{<:GroupElem}}` → for each of base element the strong generating set of its stabilizer
+ * `sgs::Vector{Vector{<:GroupElement}}` → for each of base element the strong generating set of its stabilizer
  * `Transversals::Vector{<:Schreier}` → for each of base element the Schreier Tree of its orbit
 """
-struct StabilizerChain{I, GEl, Schr <: Schreier}
+struct StabilizerChain{I,GEl,Schr<:Schreier}
     base::Vector{I}
     sgs::Vector{Vector{GEl}}
     transversals::Vector{Schr}

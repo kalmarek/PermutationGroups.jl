@@ -13,19 +13,20 @@ end
 @inline Base.iterate(schr::Schreier) = iterate(schr.orb)
 @inline Base.iterate(schr::Schreier, s) = iterate(schr.orb, s)
 @inline Base.length(schr::Schreier) = length(schr.orb)
-@inline Base.eltype(::Schreier{GEl,I}) where {GEl, I} = I
+@inline Base.eltype(::Schreier{GEl,I}) where {GEl,I} = I
 @inline Base.first(schr::Schreier) = first(schr.orb)
 @inline Base.last(schr::Schreier) = last(schr.orb)
-@inline islast(schr::Schreier, pt) = islast(schr.orb,pt)
+@inline islast(schr::Schreier, pt) = islast(schr.orb, pt)
 
-function Base.:(==)(s1::Schreier,s2::Schreier)
+function Base.:(==)(s1::Schreier, s2::Schreier)
     s1.gens_inv == s2.gens_inv || return false
     s1.orb == s2.orb || return false
-    s1.op == s2.op || return  false
+    s1.op == s2.op || return false
     return true
 end
 
-Base.hash(schr::S, h::UInt) where S<:Schreier = hash(S, hash(schr.gens_inv, hash(schr.orb, hash(schr.op, h))))
+Base.hash(schr::S, h::UInt) where {S<:Schreier} =
+    hash(S, hash(schr.gens_inv, hash(schr.orb, hash(schr.op, h))))
 
 @doc doc"""
     Schreier(gens, pt[, op=^])
@@ -46,7 +47,7 @@ function Schreier(OrbT::Type{<:AbstractOrbit}, gens::Vector{<:GroupElement}, pt,
         for (idx, g) in enumerate(gens)
             γ = op(o, g)
             if γ ∉ schr
-                push!(schr,(γ, idx))
+                push!(schr, (γ, idx))
             end
         end
     end
@@ -69,12 +70,12 @@ function orbit_stabilizer(gens::Vector{GEl}, pt, op = ^) where {GEl<:GroupElemen
     schr = Schreier(Orbit1, inv.(gens), pt)
     stab = Vector{GEl}()
     for o in schr
-        for (idx,g) in enumerate(gens)
+        for g in gens
             γ = op(o, g)
             if γ ∉ schr
                 push!(schr, (γ, g))
             else
-                push!(stab, schr[o]*g*getinv(schr, γ))
+                push!(stab, schr[o] * g * getinv(schr, γ))
             end
         end
     end
