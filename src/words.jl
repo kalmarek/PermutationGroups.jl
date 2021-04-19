@@ -29,7 +29,7 @@ The group element `r` such that `first(orb)^r = pt` can be reconstructed via
  * `δ = first(orb)^g`
 then the result _may be_ `[2,3,1]`.
 """
-function Word(gens_inv::Vector{<:GroupElem}, orb::AbstractOrbit{T, I}, pt, op=^) where {T, I<:Integer}
+function Word(gens_inv::AbstractVector{<:GroupElement}, orb::AbstractOrbit{T, I}, pt, op=^) where {T, I<:Integer}
     γ = pt
     res_ptr = I[]
     while γ ≠ first(orb)
@@ -46,7 +46,7 @@ Computes the evaluation of group word `w` as a group element in generators `gens
 
 Optional `init` element is by default the group identity.
 """
-function (pw::Word)(gens::Vector{<:GroupElem}, init=one(first(gens)))
+function (pw::Word)(gens::AbstractVector{<:GroupElement}, init=one(first(gens)))
     res = init
     @inbounds for i in pw
         res = mul!(res, res, gens[i])
@@ -59,9 +59,9 @@ end
 Return a representative of the coset of `Stab(orb)` which takes `first(orb)`
 to `pt` i.e. an element `g` of `⟨gens⟩` such that `first(orb)^g = pt`.
 """
-function representative(gens::Vector{<:GroupElem}, orb::AbstractOrbit{I, <:Integer}, pt::I, op=^) where I<:Integer
+function representative(gens::AbstractVector{<:GroupElement}, orb::AbstractOrbit{I, <:Integer}, pt::I, op=^) where I<:Integer
     gens_inv = inv.(gens)
-    perm_word = Word(gens_inv, orb, pt, op)
-    g = perm_word(gens_inv)
+    word = Word(gens_inv, orb, pt, op)
+    g = word(gens_inv)
     return inv(g)
 end
