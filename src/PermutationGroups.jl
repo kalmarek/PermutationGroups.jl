@@ -25,6 +25,6 @@ include("schreier.jl")
 include("stabchain.jl")
 include("schreier-sims.jl")
 
-include("utils.jl")
+include("actions.jl")
 
 end # module
