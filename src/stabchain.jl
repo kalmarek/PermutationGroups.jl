@@ -48,6 +48,24 @@ end
 Base.show(io::IO, sc::StabilizerChain) =
 	print(io, "StabilizerChain of size $(order(sc)) with base $(base(sc))")
 
+@doc doc"""
+    StabilizerChain(G::PermGroup)
+Construct the stabilizer chain for group `G`.
+
+The first call on a particular group `G` will construct the chain from `gens(G)`
+and complete by the deterministic Schreier-Sims algorithm.
+The subsequent calls just return the cached copy.
+
+!!! Warning !!! It is users responsibility to ensure that the cached copy is
+completed by call to `schreier_sims!` if the `base` or `gens` are changed
+manually after groups creation.
+"""
+function StabilizerChain(G::PermGroup)
+    if !(isdefined(G, :stabchain))
+        G.stabchain = schreier_sims!(StabilizerChain(gens(G)))
+    end
+    return G.stabchain
+end
 
 @doc doc"""
     StabilizerChain(gens, B)
@@ -60,6 +78,7 @@ function StabilizerChain(gens::AbstractVector{Perm{I}}, B::AbstractVector{I}=I[]
     T = [Schreier(gs, pt) for (pt, gs) in zip(B, S)]
     return StabilizerChain(B, S, T)
 end
+StabilizerChain(gens::AbstractVector{<:AbstractPerm}) = StabilizerChain(perm.(gens))
 
 @doc doc"""
     sgs(sc::StabilizerChain)
