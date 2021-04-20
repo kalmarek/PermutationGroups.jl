@@ -23,13 +23,18 @@ is not provided the first point moved by each of `gens` will be taken.
 """
 function initial_bsgs(gens::AbstractVector{<:AbstractPerm}, B=Int[])
 
-    B = filter(b -> !all(fixes.(gens, b)), B)
-    if isempty(B)
-        B = unique!([firstmoved(g) for g in gens if firstmoved(g) > 0])
+	T = eltype(eltype(gens))
+
+	B = if isempty(B)
+        B = unique!(T[firstmoved(g) for g in gens if firstmoved(g) isa Integer])
         sort!(B)
+	else
+		filter(b -> !all(fixes.(gens, b)), B)
     end
 
-    S = [[g for g in gens if firstmoved(g)≥ b] for b in B]
+	isempty(B) && return T[1], [[one(first(gens))]]
+
+    S = [[g for g in gens if firstmoved(g) ≥ b] for b in B]
 
     return B, S
 end
