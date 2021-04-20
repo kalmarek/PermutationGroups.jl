@@ -82,6 +82,30 @@ Base.:(^)(p::Permutation, n::Integer) = parent(p)(p.perm^n)
 GroupsCore.order(::Type{T}, p::Permutation) where {T} = order(T, p.perm)
 Base.hash(p::Permutation, h::UInt) = hash(typeof(p), hash(p.perm, hash(parent(p), h)))
 
+# Mutable API
+
+function GroupsCore.one!(g::AbstractPerm)
+    for i in eachindex(g)
+        g[i] = i
+    end
+    return g
+end
+
+Base.@propagate_inbounds function GroupsCore.mul!(
+    out::AbstractPerm,
+    g::AbstractPerm,
+    h::AbstractPerm,
+)
+    out = (out === h ? similar(out) : out)
+    @boundscheck @assert degree(out) >= max(degree(g), degree(h))
+
+    @inbounds for i in eachindex(out)
+        out[i] = (i^g)^h #h[g[i]]
+    end
+
+    return out
+end
+
 #### end of Group interface
 
 # accessors
