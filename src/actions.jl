@@ -14,10 +14,10 @@ nfixedpoints(p::AbstractPerm, range=eachindex(p), op=^) = count(i->fixes(p, i, o
 
 for (fname, findname) in [(:firstmoved, :findfirst), (:lastmoved, :findlast)]
     @eval begin
-        function $fname(p::AbstractPerm, op=^) where I
-            k = $findname(i -> i != op(i, p), Base.OneTo(degree(p)))
+        function $fname(p::AbstractPerm, op=^)
+            k = $findname(i -> i != op(i, p), eachindex(p))
             k === nothing && return k
-            return k
+            return eltype(p)(k)
         end
     end
 end
