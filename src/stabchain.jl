@@ -160,21 +160,3 @@ GroupsCore.order(::Type{T}, sc::StabilizerChain) where T =
 Return the transversals (as a Vector) from stabilizer chain `sc`.
 """
 transversals(sc::StabilizerChain) = sc.transversals
-
-function next!(baseimages::AbstractVector{<:Integer}, transversals)
-	for position in length(baseimages):-1:1
-		t = transversals[position]
-		if islast(t, baseimages[position])
-			@debug "last point in orbit: spilling at" position collect(t), baseimages[position]
-			baseimages[position] = first(t)
-		else
-			@debug "next point in orbit: incrementing at" position collect(t), baseimages[position]
-			# TODO: replace by next(t, position)
-			orbit_points = collect(t)
-			idx = findfirst(isequal(baseimages[position]), orbit_points)
-			baseimages[position] = orbit_points[idx + 1]
-			break
-		end
-	end
-	return baseimages
-end

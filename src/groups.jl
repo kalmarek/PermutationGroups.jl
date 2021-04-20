@@ -58,19 +58,24 @@ Return the unique permutation in `G` determined by to `base_images`
 function perm_by_baseimages(
     G::AbstractPermutationGroup,
     baseimages::AbstractVector{<:Integer},
+	inverse = true,
+	tmp_word = Word(eltype(eltype(G))[])
 )
     @boundscheck length(baseimages) == length(base(G))
     trans = transversals(G)
     res = one(G)
 
-    for (schr, bi) in zip(trans, baseimages)
-        gr_word = Word(schr.gens_inv, schr.orb, bi, schr.op)
-        res = gr_word(schr.gens_inv, res)
-        # res = mul!(res, res, t[bi])
-    end
+	for (i, schr) in enumerate(trans)
+		bi = baseimages[i]
+	    bi == first(schr) && continue
+	    word = append!(tmp_word, schr.gens_inv, schr.orb, bi, schr.op)
+	    res = tmp_word(schr.gens_inv, res)
+		empty!(tmp_word)
+	end
 
-    return G(inv(res))
+    return inverse ? inv(res) : res
 end
+
 ###
 
 struct BaseImagesIter{I, T}

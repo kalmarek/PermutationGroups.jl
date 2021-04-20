@@ -13,18 +13,28 @@ GroupsCore.gens(G::PermGroup) = G.(G.gens)
 Base.eltype(::Type{GT}) where {I,GT<:PermGroup{I}} = Permutation{I,GT}
 Base.IteratorSize(::Type{<:AbstractPermutationGroup}) = Base.HasLength()
 
+struct PermGroupIter{V, I, S, W}
+    base_images::V
+    itr::I
+    state::S
+    tmp_word::W
+end
+
 function Base.iterate(G::PermGroup)
-    return one(G), (deepcopy(base(G)), 1, order(G))
+    itr = base_images(G)
+    tmp_word = Word(eltype(eltype(G))[])
+    img, st = iterate(itr)
+    permiter = PermGroupIter(img, itr, st, tmp_word)
+    g = perm_by_baseimages(G, img, false, permiter.tmp_word)
+    return g, (permiter, 1)
 end
 
 function Base.iterate(G::PermGroup, state)
-    base_im, count, ord_G = state
-    count == ord_G && return nothing
-
-    basis_im = next!(base_im, transversals(G))
-    g = perm_by_baseimages(G, base_im)
-
-    return (g, (base_im, count + 1, ord_G))
+    permiter, count = state
+    count >= length(G) && return nothing
+    img, st = iterate(permiter.itr, permiter.state)
+    g = perm_by_baseimages(G, img, false, permiter.tmp_word)
+    return g, (permiter, count+1)
 end
 
 # GroupElement Interface

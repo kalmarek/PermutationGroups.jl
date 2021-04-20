@@ -98,3 +98,5 @@ struct Permutation{I, GT<:PermGroup} <: AbstractPerm
     perm::Perm{I}
     parent::GT
 end
+
+Base.eltype(::Type{<:Permutation{I}}) where I = I
