@@ -90,8 +90,14 @@ perm(g::Permutation) = g.perm
 
 gens_raw(G::PermGroup) = G.gens
 
+# AbstractPerm Interface??
+
+Base.setindex!(g::Permutation, v::Integer, n::Integer) = g.perm[n] = v
+
 @doc doc"""
 	degree(G::PermGroup)
 Return the degree of `G`, i.e. the length of the storage of permutations in `G`.
 """
 degree(G::PermGroup) = return G.deg
+degree(p::Permutation) = degree(parent(p))
+degree(p::Perm{I}) where {I} = I(length(p.d))

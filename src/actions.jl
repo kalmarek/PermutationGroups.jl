@@ -1,17 +1,16 @@
 #########################################################
 # Elementary actions of Abstract permutations
 
-perm(p::AbstractPerm, op=^) = Perm([op(i, p) for i in Base.OneTo(degree(p))])
+Base.eachindex(p::AbstractPerm) = Base.OneTo(degree(p))
+perm(p::AbstractPerm, op=^) = Perm([op(i, p) for i in eachindex(p)])
 
 @inline fixes(p::GroupElement, pt, op=^) = op(pt, p) == pt
 @inline fixes(p::AbstractPerm, v::AbstractVector, op=^) =
     all( i-> v[i] == v[op(i, p)], eachindex(v))
 
-@inline Base.isone(p::AbstractPerm) = all(i->i^p == i, Base.OneTo(degree(p)))
-
-fixedpoints(p::AbstractPerm, range=Base.OneTo(degree(p)), op=^) =
+fixedpoints(p::AbstractPerm, range=eachindex(p), op=^) =
     [i for i in range if fixes(p, i, op)]
-nfixedpoints(p::AbstractPerm, range=Base.OneTo(degree(p)), op=^) = count(i->fixes(p, i, op), range)
+nfixedpoints(p::AbstractPerm, range=eachindex(p), op=^) = count(i->fixes(p, i, op), range)
 
 for (fname, findname) in [(:firstmoved, :findfirst), (:lastmoved, :findlast)]
     @eval begin
@@ -41,4 +40,4 @@ end
     return n
 end
 
-degree(p::Perm{I}) where I = I(length(p.d))
+Base.:^(n::Integer, p::Permutation) = n^perm(p)
