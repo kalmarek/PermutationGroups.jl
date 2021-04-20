@@ -2,7 +2,7 @@
 # Orbit Types and definitions
 #########################################################
 
-@inline Base.eltype(::AbstractOrbit{T}) where {T} = T
+@inline Base.eltype(::Type{<:AbstractOrbit{T}}) where {T} = T
 
 # each of them implements _Orbit Protocol_
 

@@ -78,12 +78,13 @@ Construct the initial `StabilizerChain` object from generators `gens` and initia
 
 The returned `StabilizerChain` is **not** completed. Use `schreier_sims!` for completion.
 """
-function StabilizerChain(gens::AbstractVector{Perm{I}}, B::AbstractVector{I}=I[]) where I
+function StabilizerChain(gens::AbstractVector{Perm{I}}, B::AbstractVector{I}=I[]) where I<:Integer
     B, S = initial_bsgs(gens, B)
     T = [Schreier(gs, pt) for (pt, gs) in zip(B, S)]
     return StabilizerChain(B, S, T)
 end
 StabilizerChain(gens::AbstractVector{<:AbstractPerm}) = StabilizerChain(perm.(gens))
+StabilizerChain(gens::AbstractVector{<:AbstractPerm}, B::AbstractVector{<:Integer}) = StabilizerChain(perm.(gens), B)
 
 @doc doc"""
     sgs(sc::StabilizerChain)

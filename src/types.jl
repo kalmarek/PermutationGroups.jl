@@ -100,3 +100,4 @@ struct Permutation{I, GT<:PermGroup} <: AbstractPerm
 end
 
 Base.eltype(::Type{<:Permutation{I}}) where I = I
+Base.eltype(::Type{<:Perm{I}}) where I = I

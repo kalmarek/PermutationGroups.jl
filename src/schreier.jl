@@ -13,7 +13,7 @@ end
 @inline Base.iterate(schr::Schreier) = iterate(schr.orb)
 @inline Base.iterate(schr::Schreier, s) = iterate(schr.orb, s)
 @inline Base.length(schr::Schreier) = length(schr.orb)
-@inline Base.eltype(::Schreier{GEl,I}) where {GEl,I} = I
+@inline Base.eltype(::Type{<:Schreier{GEl, S, I}}) where {GEl, S, I} = I
 @inline Base.first(schr::Schreier) = first(schr.orb)
 @inline Base.last(schr::Schreier) = last(schr.orb)
 @inline islast(schr::Schreier, pt) = islast(schr.orb, pt)

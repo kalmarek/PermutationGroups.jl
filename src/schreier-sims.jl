@@ -52,7 +52,7 @@ end
     schreier_sims(gens::Vector{perm}, B::AbstractVector{<:Integer}) → StabilizerChain
 Complete `gens` to strong generator set by including `B` as (partial) base.
 """
-function schreier_sims(gens::AbstractVector{<:AbstractPerm}, B::AbstractVector{<:Integer}=Int[]) where I<:Integer
+function schreier_sims(gens::AbstractVector{<:AbstractPerm}, B::AbstractVector{<:Integer}=eltype(eltype(gens))[])
     sc = StabilizerChain(gens, B)
     schreier_sims!(sc)
     return sc.base, sc.sgs, sc.transversals
