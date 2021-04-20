@@ -12,9 +12,9 @@
     # first point on the orbit:
     u = Δ[1]
     # the first Schreier generator is trivial
-    @test isone(u*a*getinv(Δ, 1^a))
+    @test isone(u*a*PermutationGroups.getinv(Δ, 1^a))
     # but the second is not
-    @test u*b*getinv(Δ, 1^b) == perm"(2,5)(3,4)"
+    @test u*b*PermutationGroups.getinv(Δ, 1^b) == perm"(2,5)(3,4)"
     c = perm"(2,5)(3,4)"
     h, new_depth = sift(c, sc)
     @test h == c
@@ -54,7 +54,7 @@
     # so we move to the next point on the orbit
     u = Δ[4] # β = 4
     @test u*a == Δ[4^a]
-    @test u*b*getinv(Δ, 4^b) == a^2*b
+    @test u*b*PermutationGroups.getinv(Δ, 4^b) == a^2*b
     d = a^2*b
     @test sift(d, sc) == (d, 2)
 
@@ -128,14 +128,14 @@ end
 @testset "Iterate over PermGroup" begin
 	K1 = PermGroup([perm"(5,6)", perm"(1,2,3,4,5,6)"]) # Symmetric group on 6 symbols
 	elements = [g for g in K1]
-    @test elements isa Vector{Perm{Int64}}
+    @test elements isa Vector{<:Permutation{Int64}}
 	uniq_elements = unique(elements)
     @test order(K1) == length(uniq_elements) == 720
     @test uniq_elements == elements
 
 	K2 = PermGroup(Perm{Int16}[perm"(3,4,5)", perm"(1,2,3,4,5)"]) # Alternating group on 5 symbols
 	elements = [g for g in K2]
-    @test elements isa Vector{Perm{Int16}}
+    @test elements isa Vector{<:Permutation{Int16}}
 	uniq_elements = unique(elements)
     @test order(K2) == length(uniq_elements) == 60
 	@test uniq_elements == elements

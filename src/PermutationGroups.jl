@@ -10,11 +10,11 @@ import GroupsCore.AbstractAlgebra:
     @perm_str,
     permtype
 
-export @perm_str, Perm, degree, order, permtype, gens
+export @perm_str, Perm, permtype
 
-export AbstractOrbit, Orbit, Transversal, Schreier, StabilizerChain, PermGroup
+export AbstractOrbit, Orbit, PermGroup, Permutation, Schreier, StabilizerChain, Transversal
 export firstmoved, fixes, fixedpoints, lastmoved, nfixedpoints
-export base, representative, schreier_sims, sgs, sift
+export base, degree, representative, schreier_sims, sgs, sift
 
 include("types.jl")
 include("orbit.jl")
