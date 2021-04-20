@@ -71,3 +71,49 @@ function perm_by_baseimages(
 
     return G(inv(res))
 end
+###
+
+struct BaseImagesIter{I, T}
+	images::Vector{I}
+	transversals::T
+end
+
+Base.eltype(::Type{<:BaseImagesIter{I}}) where {I} = Vector{I}
+Base.length(bitr::BaseImagesIter) = prod(length, bitr.transversals)
+
+base_images(G::PermGroup) = BaseImagesIter(copy(base(G)), transversals(G))
+
+@inline Base.iterate(bitr::BaseImagesIter) = bitr.images, (count=1, total=length(bitr))
+
+@inline function Base.iterate(bitr::BaseImagesIter, state)
+	state.count == state.total && return nothing
+	img = next!(bitr.images, bitr.transversals)
+	return img, (count=state.count+1, total=state.total)
+end
+
+@inline function next!(baseimages::AbstractVector{<:Integer}, transversals)
+	for position in length(baseimages):-1:1
+		t = transversals[position]
+		if islast(t, baseimages[position])
+			# @debug "last point in orbit: spilling at" position collect(t), baseimages[position]
+			baseimages[position] = first(t)
+		else
+			# @debug "next point in orbit: incrementing at" position collect(t), baseimages[position]
+			baseimages[position] = _next(t, baseimages[position])
+			# orbit_points = collect(t)
+			# idx = findfirst(isequal(baseimages[position]), orbit_points)
+			# baseimages[position] = orbit_points[idx + 1]
+			break
+		end
+	end
+	return baseimages
+end
+
+function _next(itr, elt)
+	x, state = iterate(itr)
+	while x != elt
+		x, state = iterate(itr, state)
+	end
+	return first(iterate(itr, state))
+end
+
