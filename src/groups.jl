@@ -2,18 +2,19 @@
 
 # embeddings
 
-function emb!(res::AP, g::AP, V::AbstractVector{<:Integer}) where {AP<:AbstractPerm}
+function emb!(res::Perm, g::Perm, V::AbstractVector{<:Integer})
     @assert degree(res) >= degree(g)
-    res.d .= Base.OneTo(degree(res))
-    res.d[V] .= g.d
+	for (idx, v) in pairs(V)
+		res[v] = idx^g
+	end
     return res
 end
 
-emb(g::Perm, n::Integer) = emb!(Perm(n), g, 1:degree(g))
+emb(g::Perm, n::Integer) = emb!(Perm(n), g, eachindex(g))
 
 function (G::PermGroup)(p::AbstractPerm)
     g = degree(p) == degree(G) ? p : emb(p, degree(G))
-    return Permutation(g, G)
+    return Permutation(perm(g), G)
 end
 
 @doc doc"""
@@ -35,7 +36,7 @@ sgs(G::AbstractPermutationGroup) = sgs(StabilizerChain(G))
     in(g::perm, G::PermGroup)
 Membership test for permutation group `G` by `sift`ing `g` through `StabilizerChain(G)`.
 """
-function Base.in(g::Perm, G::PermGroup)
+function Base.in(g::AbstractPerm, G::AbstractPermutationGroup)
     g = degree(g) < degree(G) ? emb(g, degree(G)) : g
 
     sc = StabilizerChain(G)
@@ -105,9 +106,6 @@ end
 		else
 			# @debug "next point in orbit: incrementing at" position collect(t), baseimages[position]
 			baseimages[position] = _next(t, baseimages[position])
-			# orbit_points = collect(t)
-			# idx = findfirst(isequal(baseimages[position]), orbit_points)
-			# baseimages[position] = orbit_points[idx + 1]
 			break
 		end
 	end
@@ -121,4 +119,3 @@ function _next(itr, elt)
 	end
 	return first(iterate(itr, state))
 end
-
