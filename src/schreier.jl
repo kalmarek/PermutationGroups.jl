@@ -66,7 +66,7 @@ function getinv(schr::Schreier, pt)
     return g
 end
 
-function orbit_stabilizer(gens::Vector{GEl}, pt, op = ^) where {GEl<:GroupElement}
+function orbit_stabilizer(gens::Vector{GEl}, pt, op = ^) where {GEl<:AbstractPerm}
     schr = Schreier(Orbit1, inv.(gens), pt)
     stab = Vector{GEl}()
     for o in schr
@@ -79,7 +79,7 @@ function orbit_stabilizer(gens::Vector{GEl}, pt, op = ^) where {GEl<:GroupElemen
             end
         end
     end
-    return schr, Group(unique!(stab))
+    return schr, PermGroup(unique!(stab))
 end
 
 Base.rand(rng::Random.AbstractRNG, rs::Random.SamplerTrivial{<:Schreier}) =

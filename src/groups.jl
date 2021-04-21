@@ -1,4 +1,6 @@
-(G::Group)(gens::AbstractVector{<:Perm}) = PermGroup(gens)
+# if VERSION >=v"1.3.0"
+# 	(G::Group)(gens::AbstractVector{<:Perm}) = PermGroup(gens)
+# end
 
 # embeddings
 
