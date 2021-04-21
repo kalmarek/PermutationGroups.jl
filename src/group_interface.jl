@@ -11,7 +11,8 @@ function Base.rand(
 ) where {Gr <: PermGroup}
     G = rs[]
     tr = transversals(G)
-    img =rand.(rng, tr)
+    # Ref(rng) is needed for julia-1.3
+    img =rand.(Ref(rng), tr)
     return perm_by_baseimages(G, img)
 end
 ### iteration protocol for PermGroups
