@@ -55,6 +55,7 @@ function initial_bsgs(gens::AbstractVector{<:AbstractPerm}, B=eltype(eltype(gens
 
 	isempty(B) && return T[1], [[one(first(gens))]]
 
+	gens =filter!(!isone, gens)
     S = [[g for g in gens if firstmoved(g) ≥ b] for b in B]
 
     return B, S
