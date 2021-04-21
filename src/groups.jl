@@ -38,11 +38,7 @@ Membership test for permutation group `G` by `sift`ing `g` through `StabilizerCh
 """
 function Base.in(g::AbstractPerm, G::AbstractPermutationGroup)
     g = degree(g) < degree(G) ? emb(g, degree(G)) : g
-
-    sc = StabilizerChain(G)
-    h, depth = sift(g, sc)
-    depth ≤ length(sc) && return false
-    return ifelse(isone(h), true, false)
+    return g in StabilizerChain(G)
 end
 
 @doc doc"""
