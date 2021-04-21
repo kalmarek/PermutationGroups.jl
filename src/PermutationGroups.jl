@@ -1,6 +1,7 @@
 module PermutationGroups
 
 using GroupsCore
+using Random
 using Markdown
 
 import GroupsCore.AbstractAlgebra:

@@ -5,9 +5,15 @@ GroupsCore.order(::Type{T}, G::AbstractPermutationGroup) where {T} =
     order(T, StabilizerChain(G))
 GroupsCore.gens(G::PermGroup) = G.(G.gens)
 
-# TODO:
-# Base.rand
-
+function Base.rand(
+    rng::Random.AbstractRNG,
+    rs::Random.SamplerTrivial{Gr}
+) where {Gr <: PermGroup}
+    G = rs[]
+    tr = transversals(G)
+    img =rand.(rng, tr)
+    return perm_by_baseimages(G, img)
+end
 ### iteration protocol for PermGroups
 
 Base.eltype(::Type{GT}) where {I,GT<:PermGroup{I}} = Permutation{I,GT}

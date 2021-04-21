@@ -60,3 +60,15 @@ for OrbT in [Symbol("Orbit", i) for i in 1:5]
         end
     end
 end
+
+function Base.rand(
+    rng::Random.AbstractRNG,
+    rs::Random.SamplerTrivial{<:AbstractOrbit}
+)
+    orb = rs[]
+    l = length(orb)
+    n = rand(rng, 1:l)
+    for (idx, o) in enumerate(orb)
+        idx == n && return o
+    end
+end

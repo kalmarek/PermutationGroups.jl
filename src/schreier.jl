@@ -81,3 +81,6 @@ function orbit_stabilizer(gens::Vector{GEl}, pt, op = ^) where {GEl<:GroupElemen
     end
     return schr, Group(unique!(stab))
 end
+
+Base.rand(rng::Random.AbstractRNG, rs::Random.SamplerTrivial{<:Schreier}) =
+    rand(rng, rs[].orb)
