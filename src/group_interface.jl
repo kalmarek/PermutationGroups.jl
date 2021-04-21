@@ -141,5 +141,6 @@ Base.setindex!(g::Permutation, v::Integer, n::Integer) = g.perm[n] = v
 Return the degree of `G`, i.e. the length of the storage of permutations in `G`.
 """
 degree(G::PermGroup) = return G.deg
+degree(G::SymmetricGroup) = G.n
 degree(p::Permutation) = degree(parent(p))
 degree(p::Perm{I}) where {I} = I(length(p.d))
