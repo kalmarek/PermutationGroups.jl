@@ -42,9 +42,9 @@ Compute the initial base and strong generating set from generators `gens` and in
 It will remove duplicates and may reorder points in `B`. If the initial base
 is not provided the first point moved by each of `gens` will be taken.
 """
-function initial_bsgs(gens::AbstractVector{<:AbstractPerm}, B=Int[])
+function initial_bsgs(gens::AbstractVector{<:AbstractPerm}, B=eltype(eltype(gens))[])
 
-	T = eltype(eltype(gens))
+	T = eltype(B)
 
 	B = if isempty(B)
         B = unique!(T[firstmoved(g) for g in gens if firstmoved(g) isa Integer])
@@ -99,7 +99,7 @@ Construct the initial `StabilizerChain` object from generators `gens` and initia
 
 The returned `StabilizerChain` is **not** completed. Use `schreier_sims!` for completion.
 """
-function StabilizerChain(gens::AbstractVector{Perm{I}}, B::AbstractVector{I}=I[]) where I<:Integer
+function StabilizerChain(gens::AbstractVector{Perm{I}}, B::AbstractVector{<:Integer}=I[]) where I<:Integer
     B, S = initial_bsgs(gens, B)
     T = [Schreier(gs, pt) for (pt, gs) in zip(B, S)]
     return StabilizerChain(B, S, T)
@@ -130,7 +130,7 @@ Extend the chain by pushing point `pt` to the base of `sc`.
 The corresponding `sgs` and `transversals` fields are also extended
 (to match `base` in length), but are **not initialized**.
 """
-function Base.push!(sc::StabilizerChain{I}, pt::I) where I
+function Base.push!(sc::StabilizerChain{I}, pt::Integer) where I
     push!(sc.base, pt)
     push!(sc.sgs, Perm{I}[])
     resize!(sc.transversals, length(sc.transversals)+1)
