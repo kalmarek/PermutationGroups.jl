@@ -8,6 +8,8 @@ import GroupsCore.AbstractAlgebra:
     AbstractPermutationGroup,
     AbstractPerm,
     Generic.Perm,
+    Generic.SymmetricGroup,
+    cycles,
     @perm_str,
     permtype
 
@@ -27,5 +29,8 @@ include("stabchain.jl")
 include("schreier-sims.jl")
 
 include("actions.jl")
+
+# to be deleted when/if AA satisfies Groups Interface
+include("AA_perm_group_interface.jl")
 
 end # module

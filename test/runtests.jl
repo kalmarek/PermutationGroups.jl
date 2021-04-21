@@ -11,6 +11,7 @@ SymmetricGroup = GroupsCore.AbstractAlgebra.SymmetricGroup
     include("schreier.jl")
     include("stabchain.jl")
     include("conj.jl")
+    include("groups_interface.jl")
 
     include("benchmark.jl")
 end

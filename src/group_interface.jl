@@ -50,14 +50,14 @@ GroupsCore.parent_type(::Type{Permutation{I,GT}}) where {I,GT} = GT
 Base.:(==)(g::Permutation, h::Permutation) = parent(g) === parent(h) && g.perm == h.perm
 
 Base.deepcopy_internal(g::Permutation, stackdict::IdDict) =
-    perm(deepcopy_internal(g.perm, stackdict), parent(g))
+    Permutation(Base.deepcopy_internal(g.perm, stackdict), parent(g))
 
 Base.inv(g::Permutation) = Permutation(inv(g.perm), parent(g))
 
 function Base.:(*)(g::Permutation, h::Permutation)
     parent(g) === parent(h) ||
         error("Cannot multiply elements from different permutation groups")
-    return Permutation(g.perm * h.perm, parent(G))
+    return Permutation(g.perm * h.perm, parent(g))
 end
 
 # IO
@@ -91,7 +91,7 @@ Base.show(io::IO, g::Permutation) = show(io, perm(g))
 
 Base.similar(p::Permutation{T}, ::Type{S} = T) where {T,S} =
     Permutation(similar(perm(p), T), parent(p))
-Base.isone(p::AbstractPerm) = iszero(nfixedpoints(p))
+Base.isone(p::AbstractPerm) = nfixedpoints(p) == degree(p)
 Base.:(^)(p::Permutation, n::Integer) = parent(p)(p.perm^n)
 GroupsCore.order(::Type{T}, p::Permutation) where {T} = order(T, p.perm)
 Base.hash(p::Permutation, h::UInt) = hash(typeof(p), hash(p.perm, hash(parent(p), h)))
