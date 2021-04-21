@@ -2,7 +2,7 @@
 
 # embeddings
 
-function emb!(res::Perm, g::Perm, V::AbstractVector{<:Integer})
+function emb!(res::Perm, g::AbstractPerm, V::AbstractVector{<:Integer})
     @assert degree(res) >= degree(g)
 	for (idx, v) in pairs(V)
 		res[v] = idx^g
@@ -10,11 +10,14 @@ function emb!(res::Perm, g::Perm, V::AbstractVector{<:Integer})
     return res
 end
 
-emb(g::Perm, n::Integer) = emb!(Perm(n), g, eachindex(g))
+emb(g::AbstractPerm, n::Integer) = emb!(Perm(n), g, eachindex(g))
 
 function (G::PermGroup)(p::AbstractPerm)
+	parent(p) === G && return p
     g = degree(p) == degree(G) ? p : emb(p, degree(G))
-    return Permutation(perm(g), G)
+	q = perm(g)
+	q in G && return Permutation(q, G)
+	throw("Cannot coerce: $p is not an element of $G")
 end
 
 @doc doc"""

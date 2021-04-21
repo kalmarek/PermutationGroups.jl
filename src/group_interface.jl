@@ -3,7 +3,7 @@
 Base.one(G::PermGroup) = Permutation(Perm(degree(G)), G)
 GroupsCore.order(::Type{T}, G::AbstractPermutationGroup) where {T} =
     order(T, StabilizerChain(G))
-GroupsCore.gens(G::PermGroup) = G.(G.gens)
+GroupsCore.gens(G::PermGroup) = Permutation.(gens_raw(G), Ref(G))
 
 function Base.rand(
     rng::Random.AbstractRNG,
@@ -52,14 +52,12 @@ Base.:(==)(g::Permutation, h::Permutation) = parent(g) === parent(h) && g.perm =
 Base.deepcopy_internal(g::Permutation, stackdict::IdDict) =
     perm(deepcopy_internal(g.perm, stackdict), parent(g))
 
-Base.inv(g::Permutation) = parent(g)(inv(g.perm))
+Base.inv(g::Permutation) = Permutation(inv(g.perm), parent(g))
 
 function Base.:(*)(g::Permutation, h::Permutation)
     parent(g) === parent(h) ||
         error("Cannot multiply elements from different permutation groups")
-
-    G = parent(g)
-    return G(g.perm * h.perm)
+    return Permutation(g.perm * h.perm, parent(G))
 end
 
 # IO
@@ -125,12 +123,15 @@ end
 #### end of Group interface
 
 # accessors
-
-perm(g::Permutation) = g.perm
-
 gens_raw(G::PermGroup) = G.gens
 
 # AbstractPerm Interface??
+"""
+	perm(g::AbstractPerm)::Perm
+Return an instance of `Perm`, a parent-less permutation backed by simple vector storage.
+"""
+perm(g::Permutation) = g.perm
+perm(g::AbstractPerm) = Perm([i^g for i in eachindex(g)], false)
 
 Base.setindex!(g::Permutation, v::Integer, n::Integer) = g.perm[n] = v
 
