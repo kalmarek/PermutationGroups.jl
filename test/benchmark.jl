@@ -45,7 +45,8 @@ end
     rubik = PermGroup(rubik_gens)
     @info "Schreier-Sims for Rubik cube-9 group:"
     @btime schreier_sims($(gens(rubik)));
-    @test order(rubik) == 43252003274489856000 # fits Int128
+    @test order(rubik) == 43252003274489856000
+    @test order(rubik) == order(Int128, rubik) # fits Int128
 
     @testset "SL(4,7)" begin
         a = perm"""
@@ -142,5 +143,6 @@ end
         @info "Schreier-Sims for a direct-product group:"
         @btime schreier_sims($(gens(G)))
         # GAP: 17 ms vs 50 ms here
+        @btime test_perf($G)
     end
 end
