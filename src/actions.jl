@@ -2,7 +2,6 @@
 # Elementary actions of Abstract permutations
 
 Base.eachindex(p::AbstractPerm) = Base.OneTo(degree(p))
-perm(p::AbstractPerm, op=^) = Perm([op(i, p) for i in eachindex(p)])
 
 @inline fixes(p::GroupElement, pt, op=^) = op(pt, p) == pt
 @inline fixes(p::AbstractPerm, v::AbstractVector, op=^) =
