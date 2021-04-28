@@ -1,7 +1,7 @@
 @testset "Schreier Vectors and Stabilizers" begin
     Random.seed!(1);
     SIZE=30
-    G = PermutationGroups.AbstractAlgebra.SymmetricGroup(SIZE);
+    G = SymmetricGroup(SIZE);
     S = [rand(G) for _ in 1:3];
 
     pt = 1
@@ -54,9 +54,9 @@ end
     # first point on the orbit is β = 1:
     u = Δ[1]
     # the first Schreier generator is trivial
-    @test isone(u*a*getinv(Δ, 1^a))
+    @test isone(u*a*PermutationGroups.getinv(Δ, 1^a))
     # but the second is not
-    @test u*b*getinv(Δ, 1^b) == perm"(2,5)(3,4)"
+    @test u*b*PermutationGroups.getinv(Δ, 1^b) == perm"(2,5)(3,4)"
     c = perm"(2,5)(3,4)"
     @test sift(c, B, trs) == (c, 2)
 
@@ -77,7 +77,7 @@ end
     # so we move to the next point on the orbit
     u = Δ[4] # β = 4
     @test u*a == Δ[4^a]
-    @test u*b*getinv(Δ, 4^b) == a^2*b
+    @test u*b*PermutationGroups.getinv(Δ, 4^b) == a^2*b
     d = a^2*b
     @test sift(d, B, trs) == (d, 2)
 

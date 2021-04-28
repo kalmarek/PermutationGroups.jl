@@ -12,6 +12,7 @@
 @inline Base.iterate(pw::Word, s) = iterate(pw.gens_ptrs, s)
 @inline Base.length(pw::Word) = length(pw.gens_ptrs)
 @inline Base.eltype(::Word{I}) where I = I
+@inline Base.empty!(w::Word) = empty!(w.gens_ptrs)
 
 @inline function Base.:(==)(pw1::Word, pw2::Word)
     return pw1.gens_ptrs == pw2.gens_ptrs
@@ -27,17 +28,20 @@ The group element `r` such that `first(orb)^r = pt` can be reconstructed via
 `prod(gens_inv[i] for i in reverse(w))` e.g. if
  * `g = gens[1]*gens[3]*gens[2]` and
  * `δ = first(orb)^g`
-then the result _may be_ `[2,3,1]`.
+then the result _may be_ `Word([2,3,1])`.
 """
-function Word(gens_inv::Vector{<:GroupElem}, orb::AbstractOrbit{T, I}, pt, op=^) where {T, I<:Integer}
+function Word(gens_inv::AbstractVector{<:GroupElement}, orb::AbstractOrbit{T, I}, pt, op=^) where {T, I<:Integer}
+    return append!(Word(I[]), gens_inv, orb, pt, op)
+end
+
+function Base.append!(w::Word, gens_inv, orb, pt, op=^)
     γ = pt
-    res_ptr = I[]
     while γ ≠ first(orb)
         idx = orb[γ]
-        push!(res_ptr, idx)
+        push!(w, idx)
         γ = op(γ, gens_inv[idx]) #assume that this is already the inverse!
     end
-    return Word(res_ptr)
+    return w
 end
 
 @doc doc"""
@@ -46,10 +50,10 @@ Computes the evaluation of group word `w` as a group element in generators `gens
 
 Optional `init` element is by default the group identity.
 """
-function (pw::Word)(gens::Vector{<:GroupElem}, init=one(first(gens)))
+@inline function (pw::Word)(gens::AbstractVector{<:GroupElement}, init=one(first(gens)))
     res = init
     @inbounds for i in pw
-        res = mul!(res, res, gens[i])
+        res = GroupsCore.mul!(res, res, gens[i])
     end
     return res
 end
@@ -59,9 +63,9 @@ end
 Return a representative of the coset of `Stab(orb)` which takes `first(orb)`
 to `pt` i.e. an element `g` of `⟨gens⟩` such that `first(orb)^g = pt`.
 """
-function representative(gens::Vector{<:GroupElem}, orb::AbstractOrbit{I, <:Integer}, pt::I, op=^) where I<:Integer
+function representative(gens::AbstractVector{<:GroupElement}, orb::AbstractOrbit{I, <:Integer}, pt::I, op=^) where I<:Integer
     gens_inv = inv.(gens)
-    perm_word = Word(gens_inv, orb, pt, op)
-    g = perm_word(gens_inv)
+    word = Word(gens_inv, orb, pt, op)
+    g = word(gens_inv)
     return inv(g)
 end
