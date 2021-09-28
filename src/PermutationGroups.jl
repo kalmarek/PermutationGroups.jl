@@ -4,7 +4,7 @@ using GroupsCore
 using Random
 using Markdown
 
-import GroupsCore.AbstractAlgebra:
+import AbstractAlgebra:
     AbstractPermutationGroup,
     AbstractPerm,
     Generic.Perm,
@@ -29,8 +29,4 @@ include("stabchain.jl")
 include("schreier-sims.jl")
 
 include("actions.jl")
-
-# to be deleted when/if AA satisfies Groups Interface
-include("AA_perm_group_interface.jl")
-
 end # module

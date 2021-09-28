@@ -13,10 +13,10 @@ end
     @test test_perf(G) == test_perf(K) == 181440
     @info "Native iteration over S8 group:"
     @btime test_perf($G)
-    # 17.555 ms (241925 allocations: 23.38 MiB) → 181440
+    # 1.429 ms (80644 allocations: 7.38 MiB) → 181440
     @info "Iteration over K ≅ S8 PermGroup:"
     @btime test_perf($K)
-    # 66.707 ms (1059707 allocations: 55.61 MiB) → 181440
+    # 17.457 ms (161282 allocations: 11.69 MiB) → 181440
 end
 
 @testset "GAP Docs examples/benchmarks" begin
@@ -31,6 +31,7 @@ end
     G = PermGroup(cube4)
     @info "Schreier-Sims for Rubik cube-4 group:"
     @btime schreier_sims($(gens(G)));
+    # 93.937 μs (2100 allocations: 225.73 KiB)
     @test order(G) == 384
 
     rubik_gens = [
@@ -45,6 +46,7 @@ end
     rubik = PermGroup(rubik_gens)
     @info "Schreier-Sims for Rubik cube-9 group:"
     @btime schreier_sims($(gens(rubik)));
+    # 43.665 ms (611137 allocations: 129.55 MiB)
     @test order(rubik) == 43252003274489856000
     @test order(rubik) == order(Int128, rubik) # fits Int128
 
@@ -80,7 +82,9 @@ end
         @test order(SL_4_7) == 2317591180800
         @info "Schreier-Sims for SL(4,7):"
         @btime schreier_sims($(gens(SL_4_7)));
-        # GAP: 23 ms vs 300ms here
+        # gap> G := Group([a,b]);; StabChain(G);; time;
+        # GAP: ~15 ms vs
+        # 220.512 ms (383827 allocations: 444.93 MiB)
     end
 
     @testset "DirectProduct example" begin
@@ -142,7 +146,8 @@ end
         @test order(G) == 192480
         @info "Schreier-Sims for a direct-product group:"
         @btime schreier_sims($(gens(G)))
-        # GAP: 17 ms vs 50 ms here
-        @btime test_perf($G)
+        # GAP: 22 ms vs
+        # 34.596 ms (53786 allocations: 62.93 MiB)
+        @time test_perf(G)
     end
 end

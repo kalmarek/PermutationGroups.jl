@@ -1,7 +1,5 @@
 @testset "Conjugation action" begin
-    G = SymmetricGroup(4)
     S = [perm"(1,2)(4)", perm"(1,2,3,4)"]
-    # @test gens(G) == S
 
     pt = perm"(4)"
     @test Orbit(S, pt) isa Orbit

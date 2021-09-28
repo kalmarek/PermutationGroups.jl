@@ -46,7 +46,6 @@ end
 
 # GroupElement Interface
 Base.parent(g::Permutation) = g.parent
-GroupsCore.parent_type(::Type{Permutation{I,GT}}) where {I,GT} = GT
 
 Base.:(==)(g::Permutation, h::Permutation) = parent(g) === parent(h) && g.perm == h.perm
 
@@ -144,3 +143,6 @@ degree(G::PermGroup) = return G.deg
 degree(G::SymmetricGroup) = G.n
 degree(p::Permutation) = degree(parent(p))
 degree(p::Perm{I}) where {I} = I(length(p.d))
+
+permtype(p::Permutation) = permtype(perm(p))
+Base.sign(p::Permutation) = sign(perm(p))
