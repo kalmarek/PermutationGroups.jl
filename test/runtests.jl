@@ -4,7 +4,8 @@ using Random
 using Test
 using BenchmarkTools
 
-SymmetricGroup = GroupsCore.AbstractAlgebra.SymmetricGroup
+import AbstractAlgebra
+SymmetricGroup = AbstractAlgebra.SymmetricGroup
 
 @testset "PermutationGroups" begin
     include("orbit.jl")

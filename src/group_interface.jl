@@ -46,7 +46,6 @@ end
 
 # GroupElement Interface
 Base.parent(g::Permutation) = g.parent
-GroupsCore.parent_type(::Type{Permutation{I,GT}}) where {I,GT} = GT
 
 Base.:(==)(g::Permutation, h::Permutation) = parent(g) === parent(h) && g.perm == h.perm
 
