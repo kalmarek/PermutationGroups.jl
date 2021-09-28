@@ -143,3 +143,6 @@ degree(G::PermGroup) = return G.deg
 degree(G::SymmetricGroup) = G.n
 degree(p::Permutation) = degree(parent(p))
 degree(p::Perm{I}) where {I} = I(length(p.d))
+
+permtype(p::Permutation) = permtype(perm(p))
+Base.sign(p::Permutation) = sign(perm(p))

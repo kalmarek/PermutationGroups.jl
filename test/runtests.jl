@@ -12,6 +12,7 @@ SymmetricGroup = AbstractAlgebra.SymmetricGroup
     include("schreier.jl")
     include("stabchain.jl")
     include("conj.jl")
+    include("permutations.jl")
     include("groups_interface.jl")
 
     include("benchmark.jl")
