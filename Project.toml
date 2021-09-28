@@ -1,7 +1,7 @@
 name = "PermutationGroups"
 uuid = "8bc5a954-2dfc-11e9-10e6-cd969bffa420"
 authors = ["Marek Kaluba <kalmar@amu.edu.pl>", "tweisser <tillmann.weisser@web.de>"]
-version = "0.3.0"
+version = "0.3.1"
 
 [deps]
 AbstractAlgebra = "c3fe647b-3220-5bb0-a1ea-a7954cac585d"
