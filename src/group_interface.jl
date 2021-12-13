@@ -62,6 +62,9 @@ end
 
 # IO
 
+Base.show(io::IO, ::Type{<:PermGroup{I}} where I = print(io, PermGroup, "{$I, …}")
+Base.show(io::IO, ::Type{<:Permutation{I}} where I = print(io, Permutation, "{$I, …}")
+
 function Base.show(io::IO, G::PermGroup)
     init = isdefined(G, :stabchain) ? " of order $(order(StabilizerChain(G)))" : ""
     ngen = length(gens(G))
