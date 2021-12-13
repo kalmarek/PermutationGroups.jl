@@ -22,6 +22,7 @@ export base, degree, representative, schreier_sims, sgs, sift
 include("types.jl")
 include("orbit.jl")
 include("words.jl")
+include("io.jl")
 include("group_interface.jl")
 include("groups.jl")
 include("schreier.jl")
