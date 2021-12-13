@@ -15,5 +15,7 @@ SymmetricGroup = AbstractAlgebra.SymmetricGroup
     include("permutations.jl")
     include("groups_interface.jl")
 
-    include("benchmark.jl")
+    if !haskey(ENV, "CI")
+        include("benchmark.jl")
+    end
 end
