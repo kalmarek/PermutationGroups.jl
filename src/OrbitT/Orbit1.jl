@@ -32,7 +32,9 @@ end
 @inline Base.iterate(orb::Orbit1, s) = iterate(orb.elts, s)
 @inline Base.length(orb::Orbit1) = length(orb.elts)
 @inline Base.:(==)(o1::Orbit1, o2::Orbit1) =
-    o1.elts == o2.elts && o1.vals == o2.vals
+    length(o1) == length(o2) &&
+    keys(o1.vals) == keys(o2.vals) &&
+    all(o1[x] == o2[x] for x in o1)
 
 @inline Base.first(orb::Orbit1) = orb.elts[1]
 @inline Base.last(orb::Orbit1) = orb.elts[end]
