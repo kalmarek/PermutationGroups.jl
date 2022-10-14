@@ -2,8 +2,11 @@
     schreier_sims!(sc::StabilizerChain)
 Complete the `sc`, i.e. run the _full, deterministic_ Schreier-Sims algorithm on `sc`.
 """
-function schreier_sims!(sc::StabilizerChain)
+function schreier_sims!(sc::StabilizerChain, _order::T=0) where T<:Integer
     depth = length(sc)
+
+    order_is_known = _order > 0
+
     while depth ≥ 1
         @label outer_loop
 
@@ -34,7 +37,14 @@ function schreier_sims!(sc::StabilizerChain)
                     for l in (depth+1):new_depth # h fixes all points <= depth
                         @debug "recomputing Schreier trees at level $l ∈ $((depth+1):new_depth)"
                         push!(sc, h, l, recompute=true) # recompute Schreier trees
+                        order
                         @debug "...done! new transversal is" sc.transversals[l]
+                    end
+
+                    if order_is_known
+                        if order(T, sc) == _order
+                            @goto chain_completed
+                        end
                     end
                     @debug "restarting the procedure at depth" new_depth
                     depth = new_depth
@@ -45,6 +55,9 @@ function schreier_sims!(sc::StabilizerChain)
         depth -= 1
         @debug "Checked all gens, decreasing depth to" depth
     end
+
+    @label chain_completed
+    order_is_known && @assert order(sc) == _order
     return sc
 end
 
@@ -52,8 +65,11 @@ end
     schreier_sims(gens::Vector{perm}, B::AbstractVector{<:Integer}) → StabilizerChain
 Complete `gens` to strong generator set by including `B` as (partial) base.
 """
-function schreier_sims(gens::AbstractVector{<:AbstractPerm}, B::AbstractVector{<:Integer}=eltype(eltype(gens))[])
+function schreier_sims(
+    gens::AbstractVector{<:AbstractPerm},
+    B::AbstractVector{<:Integer}=eltype(eltype(gens))[],
+    _order=0)
     sc = StabilizerChain(gens, B)
-    schreier_sims!(sc)
+    schreier_sims!(sc, _order)
     return sc.base, sc.sgs, sc.transversals
 end

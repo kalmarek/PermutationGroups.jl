@@ -31,7 +31,7 @@ end
 
 @inline Base.iterate(orb::Orbit5) = orb.pt, orb.pt
 
-@inline islast(orb::Orbit5, s) = s == orb.last
+@inline islast(orb::Orbit5, s) = s === orb.last
 @inline next(orb::Orbit5, s) = (last(orb.elts[s]), last(orb.elts[s]))
 
 # s is the previous elt
