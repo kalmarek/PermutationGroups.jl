@@ -4,20 +4,18 @@ using GroupsCore
 using Random
 using Markdown
 
-import AbstractAlgebra:
-    AbstractPermutationGroup,
-    AbstractPerm,
-    Generic.Perm,
-    Generic.SymmetricGroup,
-    cycles,
-    @perm_str,
-    permtype
+include("Perms/Perms.jl")
+import .Perms:
+    Perm, AbstractPermutation, degree, firstmoved, permtype, @perm_str
 
 export @perm_str, Perm, permtype
 
-export AbstractOrbit, Orbit, PermGroup, Permutation, Schreier, StabilizerChain, Transversal
+export AbstractOrbit,
+    Orbit, PermGroup, Permutation, Schreier, StabilizerChain, Transversal
 export firstmoved, fixes, fixedpoints, lastmoved, nfixedpoints
 export base, degree, representative, schreier_sims, sgs, sift
+
+abstract type AbstractPermutationGroup <: Group end
 
 include("types.jl")
 include("orbit.jl")
