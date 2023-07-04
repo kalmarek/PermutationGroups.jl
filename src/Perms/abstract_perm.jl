@@ -125,17 +125,15 @@ function CycleDecomposition(σ::AbstractPermutation)
         visited[idx] && continue
         first_pt = idx
 
-        orbit_len = 1
         push!(cycles, first_pt)
         visited[first_pt] = true
         next_pt = first_pt^σ
         while next_pt ≠ first_pt
-            orbit_len += 1
             push!(cycles, next_pt)
             visited[next_pt] = true
             next_pt = next_pt^σ
         end
-        push!(cyclesptr, last(cyclesptr) + orbit_len)
+        push!(cyclesptr, length(cycles) + 1)
         # cycles[cyclesptr[i]:cyclesptr[i+1]-1] contains i-th cycle
 
         # Δ = orbit_plain(T(i), σ, ^)
