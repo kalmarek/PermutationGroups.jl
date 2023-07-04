@@ -192,13 +192,13 @@ function coset_representative(
 )
     if depth ≤ divide_threshold
         # @info "base case" depth
-        return coset_representative_rec(pt0, tr)
+        return coset_representative_recursive(pt0, tr)
     else
         k = depth ÷ 2
         pt1 = _descend(tr, pt0, k)
         # @info "recursive" depth k depth - k
-        g0 = coset_representative_new(pt0, tr, k)
-        g1 = coset_representative_new(pt1, tr, depth - k)
+        g0 = coset_representative(pt0, tr, k)
+        g1 = coset_representative(pt1, tr, depth - k)
         return g1 * g0
     end
 end
@@ -211,7 +211,7 @@ function _descend(tr::SchreierTransversal, pt, depth)
     return pt
 end
 
-function coset_representative_rec(
+function coset_representative_recursive(
     pt0,
     tr::SchreierTransversal,
     target = first(tr),
