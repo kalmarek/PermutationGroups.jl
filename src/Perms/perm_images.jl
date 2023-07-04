@@ -12,7 +12,13 @@ mutable struct Perm{T<:Integer} <: AbstractPermutation
         end
 
         deg = __degree(images)
-        σ = new{T}(@view images[firstindex(images):deg])
+        σ = if deg < length(images)
+            # for future: use @time one(Perm{Int})
+            # to check if julia can elide the creation of view
+            σ = new{T}(@view images[firstindex(images):deg])
+        else
+            σ = new{T}(images)
+        end
 
         return σ
     end
