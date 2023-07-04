@@ -29,6 +29,7 @@ end
 GroupsCore.gens(pts::StabilizerChain) = pts.gens
 stabilizer(pts::StabilizerChain) = pts.stabilizer
 transversal(pts::StabilizerChain) = pts.transversal
+orbit(pts::StabilizerChain) = orbit(transversal(pts))
 
 point(pts::StabilizerChain) = first(transversal(pts))
 GroupsCore.istrivial(pts::StabilizerChain) = isempty(gens(pts))
@@ -70,20 +71,34 @@ end
 
 basis(stabch::StabilizerChain) = [first(transversal(sc)) for sc in stabch]
 
-function Base.show(io::IO, ::MIME"text/plain", sc::StabilizerChain)
+function __print(io::IO, mime::MIME"text/plain", sc::StabilizerChain, indent)
+    print(io, indent)
+    println(io, "Generators: ", gens(sc))
+    print(io, indent)
+    show(io, mime, orbit(sc))
+    return
+end
+
+function Base.show(io::IO, mime::MIME"text/plain", sc::StabilizerChain)
     show(io, sc)
-    for layer in sc
-        println(io, "Orbit:\t", orbit(layer))
-        println(io, "Stabilized by:")
-        Base.print_array(io, gens(layer))
-        println(io, "")
+    print(io, ':')
+    idnt = 2
+    for (idx, layer) in enumerate(sc)
+        println(io)
+        __print(io, mime, layer, ' '^idnt * "├─ ")
+        if idx < length(sc)
+            print(io, "\n", ' '^idnt * "└─┬─ Stabilized by:")
+            idnt += 2
+        else
+            print(io, "\n", ' '^idnt * "└─ Stabilized by: (trivial group)")
+        end
     end
 end
 
 function Base.show(io::IO, sc::StabilizerChain)
     return print(
         io,
-        "Stabilizer chain of size $(order(sc)) with base $(basis(sc))",
+        "Stabilizer chain of size $(order(sc)) with base $(convert.(Int, basis(sc)))",
     )
 end
 

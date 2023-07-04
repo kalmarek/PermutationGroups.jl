@@ -55,6 +55,29 @@ Base.length(orb::Orbit) = Base.length(orb.points)
 Base.iterate(orb::Orbit) = Base.iterate(orb.points)
 Base.iterate(orb::Orbit, state) = Base.iterate(orb.points, state)
 
+function Base.show(io::IO, ::MIME"text/plain", orb::Orbit)
+    return print(io, "Orbit of $(first(orb)): ", orb.points)
+end
+function Base.show(io::IO, ::MIME"text/plain", orb::Orbit{<:Integer})
+    return print(
+        io,
+        "Orbit of $(first(orb)): ",
+        convert(Vector{Int}, orb.points),
+    )
+end
+
+function Base.show(io::IO, orb::Orbit)
+    return print(io, typeof(orb), ':', ' ', orb.points)
+end
+function Base.show(io::IO, orb::Orbit{<:Integer})
+    return print(io, typeof(orb), ':', ' ', convert(Vector{Int}, orb.points))
+end
+
+function Base.rand(rng::Random.AbstractRNG, st::Random.SamplerTrivial{<:Orbit})
+    orb = st[]
+    return rand(rng, orb.points)
+end
+
 """
     AbstractTransversal{T,S} <: AbstractOrbit{T}
 Abstract type representing the bijection of orbit oand orbit representatives.
