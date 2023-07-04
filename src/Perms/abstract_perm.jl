@@ -1,21 +1,37 @@
+struct InfinitePermGroup <: Group end
+
 """
     AbstractPermutation
 Abstract type representing permutations of set `1:n`.
 
-Subtypes `Perm <: AbstractPermutation` must implement the following functions:
-* `Base.:^(i::Integer, σ::Perm)` - the image of `i` under `σ`,
-* `degree(σ::Perm)` - the minimal `n` such that `k^σ == k` for all `k > n`,
-* `Perm(images::AbstractVector{<:Integer}[, check::Bool=true])` - construct a
-`Perm` from a vector of images. Optionally the second argument `check` may be
-set to `false` when the caller knows that `images` constitute a honest
-permutation.
+They all embed canonically into `InfinitePermGroup()`
+
+# Mandatory interface
+Subtypes `APerm <: AbstractPermutation` must implement the following functions:
+ * `Base.:^(i::Integer, σ::APerm)` - the image of `i` under `σ`,
+ * `degree(σ::APerm)` - the minimal `n` such that `k^σ == k` for all `k > n`,
+
+For primitive ("bare-metal"/"parent-less") permutations one needs to implement
+ * `APerm(images::AbstractVector{<:Integer}[, check::Bool=true])` - construct a
+   `APerm` from a vector of images. Optionally the second argument `check` may be
+    set to `false` when the caller knows that `images` constitute a honest
+    permutation.
 
 !!! Note
-    There is no formal requirement that the `Perm(images)` constructor actually
-    returns a `Perm`. Any `AbstractPermutation` object would do. This may be
+    There is no formal requirement that the `APerm(images)` constructor actually
+    returns a `APerm`. Any `AbstractPermutation` object would do. This may be
     useful if constructing permutation from images is not technically feasible.
+
+!!! Note
+    If `APerm` is not constructable from type one needs to implement `one(::APerm)`.
+
+# Optional interface
+ * `inttype(::Type{<:APerm}) = UInt32` - return the underlying "storage" integer,
+ * `perm(σ::APerm) = σ` - return the "bare-metal" permutation (unwrap)
 """
 abstract type AbstractPermutation <: GroupElement end
+
+parent(::AbstractPermutation) = InfinitePermGroup()
 
 """
     degree(σ::AbstractPermutation)
