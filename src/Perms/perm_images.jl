@@ -27,6 +27,11 @@ end
 # convienience constructor: defaults to UInt32
 Perm(images::AbstractVector{<:Integer}) = Perm{inttype(Perm)}(images)
 
+# convienience conversion:
+function Base.convert(::Type{Perm{T}}, p::Perm) where {T}
+    return Perm{T}(convert(Vector{T}, p.images), false)
+end
+
 # inttype must be T (UInt32 by default) since we store it in e.g. cycles
 inttype(::Type{Perm{T}}) where {T} = T
 
