@@ -104,6 +104,14 @@ Base.length(tr::AbstractTransversal) = length(orbit(tr))
 Base.iterate(tr::AbstractTransversal) = iterate(orbit(tr))
 Base.iterate(tr::AbstractTransversal, state) = iterate(orbit(tr), state)
 
+function Base.rand(
+    rng::Random.AbstractRNG,
+    st::Random.SamplerTrivial{<:AbstractTransversal},
+)
+    tr = st[]
+    return rand(rng, orbit(tr))
+end
+
 function Base.getindex(tr::AbstractTransversal, pt)
     if pt in tr
         coset_representative(pt, tr)
@@ -111,6 +119,7 @@ function Base.getindex(tr::AbstractTransversal, pt)
         throw(NotInOrbit(pt, first(tr)))
     end
 end
+
 struct Transversal{T,S<:GroupElement} <: AbstractTransversal{T,S}
     orbit::Orbit{T}
     representatives::Dict{T,S}
@@ -282,17 +291,5 @@ for Trans_t in (:Transversal, :SchreierTransversal)
         function $Trans_t(::Type{P}) where {P<:AbstractPermutation}
             return $Trans_t{Perms.inttype(P),P}
         end
-    end
-end
-
-function Base.rand(
-    rng::Random.AbstractRNG,
-    rs::Random.SamplerTrivial{<:AbstractOrbit},
-)
-    orb = rs[]
-    l = length(orb)
-    n = rand(rng, 1:l)
-    for (idx, o) in enumerate(orb)
-        idx == n && return o
     end
 end
