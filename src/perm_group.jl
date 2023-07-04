@@ -61,3 +61,22 @@ function StabilizerChain(G::PermGroup)
 end
 
 basis(G::AbstractPermutationGroup) = basis(StabilizerChain(G))
+
+# iteration protocol for PermGroups
+
+Base.eltype(::Type{GT}) where {P,GT<:PermGroup{P}} = Permutation{P,GT}
+
+function Base.iterate(G::PermGroup)
+    lfs = leafs(StabilizerChain(G))
+    σ, st = iterate(lfs)
+    return Permutation(σ, G), (lfs, st)
+end
+
+function Base.iterate(G::PermGroup, state)
+    lfs, st = state
+    next = iterate(lfs, st)
+    isnothing(next) && return nothing
+    σ, st = next
+    return Permutation(σ, G), (lfs, st)
+end
+

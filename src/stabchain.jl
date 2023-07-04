@@ -102,6 +102,87 @@ function Base.show(io::IO, sc::StabilizerChain)
     )
 end
 
+struct Leafs{T}
+    iters::Vector{T}
+    total_len::Int
+end
+
+depth(lfs::Leafs) = length(lfs.iters)
+
+Base.length(lfs::Leafs) = lfs.total_len
+Base.eltype(::Type{<:Leafs{<:AbstractTransversal{T,S}}}) where {T,S} = S
+
+function leafs(stabch::StabilizerChain{P,T}) where {P,T}
+    transversals = let trs = T[], sch = stabch
+        while !istrivial(sch)
+            push!(trs, transversal(sch))
+            sch = stabilizer(sch)
+        end
+        trs
+    end
+
+    return Leafs(transversals, prod(length, transversals; init = 1))
+end
+
+function Base.iterate(lfs::Leafs{<:AbstractTransversal})
+    states = last.(iterate.(lfs.iters))
+
+    partial_products = map(1:length(states)-1) do idx
+        tr = lfs.iters[idx]
+        return tr[first(tr)] # identity, but already allocated
+    end
+
+    state = (states = states, partial_products = partial_products)
+    res = state.partial_products[end]
+    @info state res
+    return res, state
+end
+
+function Base.iterate(lfs::Leafs{<:AbstractTransversal}, state)
+    tr, st = lfs.iters[end], state.states[end]
+    next = iterate(tr, st)
+
+    if !isnothing(next)
+        pt, st = next
+        g = tr[pt]
+        state.states[end] = st
+        res = g * state.partial_products[end]
+        @info state res
+        return res, state
+    else
+        d = depth(lfs)
+        while isnothing(next)
+            # @debug "resetting $d-th iterator" state.states[d]
+            _, state.states[d] = iterate(lfs.iters[d])
+            d -= 1
+            d == 0 && return nothing
+            next = iterate(lfs.iters[d], state.states[d])
+        end
+        # @debug "advancing $d-th iterator" state.states
+        # move forward the next iterator
+        tr = lfs.iters[d]
+        pt, st = next
+        g = tr[pt]
+        state.states[d] = st
+        # @debug state.states
+
+        begin
+            res = d > 1 ? g * state.partial_products[d-1] : g
+            state.partial_products[d] = g
+        end
+        # @show length(state.partial_products) - d
+        begin
+            # the following elts are the same since tr[first(tr)] is always id!
+            # @views fill!(state.partial_products[d:end], res)
+            for i in d+1:length(state.partial_products)
+                state.partial_products[i] = state.partial_products[i-1]
+            end
+        end
+        @info state res
+        return res, state
+    end
+end
+
 # function Base.iterate(stabch::StabilizerChain, state)
 #     next = iterate(last(state.transversals), last(state.states))
 #     @inbounds if !isnothing(next)
