@@ -41,12 +41,32 @@ function Base.:^(::Integer, σ::AbstractPermutation)
     throw("not implemented: Base.:^(::Integer, ::$(typeof(σ)))")
 end
 
+"""
+    perm(p::AbstractPermutation)
+Return the "bare-metal" permutation (unwrap). **For internal use only.**
+
+Access to wrapped permutation object. For "bare-metal" permutations this needs
+to return the identical (i.e. ===) object.
+"""
+perm(p::AbstractPermutation) = p
+
+"""
+    inttype(σ::Type{<:AbstractPermutation})
+Return the underlying "storage" integer. **For internal use only.**
+
+The default is `UInt32`.
+"""
+inttype(::Type{P}) where {P<:AbstractPermutation} = UInt32
+function inttype(σ::AbstractPermutation)
+    τ = perm(σ)
+    return τ === σ ? inttype(typeof(σ)) : inttype(τ)
+end
+
+# utilities for Abstract Permutations
+
 Base.one(::Type{P}) where {P<:AbstractPermutation} = P(inttype(P)[1], false)
 Base.one(σ::AbstractPermutation) = one(typeof(σ))
 Base.isone(σ::AbstractPermutation) = degree(σ) == 1
-
-inttype(::Type{P}) where {P<:AbstractPermutation} = UInt32
-inttype(σ::AbstractPermutation) = inttype(typeof(σ))
 
 function Base.:(==)(σ::AbstractPermutation, τ::AbstractPermutation)
     degree(σ) ≠ degree(τ) && return false
