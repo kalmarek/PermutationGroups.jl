@@ -107,8 +107,6 @@ struct Leafs{T}
     total_len::Int
 end
 
-depth(lfs::Leafs) = length(lfs.iters)
-
 Base.length(lfs::Leafs) = lfs.total_len
 Base.eltype(::Type{<:Leafs{<:AbstractTransversal{T,S}}}) where {T,S} = S
 
@@ -127,14 +125,11 @@ end
 function Base.iterate(lfs::Leafs{<:AbstractTransversal})
     states = last.(iterate.(lfs.iters))
 
-    partial_products = map(1:length(states)-1) do idx
-        tr = lfs.iters[idx]
-        return tr[first(tr)] # identity, but already allocated
-    end
+    labels = [tr[first(tr)] for tr in Iterators.reverse(lfs.iters)]
 
-    state = (states = states, partial_products = partial_products)
-    res = state.partial_products[end]
-    @info state res
+    state = (states = states, labels = labels)
+    res = *(state.labels...)
+    # @info state res
     return res, state
 end
 
@@ -143,42 +138,31 @@ function Base.iterate(lfs::Leafs{<:AbstractTransversal}, state)
     next = iterate(tr, st)
 
     if !isnothing(next)
-        pt, st = next
-        g = tr[pt]
-        state.states[end] = st
-        res = g * state.partial_products[end]
-        @info state res
+        pt, state.states[end] = next
+        state.labels[begin] = tr[pt]
+        res = *(state.labels...)
+        # @info state res
         return res, state
     else
-        d = depth(lfs)
+        depth = length(lfs.iters)
         while isnothing(next)
             # @debug "resetting $d-th iterator" state.states[d]
-            _, state.states[d] = iterate(lfs.iters[d])
-            d -= 1
-            d == 0 && return nothing
-            next = iterate(lfs.iters[d], state.states[d])
+            _pt, state.states[depth] = iterate(lfs.iters[depth])
+            state.labels[end-depth+1] = lfs.iters[depth][_pt]
+            depth -= 1
+            depth == 0 && return nothing
+            next = iterate(lfs.iters[depth], state.states[depth])
         end
         # @debug "advancing $d-th iterator" state.states
         # move forward the next iterator
-        tr = lfs.iters[d]
-        pt, st = next
-        g = tr[pt]
-        state.states[d] = st
+        tr = lfs.iters[depth]
+        pt, state.states[depth] = next
+        state.labels[end-depth+1] = tr[pt]
         # @debug state.states
 
-        begin
-            res = d > 1 ? g * state.partial_products[d-1] : g
-            state.partial_products[d] = g
-        end
         # @show length(state.partial_products) - d
-        begin
-            # the following elts are the same since tr[first(tr)] is always id!
-            # @views fill!(state.partial_products[d:end], res)
-            for i in d+1:length(state.partial_products)
-                state.partial_products[i] = state.partial_products[i-1]
-            end
-        end
-        @info state res
+        res = *(state.labels...)
+        # @info state res
         return res, state
     end
 end
