@@ -18,14 +18,23 @@ end
 function Base.:(*)(
     σ::AbstractPermutation,
     τ::AbstractPermutation,
-    τs::AbstractPermutation...,
+    ρ::AbstractPermutation,
 )
-    deg = max(degree(σ), degree(τ), maximum(degree, τs))
+    deg = max(degree(σ), degree(τ), degree(ρ))
     img = Vector{inttype(σ)}(undef, deg)
     for i in Base.OneTo(deg)
-        j = (i^σ)^τ
-        for τᵢ in τs
-            j = j^τᵢ
+        img[i] = ((i^σ)^τ)^ρ
+    end
+    return typeof(σ)(img, false)
+end
+
+function Base.:(*)(σ::AbstractPermutation, τs::AbstractPermutation...)
+    deg = max(degree(σ), maximum(degree, τs))
+    img = Vector{inttype(σ)}(undef, deg)
+    for i in Base.OneTo(deg)
+        j = (i^σ)
+        for τ in τs
+            j = j^τ
         end
         img[i] = j
     end

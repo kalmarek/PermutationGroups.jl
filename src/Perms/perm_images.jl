@@ -7,25 +7,22 @@ mutable struct Perm{T<:Integer} <: AbstractPermutation
         images::AbstractVector{<:Integer},
         check::Bool = true,
     ) where {T}
-        if check
-            isperm(images) || error("Provided images are not permutation!")
-        end
-
+        check && @assert isperm(images) "Provided images are not permutation!"
         deg = __degree(images)
-        σ = if deg < length(images)
+        if deg == length(images)
+            return new{T}(images)
+        else
             # for future: use @time one(Perm{Int})
             # to check if julia can elide the creation of view
-            σ = new{T}(@view images[firstindex(images):deg])
-        else
-            σ = new{T}(images)
+            return new{T}(@view images[Base.OneTo(deg)])
         end
-
-        return σ
     end
 end
 
-# convienience constructor: defaults to UInt32
-Perm(images::AbstractVector{<:Integer}) = Perm{inttype(Perm)}(images)
+# convienience constructor: inttype(::Type{<:AbstractPermutation}) defaults to UInt32
+function Perm(images::AbstractVector{<:Integer}, check = true)
+    return Perm{inttype(Perm)}(images, check)
+end
 
 # convienience conversion:
 function Base.convert(::Type{Perm{T}}, p::Perm) where {T}
