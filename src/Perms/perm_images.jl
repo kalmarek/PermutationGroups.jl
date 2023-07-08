@@ -29,6 +29,7 @@ Perm(images::AbstractVector{<:Integer}) = Perm{inttype(Perm)}(images)
 
 # convienience conversion:
 function Base.convert(::Type{Perm{T}}, p::Perm) where {T}
+    inttype(p) == T && return p
     return Perm{T}(convert(Vector{T}, p.images), false)
 end
 
