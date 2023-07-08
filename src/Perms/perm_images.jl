@@ -43,15 +43,13 @@ function Base.:^(n::Integer, σ::Perm)
     return 1 ≤ n ≤ degree(σ) ? oftype(n, @inbounds σ.images[n]) : n
 end
 
-function Base.inv(σ::P) where {P<:Perm}
-    # if @atomic !isdefined(σ, :inv)
-    if !isdefined(σ, :inv)
-        σ_inv = P(invperm(σ.images), false)
+function Base.inv(σ::Perm)
+    if !isdefined(σ, :inv, :sequentially_consistent)
+        σ⁻¹ = typeof(σ)(invperm(σ.images), false)
         # we don't want to end up with two copies of inverse σ floating around
-        # if @atomic !isdefined(σ, :inv)
-        if !isdefined(σ, :inv)
-            @atomic σ.inv = σ_inv
-            @atomic σ.inv.inv = σ
+        if !isdefined(σ, :inv, :sequentially_consistent)
+            @atomic σ.inv = σ⁻¹
+            @atomic σ⁻¹.inv = σ
         end
     end
     return σ.inv
@@ -60,8 +58,7 @@ end
 # optional
 
 function cycles(σ::Perm)
-    # if @atomic !isdefined(σ, :cycles)
-    if !isdefined(σ, :cycles)
+    if !isdefined(σ, :cycles, :sequentially_consistent)
         cdec = CycleDecomposition(σ)
         # we can afford producing more than one cycle decomposition
         @atomic σ.cycles = cdec
