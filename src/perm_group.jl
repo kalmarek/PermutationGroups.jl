@@ -70,9 +70,9 @@ The first call on a particular group `G` will construct the chain from `gens(G)`
 and complete it by the deterministic Schreier-Sims algorithm.
 The subsequent calls just return the cached data structure.
 """
-function StabilizerChain(G::PermGroup)
+function StabilizerChain(G::PermGroup{P,T}) where {P,T}
     if !isdefined(G, :stabchain, :sequentially_consistent)
-        stabchain = schreier_sims(__gens_raw(G))
+        stabchain = schreier_sims(T, __gens_raw(G))
         # this may take some time, so let's check again
         if !isdefined(G, :stabchain, :sequentially_consistent)
             @atomic G.stabchain = stabchain
