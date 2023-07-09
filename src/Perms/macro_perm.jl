@@ -73,5 +73,5 @@ julia> degree(q)
 ```
 """
 macro perm_str(str)
-    return Meta.parse(Perm{inttype(Perm)}, str)
+    return Meta.parse(Perm{UInt16}, str)
 end
