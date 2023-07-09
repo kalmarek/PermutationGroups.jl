@@ -3,7 +3,6 @@ using GroupsCore
 using PermutationGroups
 using BenchmarkTools
 
-const REWRITE = isdefined(PermutationGroups, :SchreierTransversal)
 const BENCHMARK_TIME = !(haskey(ENV, "CI"))
 
 function test_perf(G)
@@ -23,15 +22,27 @@ end
 
         G = SymmetricGroup(8)
         K = PermGroup([perm"(1,5,6,2,4,8)", perm"(1,3,6)(2,5,7,4)(8)"])
+        @test order(Int, K) == order(Int, G)
         @test test_perf(G) == test_perf(K) == 181440
         if BENCHMARK_TIME
             @info "Native iteration over S8 group:"
             @btime test_perf($G)
-            # 1.333 ms (80644 allocations: 6.77 MiB) → 181440
+            # 1.333 ms (80644 allocations: 6.77 MiB)
             @info "Iteration over K ≅ S8 PermGroup:"
-            @time order(Int, G)
+            K = PermGroup(
+                Transversal,
+                [perm"(1,5,6,2,4,8)", perm"(1,3,6)(2,5,7,4)(8)"],
+            )
+            # 4.100 ms (125987 allocations: 6.46 MiB)
+            @time order(Int, K)
             @btime test_perf($K)
-            # 16.071 ms (120962 allocations: 9.84 MiB) → 181440
+            K = PermGroup(
+                SchreierTransversal,
+                [perm"(1,5,6,2,4,8)", perm"(1,3,6)(2,5,7,4)(8)"],
+            )
+            @time order(Int, K)
+            @btime test_perf($K)
+            # 7.344 ms (206127 allocations: 11.35 MiB)
         end
     end
 
@@ -49,12 +60,12 @@ end
         @test order(G) == 384
         if BENCHMARK_TIME
             @info "Rubik cube 2×2×2 group:"
-            @btime schreier_sims($(gens(G)))
-            if REWRITE
-                @btime order(Int, G) setup =
-                    (G = PermGroup(SchreierTransversal, $cube222)) evals = 1
-            end
-            # 98.126 μs (2100 allocations: 213.52 KiB)
+            @btime order(Int, G) setup = (G = PermGroup(Transversal, $cube222)) evals =
+                1
+            @btime order(Int, G) setup =
+                (G = PermGroup(SchreierTransversal, $cube222)) evals = 1
+            # 25.701 μs (566 allocations: 48.13 KiB)
+            # 72.216 μs (1338 allocations: 119.51 KiB)
         end
 
         cube333 = [
@@ -71,12 +82,12 @@ end
         @test order(G) == order(Int128, G) # fits Int128
         if BENCHMARK_TIME
             @info "Schreier-Sims for Rubik cube 3×3×3 group:"
-            @btime schreier_sims($(gens(G)))
-            if REWRITE
-                @btime order(Int128, G) setup =
-                    (G = PermGroup(SchreierTransversal, $cube333)) evals = 1
-            end
-            # 38.697 ms (610514 allocations: 118.50 MiB)
+            @btime order(Int128, G) setup =
+                (G = PermGroup(Transversal, $cube333)) evals = 1
+            @btime order(Int128, G) setup =
+                (G = PermGroup(SchreierTransversal, $cube333)) evals = 1
+            # 2.112 ms (27957 allocations: 2.77 MiB)
+            # 9.491 ms (125026 allocations: 12.39 MiB)
         end
     end
 
@@ -110,17 +121,17 @@ end
         (  5, 10, 20, 39, 75,136,162,135,217,223,158,129,210,298,282, 11, 22, 43, 82,147,232,292,336,379, 21, 41, 28, 55,102,175,264,286,202,101,173,122,203,271,345,358,327,124,205, 52, 97,167,253,263,339,142,226,311,371,394,211,234,243,185,275,349,190, 89,156,170,258,334,294,343,383,396,357,  7, 14, 15, 29, 57,105,181,270,338,120,174,106,182,272,347,386, 13, 26, 51, 95,165,249, 19, 37, 46, 87,151,139,222,307,348,385,278, 25, 49, 44, 84,150,225,310,321,329,376,248,285,351,369,131,212,178,166,251,201, 42, 80,145,228,297,316,373,320,306,241,221,235,239,242,322,296,140, 78,141,224,304,331,299,365,114,194, 30, 59,109,188,280,354, 32, 62,115,195,268,231,314, 79,143,227,312,196,288, 38, 73,133,208, 71, 56,103,177, 27, 53, 98,169,257,333,137,219,266,340,112, 34, 66,123,204,256,332,378,387,382,395,389,398)"""
 
         SL_4_7 = PermGroup([a, b])
-        @test order(Int, SL_4_7) == 2317591180800
+        @test order(Int64, SL_4_7) == 2317591180800
         if BENCHMARK_TIME
             @info "Schreier-Sims for SL(4,7):"
-            @btime schreier_sims($(gens(SL_4_7)))
-            if REWRITE
-                @btime order(Int, G) setup =
-                    (G = PermGroup(SchreierTransversal, $([a, b]))) evals = 1
-            end
+            @btime order(Int64, G) setup =
+                (G = PermGroup(Transversal, $([a, b]))) evals = 1
+            @btime order(Int64, G) setup =
+                (G = PermGroup(SchreierTransversal, $([a, b]))) evals = 1
             # gap> G := Group([a,b]);; StabChain(G);; time;
-            # GAP       vs      julia
-            # ~15 ms    vs      203.346 ms (370796 allocations: 444.39 MiB)
+            # ~15ms
+            # 11.348 ms (32022 allocations: 13.15 MiB)
+            # 110.193 ms (254193 allocations: 110.51 MiB)
         end
     end
 
@@ -183,15 +194,20 @@ end
         @test order(G) == 192480
         if BENCHMARK_TIME
             @info "Schreier-Sims for a direct-product group:"
-            @btime schreier_sims($(gens(G)))
-            if REWRITE
-                @btime order(Int, G) setup =
-                    (G = PermGroup(SchreierTransversal, $([a, b, c, d]))) evals =
-                    1
-            end
-            # GAP       vs      julia
-            # 22 ms     vs      32.417 ms (51497 allocations: 62.96 MiB)
+            @btime order(Int, G) setup =
+                (G = PermGroup(Transversal, $([a, b, c, d]))) evals = 1
+            @btime order(Int, G) setup =
+                (G = PermGroup(SchreierTransversal, $([a, b, c, d]))) evals = 1
+            # gap> G := Group([a,b,c,d]);; StabChain(G);; time;
+            # ~15ms
+            # 3.517 ms (10347 allocations: 4.22 MiB)
+            # 90.729 ms (226841 allocations: 80.99 MiB)
+            G = PermGroup(Transversal, [a, b, c, d])
             @time test_perf(G)
+            H = PermGroup(SchreierTransversal, [a, b, c, d])
+            @time test_perf(H)
+            # 0.153197 seconds (623.86 k allocations: 217.470 MiB, 4.66% gc time)
+            # 0.435564 seconds (1.24 M allocations: 476.691 MiB, 3.41% gc time)
         end
     end
 end
