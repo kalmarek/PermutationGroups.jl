@@ -105,6 +105,7 @@ abstract type AbstractTransversal{T,S} <: AbstractOrbit{T} end
 Base.length(tr::AbstractTransversal) = length(orbit(tr))
 Base.iterate(tr::AbstractTransversal) = iterate(orbit(tr))
 Base.iterate(tr::AbstractTransversal, state) = iterate(orbit(tr), state)
+Base.last(tr::AbstractTransversal) = last(orbit(tr))
 
 function Base.rand(
     rng::Random.AbstractRNG,

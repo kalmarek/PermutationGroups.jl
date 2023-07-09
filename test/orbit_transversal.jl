@@ -20,12 +20,7 @@
     @test Transversal(UInt32(pt), gens) isa Transversal{UInt32,eltype(gens)}
     @test Transversal{Int16}(pt, gens) isa Transversal{Int16}
 
-    @info "querying Transversal"
-    for pt in tr
-        g = tr[pt]
-        g = @time tr[pt]
-        @test first(tr)^g == pt
-    end
+    @test_throws PG.NotInOrbit tr[10]
 
     schr = SchreierTransversal(pt, gens)
     @test length(schr) == length(orb)
@@ -35,12 +30,7 @@
           SchreierTransversal{UInt32,eltype(gens)}
     @test SchreierTransversal{Int16}(pt, gens) isa SchreierTransversal{Int16}
 
-    @info "querying SchreierTransversal"
-    for pt in schr
-        g = schr[pt]
-        g = @time schr[pt]
-        @test first(schr)^g == pt
-    end
+    @test_throws PG.NotInOrbit tr[10]
 
     @testset "Schreier Vectors and Stabilizers" begin
         Random.seed!(1)
@@ -76,5 +66,35 @@
         @test schr[δ] == z
         @test all([pt^schr[o] == o for o in schr])
         @test all(schr[o] == tr[o] for o in tr)
+    end
+
+    @testset "allocations" begin
+        gens =
+            Perm{UInt16}[perm"(4,7,5,6)", perm"(1,9,13,8,6,5,7,4)(10,14,12,11)"]
+        init_pt = 4
+        tr = Transversal(init_pt, gens)
+
+        @info "querying Transversal"
+        for pt in tr
+            g = tr[pt]
+            k = @allocated tr[pt]
+            @test k == 0
+            @test init_pt^g == pt
+        end
+
+        schtr = SchreierTransversal(init_pt, gens)
+        @info "querying SchreierTransversal"
+        for pt in schtr
+            g = schtr[pt]
+            k = @allocated schtr[pt]
+            if pt == first(schtr)
+                @test k == 0
+            elseif pt == last(schtr)
+                @test k == 512
+            else
+                @test k ∈ (128, 144)
+            end
+            @test init_pt^g == pt
+        end
     end
 end
