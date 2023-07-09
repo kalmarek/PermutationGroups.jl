@@ -28,11 +28,17 @@ function Meta.parse(
     str::AbstractString,
 ) where {P<:AbstractPermutation}
     cycles = _parse_cycles(str)
-    deg = mapreduce(maximum, max, cycles; init = 1)
+    deg = mapreduce(
+        c -> length(c) > 1 ? maximum(c) : convert(eltype(c), (1)),
+        max,
+        cycles;
+        init = 1,
+    )
     images = Vector{inttype(P)}(undef, deg)
-    for idx in 1:deg
+    for idx in Base.OneTo(deg)
         k = idx
         for cycle in cycles
+            length(cycle) == 1 && continue
             i = findfirst(==(k), cycle)
             k = isnothing(i) ? k : cycle[mod1(i + 1, length(cycle))]
         end
