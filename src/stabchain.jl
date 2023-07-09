@@ -57,7 +57,13 @@ Recompute the Schreier tree of `sc`.
 This allows shallower Schreier trees after new generators were added to `sc`.
 """
 function recompute_transversal!(sc::StabilizerChain{P,T}) where {P,T}
-    return sc.transversal = T(first(transversal(sc)), gens(sc))
+    pt = if isdefined(sc, :transversal)
+        first(transversal(sc))
+    else
+        firstmoved(first(gens(sc)))
+    end
+    sc.transversal = T(pt, gens(sc))
+    return sc.transversal
 end
 
 function depth(stabch::StabilizerChain)
