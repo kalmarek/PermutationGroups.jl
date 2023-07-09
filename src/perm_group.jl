@@ -12,15 +12,24 @@ mutable struct PermGroup{P<:AbstractPermutation,T<:AbstractTransversal} <:
     @atomic order::BigInt
 
     function PermGroup(
-        gens::AbstractVector{<:AbstractPermutation},
         T::Type{<:AbstractTransversal},
+        gens::AbstractVector{<:AbstractPermutation},
     )
         return new{eltype(gens),T}([Perms.perm(s) for s in gens])
     end
 end
 
+for T in (:Transversal, :SchreierTransversal)
+    @eval function PermGroup(
+        ::Type{$T},
+        gens::AbstractVector{<:AbstractPermutation},
+    )
+        return PermGroup($T(eltype(gens)), gens)
+    end
+end
+
 function PermGroup(gens::AbstractVector{<:AbstractPermutation})
-    return PermGroup(gens, Transversal(eltype(gens)))
+    return PermGroup(Transversal, gens)
 end
 
 PermGroup(gens::Vararg{P,N}) where {P,N} = PermGroup(collect(gens))
@@ -100,4 +109,3 @@ function Base.iterate(G::PermGroup, state)
     σ, st = next
     return Permutation(σ, G), (lfs, st)
 end
-
