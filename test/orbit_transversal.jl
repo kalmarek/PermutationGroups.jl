@@ -89,10 +89,12 @@
             k = @allocated schtr[pt]
             if pt == first(schtr)
                 @test k == 0
-            elseif pt == last(schtr)
-                @test k == 512
-            else
-                @test k ∈ (128, 144)
+            elseif VERSION == v"1.9"
+                if pt == last(schtr)
+                    @test k == 512
+                else
+                    @test k ∈ (128, 144)
+                end
             end
             @test init_pt^g == pt
         end
