@@ -20,9 +20,10 @@
     @test Transversal(UInt32(pt), gens) isa Transversal{UInt32,eltype(gens)}
     @test Transversal{Int16}(pt, gens) isa Transversal{Int16}
 
+    @info "querying Transversal"
     for pt in tr
         g = tr[pt]
-        g = tr[pt]
+        g = @time tr[pt]
         @test first(tr)^g == pt
     end
 
@@ -34,6 +35,7 @@
           SchreierTransversal{UInt32,eltype(gens)}
     @test SchreierTransversal{Int16}(pt, gens) isa SchreierTransversal{Int16}
 
+    @info "querying SchreierTransversal"
     for pt in schr
         g = schr[pt]
         g = @time schr[pt]
