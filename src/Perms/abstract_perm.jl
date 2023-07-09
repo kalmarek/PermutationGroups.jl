@@ -31,7 +31,7 @@ For primitive ("bare-metal"/"parent-less") permutations one needs to implement
 """
 abstract type AbstractPermutation <: GroupElement end
 
-parent(::AbstractPermutation) = InfinitePermGroup()
+GroupsCore.parent(::AbstractPermutation) = InfinitePermGroup()
 
 """
     degree(σ::AbstractPermutation)
