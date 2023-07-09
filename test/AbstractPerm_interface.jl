@@ -51,5 +51,28 @@ function abstract_perm_interface_test(P::Type{<:PG.AbstractPermutation})
         @test (1:5) .^ p == [3, 1, 2, 4, 5]
         @test sprint(show, p) == "(1,3,2)"
         @test sprint(show, PG.cycles(p)) == "Cycle Decomposition: (1,3,2)"
+
+        let x = P([2, 1]), y = P([1, 3, 4, 6, 5, 7, 2, 8])
+            # x = (1,2), y = (1)(2,3,4,6,7)
+
+            @test permtype(x) == [2]
+            @test permtype(y) == [5]
+            @test sign(x) == -1
+            @test sign(y) == 1
+            @test sign(x * y) == -1
+
+            @test PG.firstmoved(x) == 1
+            @test PG.firstmoved(y) == 2
+            @test PG.firstmoved(one(x)) === nothing
+
+            @test PG.Perms.nfixedpoints(x) == 0
+            @test PG.Perms.nfixedpoints(y) == 2
+
+            @test PG.Perms.fixedpoints(x) == Int[]
+            @test PG.Perms.fixedpoints(y) == Int[1, 5]
+
+            @test PG.Perms.parity(x) == 1
+            @test PG.Perms.parity(y) == 0
+        end
     end
 end

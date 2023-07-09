@@ -134,3 +134,8 @@ else
         return σ.cycles
     end
 end
+
+function parity(σ::Perm)
+    isdefined(σ, :cycles) && return parity(cycles(σ))
+    return __parity_generic(σ)
+end

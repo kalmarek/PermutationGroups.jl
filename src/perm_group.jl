@@ -70,7 +70,13 @@ function Base.:*(p::Permutation, qs::Permutation...)
     @assert all(parent(q) === G for q in qs)
     r = *(Perms.perm(p), map(Perms.perm, qs)...)
     # @assert r in G
-    # instead of
+    return Permutation(r, G)
+end
+
+function Base.:*(p::Permutation, qs::AbstractPermutation...)
+    G = parent(p)
+    r = *(Perms.perm(p), map(Perms.perm, qs)...)
+    @assert r in G
     return Permutation(r, G)
 end
 
