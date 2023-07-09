@@ -86,17 +86,63 @@ function extend_gens!(
 ) where {S,T}
     @assert !isone(g)
 
-    # a very simple version
-    push!(stabch.gens, g)
-    stabch.transversal = T(point(stabch), gens(stabch), ^)
+    # # We have two options here:
+    # # a very simple version is to recompute the whole transversal,
+    # # pushing the new Schreier generators to the lower level.
+    # We will use it if the depth of the SchreierTransversal becomes excessive
+    if T <: SchreierTransversal
+        orb_dep = depth(last(orbit(stabch)), transversal(stabch))
+        orb_len = length(orbit(stabch))
+        if orb_dep > 3 + ceil(sqrt(orb_len) / 2)
+            push!(stabch.gens, g)
+            recompute_transversal!(stabch)
+
+            tr = transversal(stabch)
+            for s in gens(stabch)
+                for δ in tr # iterating over orbit
+                    schr = tr[δ] * s * inv(tr[δ^s]) # a new Schreier generator
+                    isone(schr) && continue
+                    @assert point(stabch)^schr == point(stabch)
+                    push!(stabilizer(stabch), schr)
+                end
+            end
+            return stabch
+        end
+    end
+
+    # a more advanced version does
+    # 1. push around the old points with the new generator g
+    # 3. add g to the generators
+    # 2. push around the newly obtained points with the generators (old one and g)
 
     tr = transversal(stabch)
-    for s in gens(stabch)
-        for δ in tr # iterating over orbit
-            schr = tr[δ] * s * inv(tr[δ^s]) # a new Schreier generator
-            isone(schr) && continue
-            @assert point(stabch)^schr == point(stabch)
-            push!(stabilizer(stabch), schr)
+    l = length(tr)
+
+    for δ in orbit(stabch) # pushing around old points with the new generator
+        γ = δ^g
+        if γ ∉ tr
+            tr[γ] = (δ, g)
+        else
+            s = tr[δ] * g * inv(tr[γ]) # a new Schreier generator for the stabilizer
+            isone(s) && continue
+            push!(stabilizer(stabch), s)
+        end
+    end
+
+    if length(tr) > l # if there are new points in the orbit
+        push!(stabch.gens, g) # with old and the new generators
+        for (idx, δ) in enumerate(orbit(stabch))
+            idx ≤ l && continue # pushing around only the newly added points
+            for g in gens(stabch)
+                γ = δ^g
+                if γ ∉ tr
+                    tr[γ] = (δ, g)
+                else
+                    s = tr[δ] * g * inv(tr[γ])
+                    isone(s) && continue
+                    push!(stabilizer(stabch), s)
+                end
+            end
         end
     end
     return stabch

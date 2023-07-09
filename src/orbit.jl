@@ -55,6 +55,8 @@ Base.length(orb::Orbit) = Base.length(orb.points)
 Base.iterate(orb::Orbit) = Base.iterate(orb.points)
 Base.iterate(orb::Orbit, state) = Base.iterate(orb.points, state)
 
+Base.last(orb::Orbit) = last(orb.points)
+
 function Base.show(io::IO, ::MIME"text/plain", orb::Orbit)
     return print(io, "Orbit of $(first(orb)): ", orb.points)
 end
