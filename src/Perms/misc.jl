@@ -26,17 +26,17 @@ function __parity_generic(σ::AbstractPermutation)
 end
 
 """
-    sign(g::Perm)
+    sign(g::AbstractPermutation)
 
 Return the sign of a permutation.
 
 `sign` represents the homomorphism from the permutation group to the unit group
 of `ℤ` whose kernel is the alternating group.
 """
-sign(σ::AbstractPermutation) = (-1)^parity(σ)
+Base.sign(σ::AbstractPermutation) = (-1)^parity(σ)
 
 """
-    permtype(g::Perm)
+    permtype(g::AbstractPermutation)
 
 Return the type of permutation `g`, i.e. lengths of disjoint cycles in cycle
 decomposition of `g`.
