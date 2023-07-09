@@ -15,9 +15,13 @@ function Base.rand(
     rs::Random.SamplerTrivial{Gr},
 ) where {Gr<:PermGroup}
     G = rs[]
-    tr = transversals(G)
-    img = rand.(rng, tr)
-    return perm_by_baseimages(G, img)
+    res = Perms.perm(one(G))
+    sc = StabilizerChain(G)
+    for layer in sc
+        pt = rand(rng, orbit(layer))
+        res = transversal(layer)[pt] * res
+    end
+    return Permutation(res, G)
 end
 
 # GroupElement Interface
