@@ -84,11 +84,16 @@ function Perms.perm(
     baseimages::AbstractVector{<:Integer},
 ) where {P}
     @assert depth(sc) == length(baseimages)
-    res = one(P)
+    word = Vector{P}(undef, depth(sc))
 
-    for (β, layer) in zip(baseimages, sc)
-        res = transversal(layer)[β] * res
+    for (idx, β, layer) in zip(eachindex(word), baseimages, sc)
+        for i in Base.OneTo(idx - 1)
+            l = word[i]
+            β = β^l
+        end
+        word[idx] = inv(transversal(layer)[β])
     end
+    res = inv(*(word...))
     return res
 end
 
