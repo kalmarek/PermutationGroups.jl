@@ -125,17 +125,17 @@ struct Transversal{T,S<:GroupElement} <: AbstractTransversal{T,S}
     representatives::Dict{T,S}
 
     function Transversal{T,S}(pt, g::GroupElement, op = ^) where {T,S}
-        orbit = Orbit{T}(T[pt])
+        orb = Orbit{T}(T[pt])
         reps = Dict{T,S}(pt => one(g))
+        tr = new{T,S}(orb, reps)
 
-        for δ in orbit
+        for δ in orbit(tr)
             γ = op(δ, g)
-            if !(γ in keys(reps))
-                push!(orbit, γ)
-                reps[γ] = reps[δ] * g
+            if γ ∉ tr
+                tr[γ] = (δ, g)
             end
         end
-        return new{T,S}(orbit, reps)
+        return tr
     end
 
     function Transversal{T,S}(
@@ -144,25 +144,33 @@ struct Transversal{T,S<:GroupElement} <: AbstractTransversal{T,S}
         op = ^,
     ) where {T,S<:GroupElement}
         @assert !isempty(gens)
-        orbit = Orbit{T}(T[pt])
+        orb = Orbit{T}(T[pt])
         reps = Dict{T,S}(pt => one(first(gens)))
+        tr = new{T,S}(orb, reps)
 
-        for δ in orbit
+        for δ in orbit(tr)
             for g in gens
                 γ = op(δ, g)
-                if !(γ in keys(reps))
-                    push!(orbit, γ)
-                    reps[γ] = reps[δ] * g
+                if γ ∉ tr
+                    tr[γ] = (δ, g)
                 end
             end
         end
-        return new{T,S}(orbit, reps)
+        return tr
     end
 end
 
 orbit(tr::Transversal) = tr.orbit
 Base.in(pt, tr::Transversal) = pt in keys(tr.representatives)
 coset_representative(pt, tr::Transversal) = tr.representatives[pt]
+
+function Base.setindex!(tr::Transversal, pt0_g::Tuple, pt1)
+    @assert pt1 ∉ tr
+    pt0, g = pt0_g
+    push!(tr.orbit, pt1)
+    tr.representatives[pt1] = tr.representatives[pt0] * g
+    return tr
+end
 
 struct SchreierTransversal{T,S} <: AbstractTransversal{T,S}
     orbit::Orbit{T}
@@ -206,6 +214,15 @@ end
 
 orbit(tr::SchreierTransversal) = tr.orbit
 Base.in(pt, tr::SchreierTransversal) = pt in keys(tr.representatives)
+
+function Base.setindex!(tr::SchreierTransversal, pt0_g::Tuple, pt1)
+    @assert pt1 ∉ tr
+    _, g = pt0_g
+    push!(tr.orbit, pt1)
+    tr.representatives[pt1] = g
+    return tr
+end
+
 function depth(pt, tr::SchreierTransversal)
     depth = 1
     while pt ≠ first(tr)
