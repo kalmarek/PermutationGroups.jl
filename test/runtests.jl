@@ -12,6 +12,8 @@ const PG = PermutationGroups
     abstract_perm_interface_test(APerms.APerm)
     abstract_perm_interface_test(Perm)
 
+    @test_throws AssertionError Perm([1, 2, 3, 1])
+
     # more implementations come here …
 
     include("perm_macro.jl")
@@ -26,5 +28,6 @@ end
 
     include("perm_groups.jl")
     include("groups_interface.jl")
-    include("benchmark.jl")
 end
+
+include("benchmark.jl")

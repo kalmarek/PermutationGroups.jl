@@ -74,7 +74,6 @@
         init_pt = 4
         tr = Transversal(init_pt, gens)
 
-        @info "querying Transversal"
         for pt in tr
             g = tr[pt]
             k = @allocated tr[pt]
@@ -83,7 +82,6 @@
         end
 
         schtr = SchreierTransversal(init_pt, gens)
-        @info "querying SchreierTransversal"
         for pt in schtr
             g = schtr[pt]
             k = @allocated schtr[pt]

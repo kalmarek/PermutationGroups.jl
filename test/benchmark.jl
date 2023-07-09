@@ -56,7 +56,9 @@ end
         end
     end
 
-    @info "Testing and benchmarking Schreier-Sims algorithm"
+    if BENCHMARK_TIME
+        @info "Testing and benchmarking Schreier-Sims algorithm"
+    end
     @testset "Rubik cube groups" begin
         cube222 =
             Perm.([
