@@ -114,6 +114,7 @@ function Base.show(io::IO, sc::StabilizerChain)
     return Base.show(io, convert(Vector{Int}, basis(sc)))
 end
 
+# iterating over the leafs of StabilizerChain tree
 struct Leafs{T}
     iters::Vector{T}
     total_len::Int
@@ -123,12 +124,11 @@ Base.length(lfs::Leafs) = lfs.total_len
 Base.eltype(::Type{<:Leafs{<:AbstractTransversal{T,S}}}) where {T,S} = S
 
 function leafs(stabch::StabilizerChain{P,T}) where {P,T}
-    transversals = let trs = T[], sch = stabch
-        while !istrivial(sch)
-            push!(trs, transversal(sch))
-            sch = stabilizer(sch)
-        end
-        trs
+    transversals = T[]
+    sc = stabch
+    while !istrivial(sc)
+        push!(transversals, transversal(sc))
+        sc = stabilizer(sc)
     end
 
     return Leafs(transversals, prod(length, transversals; init = 1))
@@ -137,109 +137,45 @@ end
 function Base.iterate(lfs::Leafs{<:AbstractTransversal})
     states = last.(iterate.(lfs.iters))
 
-    labels = [tr[first(tr)] for tr in Iterators.reverse(lfs.iters)]
+    partial_prods = map(1:length(lfs.iters)-1) do idx
+        tr = lfs.iters[idx]
+        return tr[first(tr)]
+    end
 
-    state = (states = states, labels = labels)
-    res = *(state.labels...)
-    # @info state res
+    state = (states = states, partial_prods = partial_prods)
+
+    res = one(eltype(lfs))
     return res, state
 end
 
 function Base.iterate(lfs::Leafs{<:AbstractTransversal}, state)
-    tr, st = lfs.iters[end], state.states[end]
-    next = iterate(tr, st)
+    isempty(lfs.iters) && return nothing
+    next = iterate(lfs.iters[end], state.states[end])
+    depth = length(lfs.iters)
 
     if !isnothing(next)
         pt, state.states[end] = next
-        state.labels[begin] = tr[pt]
-        res = *(state.labels...)
-        # @info state res
+        tr = lfs.iters[end]
+        res = depth > 1 ? tr[pt] * state.partial_prods[end] : tr[pt]
         return res, state
     else
-        depth = length(lfs.iters)
         while isnothing(next)
+            # we need to reset the first iterator, i.e. we reached the bottom of the tree
+            depth == 1 && return nothing
             # @debug "resetting $d-th iterator" state.states[d]
-            _pt, state.states[depth] = iterate(lfs.iters[depth])
-            state.labels[end-depth+1] = lfs.iters[depth][_pt]
+            _, state.states[depth] = iterate(lfs.iters[depth])
             depth -= 1
-            depth == 0 && return nothing
             next = iterate(lfs.iters[depth], state.states[depth])
         end
-        # @debug "advancing $d-th iterator" state.states
-        # move forward the next iterator
-        tr = lfs.iters[depth]
         pt, state.states[depth] = next
-        state.labels[end-depth+1] = tr[pt]
-        # @debug state.states
+        tr = lfs.iters[depth]
+        g = depth > 1 ? tr[pt] * state.partial_prods[depth-1] : tr[pt]
 
-        # @show length(state.partial_products) - d
-        res = *(state.labels...)
-        # @info state res
+        for idx in depth:length(state.partial_prods)
+            state.partial_prods[idx] = g
+        end
+
+        res = state.partial_prods[end]
         return res, state
     end
 end
-
-# function Base.iterate(stabch::StabilizerChain, state)
-#     next = iterate(last(state.transversals), last(state.states))
-#     @inbounds if !isnothing(next)
-#         # @debug "next leaf" state.states
-#         begin
-#             pt, st = next
-#             g = state.transversals[end][pt]
-#             state.states[end] = st
-#             # @debug "after" state.states
-#             # we never touch state.elts[end]
-#             res = state.elts[end-1] * g
-#         end
-#         return res, state
-#     else
-#         # @debug "backtrack" state.states
-
-#         d = length(state.transversals)
-#         while isnothing(next)
-#             _, state.states[d] = iterate(state.transversals[d])
-#             # @debug "resetting $d-th iterator" state.states[d]
-#             d -= 1
-#             d == 0 && return nothing
-#             next = iterate(state.transversals[d], state.states[d])
-#         end
-#         # @debug "advancing $d-th iterator" state.states
-#         # move forward the next iterator
-#         pt, st = next
-#         g = state.transversals[d][pt]
-#         state.states[d] = st
-#         # @debug state.states
-
-#         @time state.elts[d] = d > 1 ? state.elts[d-1] * g : g
-#         @show length(state.transversals) - d
-#         @time begin
-#             # the following elts are the same since tr[first(tr)] is always id!
-#             # @views fill!(state.elts[d+1:end], state.elts[d])
-#             for i in d+1:length(state.transversals)-1
-#                 state.elts[i] = state.elts[i-1]
-#             end
-#         end
-
-#         return state.elts[end], state
-#     end
-# end
-
-# function Base.iterate(stabch::StabilizerChain{P,T}) where {P,T}
-#     # initialize here
-#     istrivial(stabch) && return nothing
-
-#     transversals = let trs = T[], sch = stabch
-#         while !istrivial(sch)
-#             push!(trs, transversal(sch))
-#             sch = stabilizer(sch)
-#         end
-#         trs
-#     end
-
-#     states = last.(iterate.(transversals))
-#     elts = [tr[first(tr)] for tr in transversals]
-
-#     state = (transversals = transversals, states = states, elts = elts)
-
-#     return last(elts), state
-# end
