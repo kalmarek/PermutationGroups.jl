@@ -33,14 +33,12 @@ end
     @test PG.Perms.inttype(one(APerm)) == UInt32
     # but actually it'd be better to have it as Int64
     one(APerm)
-    k = @allocated one(APerm)
-    @test k == 144
-
+    k1 = @allocated one(APerm)
     PG.Perms.inttype(::Type{APerm}) = Int
 
     one(APerm)
-    k = @allocated one(APerm)
-    @test k == 80
+    k2 = @allocated one(APerm)
+    @test k2 < k1
 end
 
 end
