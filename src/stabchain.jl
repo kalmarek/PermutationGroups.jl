@@ -77,6 +77,28 @@ end
 
 basis(stabch::StabilizerChain) = [first(transversal(sc)) for sc in stabch]
 
+function Perms.perm(
+    sc::PermutationGroups.StabilizerChain{P},
+    baseimages::AbstractVector{<:Integer},
+) where {P}
+    @assert depth(sc) == length(baseimages)
+    res = one(P)
+
+    for (β, layer) in zip(baseimages, sc)
+        res = transversal(layer)[β] * res
+    end
+    return res
+end
+
+function sgs(stabch::StabilizerChain{S}) where {S}
+    strong_gens = S[]
+    while !istrivial(stabch)
+        union!(strong_gens, gens(stabch))
+        stabch = stabilizer(stabch)
+    end
+    return strong_gens
+end
+
 function __print(io::IO, sc::StabilizerChain, indent)
     println(io, indent, "┗━┳━ Stabilizer:")
     if istrivial(sc)
