@@ -15,7 +15,7 @@ mutable struct PermGroup{P<:AbstractPermutation,T<:AbstractTransversal} <:
         gens::AbstractVector{<:AbstractPermutation},
         T::Type{<:AbstractTransversal},
     )
-        return new{eltype(gens),T}(map(Perms.perm, gens))
+        return new{eltype(gens),T}([Perms.perm(s) for s in gens])
     end
 end
 
@@ -39,6 +39,27 @@ Perms.inttype(::Type{<:Permutation{P}}) where {P} = Perms.inttype(P)
 Perms.degree(p::Permutation) = Perms.degree(p.perm)
 Base.:^(n::Integer, p::Permutation) = n^p.perm
 Base.one(p::Permutation) = Permutation(one(p.perm), parent(p))
+
+function Base.:*(p::Permutation, qs::Permutation...)
+    G = parent(p)
+    @assert all(parent(q) === G for q in qs)
+    r = *(Perms.perm(p), map(Perms.perm, qs)...)
+    # @assert r in G
+    # instead of
+    return Permutation(r, G)
+end
+
+function Base.conj(σ::Permutation{P}, τ::AbstractPermutation) where {P}
+    deg = max(degree(σ), degree(τ))
+    img = Vector{Perms.inttype(Perms.perm(σ))}(undef, deg)
+    for i in Base.OneTo(deg)
+        img[i^τ] = (i^σ)^τ
+    end
+
+    res = P(img, false)
+    @assert res in parent(σ)
+    return Permutation(res, parent(σ))
+end
 
 # misc
 """
