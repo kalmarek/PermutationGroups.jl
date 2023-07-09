@@ -50,6 +50,8 @@ end
 Base.length(stabch::StabilizerChain) = depth(stabch)
 Base.eltype(::Type{SC}) where {SC<:StabilizerChain} = SC
 
+__permtype(::Type{<:StabilizerChain{P}}) where {P} = P
+
 """
     recompute_transversal!(sc::StabilizerChain)
 Recompute the Schreier tree of `sc`.

@@ -25,12 +25,14 @@ function Base.rand(
     rs::Random.SamplerTrivial{Gr},
 ) where {Gr<:PermGroup}
     G = rs[]
-    res = Perms.perm(one(G))
     sc = StabilizerChain(G)
-    for layer in sc
-        pt = rand(rng, orbit(layer))
-        res = transversal(layer)[pt] * res
+    P = __permtype(typeof(sc))
+    word = Vector{P}(undef, length(sc))
+    @inbounds for (idx, layer) in enumerate(sc)
+        pt = rand(rng, transversal(layer))
+        word[end-idx+1] = transversal(layer)[pt]
     end
+    res = *(word...)
     return Permutation(res, G)
 end
 
