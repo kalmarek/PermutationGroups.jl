@@ -19,6 +19,19 @@ mutable struct Perm{T<:Integer} <: AbstractPermutation
     end
 end
 
+# performance ?
+function Base.copy(p::Perm)
+    imgs = copy(p.images)
+    q = typeof(p)(imgs, false)
+    if isdefined(p, :inv, :sequentially_consistent)
+        inv_imgs = copy(@atomic(p.inv).images)
+        q⁻¹ = typeof(p)(inv_imgs, false)
+        @atomic q.inv = q⁻¹
+        @atomic q⁻¹.inv = q
+    end
+    return q
+end
+
 # convienience constructor: inttype(::Type{<:AbstractPermutation}) defaults to UInt32
 function Perm(images::AbstractVector{<:Integer}, check = true)
     return Perm{inttype(Perm)}(images, check)
