@@ -1,21 +1,31 @@
-using PermutationGroups
-using GroupsCore
-using Random
 using Test
-using BenchmarkTools
+using GroupsCore
+using PermutationGroups
+using Random
 
-import AbstractAlgebra
-SymmetricGroup = AbstractAlgebra.SymmetricGroup
+const PG = PermutationGroups
+
+@testset "Perms" begin
+    include("AbstractPerm_interface.jl")
+    include("perm_interface.jl")
+
+    abstract_perm_interface_test(APerms.APerm)
+    abstract_perm_interface_test(Perm)
+
+    # more implementations come here …
+
+    include("perm_macro.jl")
+end
 
 @testset "PermutationGroups" begin
-    include("orbit.jl")
-    include("schreier.jl")
+    include("orbit_transversal.jl")
+    include("conj_action.jl")
+
     include("stabchain.jl")
-    include("conj.jl")
+    include("schreier_sims.jl")
+
+    include("perm_groups.jl")
     include("permutations.jl")
     include("groups_interface.jl")
-
-    if !haskey(ENV, "CI")
-        include("benchmark.jl")
-    end
+    include("benchmark.jl")
 end
