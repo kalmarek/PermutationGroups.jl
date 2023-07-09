@@ -10,7 +10,7 @@ Base.IteratorSize(::Type{<:AbstractPermutationGroup}) = Base.HasLength()
 
 include("Perms/Perms.jl")
 import .Perms:
-    Perm, AbstractPermutation, degree, firstmoved, permtype, @perm_str
+    Perm, AbstractPermutation, cycles, degree, firstmoved, permtype, @perm_str
 
 export @perm_str, Perm, permtype
 
