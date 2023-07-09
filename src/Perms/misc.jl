@@ -45,7 +45,7 @@ The lengths are sorted in decreasing order by default. `permtype(g)` fully
 determines the conjugacy class of `g`.
 """
 function permtype(σ::AbstractPermutation)
-    return sort!(map(length, cycles(σ)); rev = true)
+    return sort!([length(c) for c in cycles(σ) if length(c) > 1]; rev = true)
 end
 
 function GroupsCore.order(::Type{T}, σ::AbstractPermutation) where {T}
