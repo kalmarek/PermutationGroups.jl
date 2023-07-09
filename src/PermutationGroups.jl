@@ -3,7 +3,6 @@ module PermutationGroups
 using GroupsCore
 import GroupsCore: istrivial
 using Random
-using Markdown
 
 abstract type AbstractPermutationGroup <: Group end
 Base.IteratorSize(::Type{<:AbstractPermutationGroup}) = Base.HasLength()
