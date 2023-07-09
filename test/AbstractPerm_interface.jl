@@ -50,5 +50,6 @@ function abstract_perm_interface_test(P::Type{<:PG.AbstractPermutation})
 
         @test (1:5) .^ p == [3, 1, 2, 4, 5]
         @test sprint(show, p) == "(1,3,2)"
+        @test sprint(show, PG.cycles(p)) == "Cycle Decomposition: (1,3,2)"
     end
 end
