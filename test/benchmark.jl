@@ -37,13 +37,13 @@ end
         if BENCHMARK_TIME
             @info "Native iteration over S8 group:"
             @btime test_perf($G)
-            # 1.333 ms (80644 allocations: 6.77 MiB)
+            # 1.303 ms (80644 allocations: 6.77 MiB)
             @info "Iteration over K ≅ S8 PermGroup:"
             K = PermGroup(
                 Transversal,
                 [perm"(1,5,6,2,4,8)", perm"(1,3,6)(2,5,7,4)(8)"],
             )
-            # 4.100 ms (125987 allocations: 6.46 MiB)
+            # 3.285 ms (125987 allocations: 6.46 MiB)
             @time order(Int, K)
             @btime test_perf($K)
             K = PermGroup(
@@ -52,7 +52,7 @@ end
             )
             @time order(Int, K)
             @btime test_perf($K)
-            # 7.344 ms (206127 allocations: 11.35 MiB)
+            # 6.833 ms (206127 allocations: 11.35 MiB)
         end
     end
 
@@ -74,12 +74,12 @@ end
         @test order(G) == 384
         if BENCHMARK_TIME
             @info "Rubik cube 2×2×2 group:"
-            @btime order(Int, G) setup = (G = PermGroup(Transversal, $cube222)) evals =
-                1
+            @btime order(Int, G) setup =
+                (G = PermGroup(Transversal, $cube222)) evals = 1
             @btime order(Int, G) setup =
                 (G = PermGroup(SchreierTransversal, $cube222)) evals = 1
-            # 25.701 μs (566 allocations: 48.13 KiB)
-            # 72.216 μs (1338 allocations: 119.51 KiB)
+            # 24.767 μs (533 allocations: 44.37 KiB)
+            # 63.420 μs (1239 allocations: 109.91 KiB)
         end
 
         cube333 = [
@@ -102,8 +102,8 @@ end
                 (G = PermGroup(Transversal, $cube333)) evals = 1
             @btime order(Int128, G) setup =
                 (G = PermGroup(SchreierTransversal, $cube333)) evals = 1
-            # 2.112 ms (27957 allocations: 2.77 MiB)
-            # 9.491 ms (125026 allocations: 12.39 MiB)
+            # 1.975 ms (26628 allocations: 2.59 MiB)
+            # 8.836 ms (116353 allocations: 11.42 MiB)
         end
     end
 
@@ -148,8 +148,8 @@ end
                 (G = PermGroup(SchreierTransversal, $([a, b]))) evals = 1
             # gap> G := Group([a,b]);; StabChain(G);; time;
             # ~15ms
-            # 11.348 ms (32022 allocations: 13.15 MiB)
-            # 110.193 ms (254193 allocations: 110.51 MiB)
+            # 10.258 ms (30072 allocations: 11.49 MiB)
+            # 98.011 ms (240549 allocations: 102.46 MiB)
         end
     end
 
@@ -220,14 +220,14 @@ end
                 (G = PermGroup(SchreierTransversal, $([a, b, c, d]))) evals = 1
             # gap> G := Group([a,b,c,d]);; StabChain(G);; time;
             # ~15ms
-            # 3.517 ms (10347 allocations: 4.22 MiB)
-            # 90.729 ms (226841 allocations: 80.99 MiB)
+            # 2.759 ms (9133 allocations: 3.18 MiB)
+            # 83.738 ms (221318 allocations: 77.73 MiB)
             G = PermGroup(Transversal, [a, b, c, d])
             @time test_perf(G)
             H = PermGroup(SchreierTransversal, [a, b, c, d])
             @time test_perf(H)
-            # 0.153197 seconds (623.86 k allocations: 217.470 MiB, 4.66% gc time)
-            # 0.435564 seconds (1.24 M allocations: 476.691 MiB, 3.41% gc time)
+            # 0.146197 seconds (622.65 k allocations: 216.433 MiB, 3.77% gc time)
+            # 0.388392 seconds (1.24 M allocations: 473.432 MiB, 3.57% gc time)
         end
     end
 end
