@@ -47,15 +47,16 @@ function sift(stabch::StabilizerChain, g::AbstractPermutation)
         return g
     else
         T = transversal(stabch)
-        x = point(stabch)
-        δ = x^g
+        δ = point(stabch)^g
         if δ ∉ T
             return g
         else
             r = T[δ]
-            g = g * inv(r)
-            @assert x^g == x
-            return isone(g) ? g : sift(stabilizer(stabch), g)
+            if g == r # g*inv(r) == one(g)
+                return one(g)
+            else
+                return sift(stabilizer(stabch), g * inv(r))
+            end
         end
     end
 end
