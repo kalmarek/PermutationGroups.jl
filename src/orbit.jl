@@ -226,6 +226,8 @@ function Base.setindex!(tr::SchreierTransversal, pt0_g::Tuple, pt1)
     return tr
 end
 
+depth(tr::SchreierTransversal) = depth(last(orbit(tr)), tr)
+
 function depth(pt, tr::SchreierTransversal)
     depth = 1
     while pt ≠ first(tr)

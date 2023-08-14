@@ -92,7 +92,7 @@ function extend_gens!(
     # # pushing the new Schreier generators to the lower level.
     # We will use it if the depth of the SchreierTransversal becomes excessive
     if T <: SchreierTransversal
-        orb_dep = depth(last(orbit(stabch)), transversal(stabch))
+        orb_dep = depth(transversal(stabch))
         orb_len = length(orbit(stabch))
         if orb_dep > 3 + ceil(sqrt(orb_len) / 2)
             push!(stabch.gens, g)
@@ -103,7 +103,6 @@ function extend_gens!(
                 for δ in tr # iterating over orbit
                     schr = tr[δ] * s * inv(tr[δ^s]) # a new Schreier generator
                     isone(schr) && continue
-                    @assert point(stabch)^schr == point(stabch)
                     push!(stabilizer(stabch), schr)
                 end
             end
