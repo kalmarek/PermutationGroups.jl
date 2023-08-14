@@ -32,7 +32,8 @@ else
         ) where {T}
             check &&
                 @assert isperm(images) "Provided images are not permutation!"
-            deg = __degree(images)
+            li = lastindex(images)
+            deg = @inbounds images[li] ≠ li ? li : __degree(images)
             if deg == length(images)
                 return new{T}(images)
             else
