@@ -12,7 +12,7 @@ function Base.iterate(cd::CycleDecomposition, state = 1)
     state == length(cd.cycles_ptrs) && return nothing
     from = cd.cycles_ptrs[state]
     to = cd.cycles_ptrs[state+1] - 1
-    return @view(cd.cycles[from:to]), state + 1
+    return @inbounds @view(cd.cycles[from:to]), state + 1
 end
 
 function Base.show(io::IO, cd::CycleDecomposition)

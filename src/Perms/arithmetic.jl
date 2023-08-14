@@ -1,7 +1,7 @@
 function Base.inv(σ::AbstractPermutation)
     img = Vector{inttype(σ)}(undef, degree(σ))
     for i in Base.OneTo(degree(σ))
-        @inbounds img[i^σ] = i
+        img[i^σ] = i
     end
     return typeof(σ)(img, false)
 end
@@ -10,7 +10,8 @@ function Base.:(*)(σ::AbstractPermutation, τ::AbstractPermutation)
     deg = max(degree(σ), degree(τ))
     img = Vector{inttype(σ)}(undef, deg)
     for i in Base.OneTo(deg)
-        img[i] = (i^σ)^τ
+        k = (i^σ)^τ
+        img[i] = k
     end
     return typeof(σ)(img, false)
 end
@@ -23,7 +24,8 @@ function Base.:(*)(
     deg = max(degree(σ), degree(τ), degree(ρ))
     img = Vector{inttype(σ)}(undef, deg)
     for i in Base.OneTo(deg)
-        img[i] = ((i^σ)^τ)^ρ
+        k = ((i^σ)^τ)^ρ
+        img[i] = k
     end
     return typeof(σ)(img, false)
 end
