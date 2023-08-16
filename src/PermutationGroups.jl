@@ -1,33 +1,33 @@
 module PermutationGroups
 
 using GroupsCore
+import GroupsCore: istrivial
 using Random
-using Markdown
 
-import AbstractAlgebra:
-    AbstractPermutationGroup,
-    AbstractPerm,
-    Generic.Perm,
-    Generic.SymmetricGroup,
-    cycles,
-    @perm_str,
-    permtype
+abstract type AbstractPermutationGroup <: Group end
+Base.IteratorSize(::Type{<:AbstractPermutationGroup}) = Base.HasLength()
+
+include("Perms/Perms.jl")
+import .Perms:
+    Perm, AbstractPermutation, cycles, degree, firstmoved, permtype, @perm_str
 
 export @perm_str, Perm, permtype
 
-export AbstractOrbit, Orbit, PermGroup, Permutation, Schreier, StabilizerChain, Transversal
+export AbstractOrbit,
+    Orbit,
+    AbstractTransversal,
+    Transversal,
+    SchreierTransversal,
+    PermGroup,
+    Permutation,
+    StabilizerChain
 export firstmoved, fixes, fixedpoints, lastmoved, nfixedpoints
 export base, degree, representative, schreier_sims, sgs, sift
 
-include("types.jl")
 include("orbit.jl")
-include("words.jl")
-include("io.jl")
-include("group_interface.jl")
-include("groups.jl")
-include("schreier.jl")
 include("stabchain.jl")
-include("schreier-sims.jl")
+include("schreier_sims.jl")
+include("perm_group.jl")
+include("group_interface.jl")
 
-include("actions.jl")
 end # module

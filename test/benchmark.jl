@@ -1,4 +1,11 @@
-function test_perf(G::Group)
+using Test
+using GroupsCore
+using PermutationGroups
+using BenchmarkTools
+
+const BENCHMARK_TIME = !(haskey(ENV, "CI"))
+
+function test_perf(G)
     s = 0
     for g in G
         s += 1^g
@@ -6,49 +13,99 @@ function test_perf(G::Group)
     return s
 end
 
-@testset "test_perf/benchmark iteration" begin
+@testset "GAP Docs examples$(BENCHMARK_TIME ? "/benchmark" : "")" begin
+    @testset "test_perf$(BENCHMARK_TIME ? "/benchmark" : "") iteration" begin
+        import AbstractAlgebra
+        SymmetricGroup = AbstractAlgebra.SymmetricGroup
 
-    G = SymmetricGroup(8)
-    K = PermGroup([perm"(1,5,6,2,4,8)", perm"(1,3,6)(2,5,7,4)(8)"])
-    @test test_perf(G) == test_perf(K) == 181440
-    @info "Native iteration over S8 group:"
-    @btime test_perf($G)
-    # 1.429 ms (80644 allocations: 7.38 MiB) → 181440
-    @info "Iteration over K ≅ S8 PermGroup:"
-    @btime test_perf($K)
-    # 17.457 ms (161282 allocations: 11.69 MiB) → 181440
-end
+        Base.:^(i::Integer, p::AbstractAlgebra.Perm) = oftype(i, p.d[i])
 
-@testset "GAP Docs examples/benchmarks" begin
+        G = SymmetricGroup(8)
+        K = PermGroup(
+            Transversal,
+            [perm"(1,5,6,2,4,8)", perm"(1,3,6)(2,5,7,4)(8)"],
+        )
+        @test order(Int, K) == order(Int, G)
+        @test test_perf(G) == test_perf(K) == 181440
+        K = PermGroup(
+            SchreierTransversal,
+            [perm"(1,5,6,2,4,8)", perm"(1,3,6)(2,5,7,4)(8)"],
+        )
+        @test order(Int, K) == order(Int, G)
+        @test test_perf(G) == test_perf(K) == 181440
 
-    cube4 = Perm.([
-       [1,9,3,11,5,13,7,15,2,10,4,12,6,14,8,16],
-       [1,2,3,4,9,10,11,12,5,6,7,8,13,14,15,16],
-       [1,2,5,6,3,4,7,8,9,10,13,14,11,12,15,16],
-       [16,8,14,6,12,4,10,2,15,7,13,5,11,3,9,1],
-       [3,11,1,9,7,15,5,13,4,12,2,10,8,16,6,14]]
-       )
-    G = PermGroup(cube4)
-    @info "Schreier-Sims for Rubik cube-4 group:"
-    @btime schreier_sims($(gens(G)));
-    # 93.937 μs (2100 allocations: 225.73 KiB)
-    @test order(G) == 384
+        if BENCHMARK_TIME
+            @info "Native iteration over S8 group:"
+            @btime test_perf($G)
+            # 1.303 ms (80644 allocations: 6.77 MiB)
+            @info "Iteration over K ≅ S8 PermGroup:"
+            K = PermGroup(
+                Transversal,
+                [perm"(1,5,6,2,4,8)", perm"(1,3,6)(2,5,7,4)(8)"],
+            )
+            # 3.285 ms (125987 allocations: 6.46 MiB)
+            @time order(Int, K)
+            @btime test_perf($K)
+            K = PermGroup(
+                SchreierTransversal,
+                [perm"(1,5,6,2,4,8)", perm"(1,3,6)(2,5,7,4)(8)"],
+            )
+            @time order(Int, K)
+            @btime test_perf($K)
+            # 6.833 ms (206127 allocations: 11.35 MiB)
+        end
+    end
 
-    rubik_gens = [
-    perm"( 1, 3, 8, 6)( 2, 5, 7, 4)( 9,33,25,17)(10,34,26,18)(11,35,27,19)",
-    perm"( 9,11,16,14)(10,13,15,12)( 1,17,41,40)( 4,20,44,37)( 6,22,46,35)",
-    perm"(17,19,24,22)(18,21,23,20)( 6,25,43,16)( 7,28,42,13)( 8,30,41,11)",
-    perm"(25,27,32,30)(26,29,31,28)( 3,38,43,19)( 5,36,45,21)( 8,33,48,24)",
-    perm"(33,35,40,38)(34,37,39,36)( 3, 9,46,32)( 2,12,47,29)( 1,14,48,27)",
-    perm"(41,43,48,46)(42,45,47,44)(14,22,30,38)(15,23,31,39)(16,24,32,40)"
-    ]
+    if BENCHMARK_TIME
+        @info "Testing and benchmarking Schreier-Sims algorithm"
+    end
+    @testset "Rubik cube groups" begin
+        cube222 =
+            Perm.([
+                [1, 9, 3, 11, 5, 13, 7, 15, 2, 10, 4, 12, 6, 14, 8, 16],
+                [1, 2, 3, 4, 9, 10, 11, 12, 5, 6, 7, 8, 13, 14, 15, 16],
+                [1, 2, 5, 6, 3, 4, 7, 8, 9, 10, 13, 14, 11, 12, 15, 16],
+                [16, 8, 14, 6, 12, 4, 10, 2, 15, 7, 13, 5, 11, 3, 9, 1],
+                [3, 11, 1, 9, 7, 15, 5, 13, 4, 12, 2, 10, 8, 16, 6, 14],
+            ])
+        G = PermGroup(Transversal, cube222)
+        @test order(G) == 384
+        G = PermGroup(SchreierTransversal, cube222)
+        @test order(G) == 384
+        if BENCHMARK_TIME
+            @info "Rubik cube 2×2×2 group:"
+            @btime order(Int, G) setup =
+                (G = PermGroup(Transversal, $cube222)) evals = 1
+            @btime order(Int, G) setup =
+                (G = PermGroup(SchreierTransversal, $cube222)) evals = 1
+            # 24.767 μs (533 allocations: 44.37 KiB)
+            # 63.420 μs (1239 allocations: 109.91 KiB)
+        end
 
-    rubik = PermGroup(rubik_gens)
-    @info "Schreier-Sims for Rubik cube-9 group:"
-    @btime schreier_sims($(gens(rubik)));
-    # 43.665 ms (611137 allocations: 129.55 MiB)
-    @test order(rubik) == 43252003274489856000
-    @test order(rubik) == order(Int128, rubik) # fits Int128
+        cube333 = [
+            perm"( 1, 3, 8, 6)( 2, 5, 7, 4)( 9,33,25,17)(10,34,26,18)(11,35,27,19)",
+            perm"( 9,11,16,14)(10,13,15,12)( 1,17,41,40)( 4,20,44,37)( 6,22,46,35)",
+            perm"(17,19,24,22)(18,21,23,20)( 6,25,43,16)( 7,28,42,13)( 8,30,41,11)",
+            perm"(25,27,32,30)(26,29,31,28)( 3,38,43,19)( 5,36,45,21)( 8,33,48,24)",
+            perm"(33,35,40,38)(34,37,39,36)( 3, 9,46,32)( 2,12,47,29)( 1,14,48,27)",
+            perm"(41,43,48,46)(42,45,47,44)(14,22,30,38)(15,23,31,39)(16,24,32,40)",
+        ]
+
+        G = PermGroup(Transversal, cube333)
+        @test order(G) == 43252003274489856000
+        @test order(G) == order(Int128, G) # fits Int128
+        G = PermGroup(SchreierTransversal, cube333)
+        @test order(Int128, G) == 43252003274489856000
+        if BENCHMARK_TIME
+            @info "Schreier-Sims for Rubik cube 3×3×3 group:"
+            @btime order(Int128, G) setup =
+                (G = PermGroup(Transversal, $cube333)) evals = 1
+            @btime order(Int128, G) setup =
+                (G = PermGroup(SchreierTransversal, $cube333)) evals = 1
+            # 1.975 ms (26628 allocations: 2.59 MiB)
+            # 8.836 ms (116353 allocations: 11.42 MiB)
+        end
+    end
 
     @testset "SL(4,7)" begin
         a = perm"""
@@ -75,16 +132,25 @@ end
     (272,346,383,378,275,348)(280,353,389,355,392,350)(302,367,312,337,380,363)
     (347,385,349,387,396,384)(354,391,398)(388,393,390)"""
 
-        b = perm"""(  1,  2,  4,  8, 16, 31, 61,113,193,118,198,183,274, 69,128, 94,164,247,317,309,370,319,367,200,291, 67,125,206,293,362, 63,117, 74,134,215,302,368,392,391,  3,  6, 12, 24, 47, 88,155,238,276,287,359, 99,171,259,335,260,337,381,353,390,  9, 18, 35, 68,126,207,295,363, 40, 77, 54,100,172,261,127,104,179,267,341,283,356,153,236,244,323,218,160,214,262,209,168,255,330,377,361,374,346,384,380, 48, 90, 83,149, 96, 91,159,229,308,216,303,180,269,342,130, 50, 93,163,245,192,116,197, 58,107,184, 76,138,220,305,289,144,157,240, 60,111,191,284, 23, 45, 85,152,176,265, 92,161,110,189,281,355,393, 17, 33, 64,119,199,254,313,364,301,252,328,250,246,325,375,372,344,366,290,360,148,233,315,273,187,279,352, 72,132,213,300, 36, 70, 86,154,237,318,324,326, 65,121, 81,146,230,108,186,277,350,388,397,399,400)
+        b =
+            perm"""(  1,  2,  4,  8, 16, 31, 61,113,193,118,198,183,274, 69,128, 94,164,247,317,309,370,319,367,200,291, 67,125,206,293,362, 63,117, 74,134,215,302,368,392,391,  3,  6, 12, 24, 47, 88,155,238,276,287,359, 99,171,259,335,260,337,381,353,390,  9, 18, 35, 68,126,207,295,363, 40, 77, 54,100,172,261,127,104,179,267,341,283,356,153,236,244,323,218,160,214,262,209,168,255,330,377,361,374,346,384,380, 48, 90, 83,149, 96, 91,159,229,308,216,303,180,269,342,130, 50, 93,163,245,192,116,197, 58,107,184, 76,138,220,305,289,144,157,240, 60,111,191,284, 23, 45, 85,152,176,265, 92,161,110,189,281,355,393, 17, 33, 64,119,199,254,313,364,301,252,328,250,246,325,375,372,344,366,290,360,148,233,315,273,187,279,352, 72,132,213,300, 36, 70, 86,154,237,318,324,326, 65,121, 81,146,230,108,186,277,350,388,397,399,400)
         (  5, 10, 20, 39, 75,136,162,135,217,223,158,129,210,298,282, 11, 22, 43, 82,147,232,292,336,379, 21, 41, 28, 55,102,175,264,286,202,101,173,122,203,271,345,358,327,124,205, 52, 97,167,253,263,339,142,226,311,371,394,211,234,243,185,275,349,190, 89,156,170,258,334,294,343,383,396,357,  7, 14, 15, 29, 57,105,181,270,338,120,174,106,182,272,347,386, 13, 26, 51, 95,165,249, 19, 37, 46, 87,151,139,222,307,348,385,278, 25, 49, 44, 84,150,225,310,321,329,376,248,285,351,369,131,212,178,166,251,201, 42, 80,145,228,297,316,373,320,306,241,221,235,239,242,322,296,140, 78,141,224,304,331,299,365,114,194, 30, 59,109,188,280,354, 32, 62,115,195,268,231,314, 79,143,227,312,196,288, 38, 73,133,208, 71, 56,103,177, 27, 53, 98,169,257,333,137,219,266,340,112, 34, 66,123,204,256,332,378,387,382,395,389,398)"""
 
-        SL_4_7 = PermGroup([a,b])
-        @test order(SL_4_7) == 2317591180800
-        @info "Schreier-Sims for SL(4,7):"
-        @btime schreier_sims($(gens(SL_4_7)));
-        # gap> G := Group([a,b]);; StabChain(G);; time;
-        # GAP: ~15 ms vs
-        # 220.512 ms (383827 allocations: 444.93 MiB)
+        SL_4_7 = PermGroup(Transversal, [a, b])
+        @test order(Int64, SL_4_7) == 2317591180800
+        SL_4_7 = PermGroup(SchreierTransversal, [a, b])
+        @test order(Int64, SL_4_7) == 2317591180800
+        if BENCHMARK_TIME
+            @info "Schreier-Sims for SL(4,7):"
+            @btime order(Int64, G) setup =
+                (G = PermGroup(Transversal, $([a, b]))) evals = 1
+            @btime order(Int64, G) setup =
+                (G = PermGroup(SchreierTransversal, $([a, b]))) evals = 1
+            # gap> G := Group([a,b]);; StabChain(G);; time;
+            # ~15ms
+            # 10.258 ms (30072 allocations: 11.49 MiB)
+            # 98.011 ms (240549 allocations: 102.46 MiB)
+        end
     end
 
     @testset "DirectProduct example" begin
@@ -142,12 +208,26 @@ end
         c = perm"""(402,403,404,405,406)"""
         d = perm"""(402,403)"""
 
-        G = PermGroup([a,b,c,d])
-        @test order(G) == 192480
-        @info "Schreier-Sims for a direct-product group:"
-        @btime schreier_sims($(gens(G)))
-        # GAP: 22 ms vs
-        # 34.596 ms (53786 allocations: 62.93 MiB)
-        @time test_perf(G)
+        G = PermGroup(Transversal, [a, b, c, d])
+        @test order(Int, G) == 192480
+        G = PermGroup(SchreierTransversal, [a, b, c, d])
+        @test order(Int, G) == 192480
+        if BENCHMARK_TIME
+            @info "Schreier-Sims for a direct-product group:"
+            @btime order(Int, G) setup =
+                (G = PermGroup(Transversal, $([a, b, c, d]))) evals = 1
+            @btime order(Int, G) setup =
+                (G = PermGroup(SchreierTransversal, $([a, b, c, d]))) evals = 1
+            # gap> G := Group([a,b,c,d]);; StabChain(G);; time;
+            # ~15ms
+            # 2.759 ms (9133 allocations: 3.18 MiB)
+            # 83.738 ms (221318 allocations: 77.73 MiB)
+            G = PermGroup(Transversal, [a, b, c, d])
+            @time test_perf(G)
+            H = PermGroup(SchreierTransversal, [a, b, c, d])
+            @time test_perf(H)
+            # 0.146197 seconds (622.65 k allocations: 216.433 MiB, 3.77% gc time)
+            # 0.388392 seconds (1.24 M allocations: 473.432 MiB, 3.57% gc time)
+        end
     end
 end
