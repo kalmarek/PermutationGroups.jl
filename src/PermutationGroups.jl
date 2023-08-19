@@ -30,4 +30,6 @@ include("schreier_sims.jl")
 include("perm_group.jl")
 include("group_interface.jl")
 
+include("precompile.jl")
+
 end # module
