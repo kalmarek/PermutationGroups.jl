@@ -49,7 +49,7 @@ function abstract_perm_interface_test(P::Type{<:PG.AbstractPermutation})
         @test Perm(r) * p isa Perm
 
         @test *(p) == p
-        @test p*p*p*p == p^4
+        @test p * p * p * p == p^4
 
         @test length(unique(p^i for i in 1:5)) == 3
 

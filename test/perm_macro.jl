@@ -34,5 +34,5 @@
     @test perm"(1,2,3,4,5)" == Perm([2, 3, 4, 5, 1])
     @test perm"(3,2,1)(4,5)" == Perm([3, 1, 2, 5, 4])
 
-    @test eltype([perm"(1,2)", Perm([2,3,4,5,1])]) == Perm{UInt16}
+    @test eltype([perm"(1,2)", Perm([2, 3, 4, 5, 1])]) == Perm{UInt16}
 end

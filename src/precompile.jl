@@ -10,4 +10,3 @@ PrecompileTools.@setup_workload begin
         @assert sum(ff, G) == 108
     end
 end
-

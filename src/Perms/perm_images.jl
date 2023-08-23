@@ -45,33 +45,6 @@ else
     end
 end
 
-# performance ?
-@static if VERSION < v"1.7"
-    function Base.copy(p::Perm)
-        imgs = copy(p.images)
-        q = typeof(p)(imgs, false)
-        if isdefined(p, :inv)
-            inv_imgs = copy(p.inv.images)
-            q⁻¹ = typeof(p)(inv_imgs, false)
-            q.inv = q⁻¹
-            q⁻¹.inv = q
-        end
-        return q
-    end
-else
-    function Base.copy(p::Perm)
-        imgs = copy(p.images)
-        q = typeof(p)(imgs, false)
-        if isdefined(p, :inv, :sequentially_consistent)
-            inv_imgs = copy(@atomic(p.inv).images)
-            q⁻¹ = typeof(p)(inv_imgs, false)
-            @atomic q.inv = q⁻¹
-            @atomic q⁻¹.inv = q
-        end
-        return q
-    end
-end
-
 # convienience constructor: inttype(::Type{<:AbstractPermutation}) defaults to UInt32
 function Perm(images::AbstractVector{<:Integer}, check = true)
     return Perm{inttype(Perm)}(images, check)
@@ -94,6 +67,18 @@ function Base.:^(n::Integer, σ::Perm)
     return 1 ≤ n ≤ degree(σ) ? oftype(n, @inbounds σ.images[n]) : n
 end
 @static if VERSION < v"1.7"
+    function Base.copy(p::Perm)
+        imgs = copy(p.images)
+        q = typeof(p)(imgs, false)
+        if isdefined(p, :inv)
+            inv_imgs = copy(p.inv.images)
+            q⁻¹ = typeof(p)(inv_imgs, false)
+            q.inv = q⁻¹
+            q⁻¹.inv = q
+        end
+        return q
+    end
+
     function Base.inv(σ::Perm)
         if !isdefined(σ, :inv)
             σ⁻¹ = typeof(σ)(invperm(σ.images), false)
@@ -102,7 +87,27 @@ end
         end
         return σ.inv
     end
+
+    function cycles(σ::Perm)
+        if !isdefined(σ, :cycles)
+            cdec = CycleDecomposition(σ)
+            σ.cycles = cdec
+        end
+        return σ.cycles
+    end
 else
+    function Base.copy(p::Perm)
+        imgs = copy(p.images)
+        q = typeof(p)(imgs, false)
+        if isdefined(p, :inv, :sequentially_consistent)
+            inv_imgs = copy(@atomic(p.inv).images)
+            q⁻¹ = typeof(p)(inv_imgs, false)
+            @atomic q.inv = q⁻¹
+            @atomic q⁻¹.inv = q
+        end
+        return q
+    end
+
     function Base.inv(σ::Perm)
         if !isdefined(σ, :inv, :sequentially_consistent)
             if isone(σ)
@@ -118,18 +123,7 @@ else
         end
         return σ.inv
     end
-end
 
-# optional
-@static if VERSION < v"1.7"
-    function cycles(σ::Perm)
-        if !isdefined(σ, :cycles)
-            cdec = CycleDecomposition(σ)
-            σ.cycles = cdec
-        end
-        return σ.cycles
-    end
-else
     function cycles(σ::Perm)
         if !isdefined(σ, :cycles, :sequentially_consistent)
             cdec = CycleDecomposition(σ)
