@@ -51,6 +51,7 @@ struct Permutation{P,G<:PermGroup} <: AbstractPermutation
 end
 
 Perms.perm(p::Permutation) = Perms.perm(p.perm)
+Base.copy(σ::Permutation) = Permutation(σ.perm, parent(σ))
 
 # Perms.Perm interface
 Perms.inttype(::Type{<:Permutation{P}}) where {P} = Perms.inttype(P)
