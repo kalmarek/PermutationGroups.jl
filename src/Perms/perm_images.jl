@@ -85,6 +85,7 @@ end
 
 # inttype must be T (UInt16 by default) since we store it in e.g. cycles
 inttype(::Type{Perm{T}}) where {T} = T
+inttype(::Type{Perm}) = UInt16
 
 # ## Interface of AbstractPermutation
 degree(σ::Perm) = length(σ.images)
