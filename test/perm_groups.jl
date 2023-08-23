@@ -8,7 +8,7 @@
     @test order(Int, G) isa Int
     @test isdefined(G, :stabchain) == true
 
-    G = PermGroup(perm"(1,2,3,4)", perm"(1,2)(4)")
+    G = PermGroup(perm"(1,2)", perm"(1,2,3,4)")
     @test StabilizerChain(G) isa StabilizerChain
     sc = StabilizerChain(G)
     @test length(sc) == 3
@@ -18,8 +18,11 @@
 
     @test length(PG.basis(G)) == 3
     @test order(G) == factorial(4)
+    @test degree(G) == 4
+
     H = PermGroup(Permutation(perm"(1,2,3)", G))
     @test order(Int, H) == 3
+    @test degree(H) == 3
 
     SN(n) = [Perm(circshift(collect(1:n), -1)), Perm([[2, 1]; 3:n])]
 

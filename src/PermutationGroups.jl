@@ -4,13 +4,15 @@ using GroupsCore
 import GroupsCore: istrivial
 using Random
 
-abstract type AbstractPermutationGroup <: Group end
-Base.IteratorSize(::Type{<:AbstractPermutationGroup}) = Base.HasLength()
-
 include("Perms/Perms.jl")
 import .Perms:
-    Perm, AbstractPermutation, cycles, degree, firstmoved, permtype, @perm_str
-
+    Perm,
+    AbstractPermutation,
+    cycles,
+    degree,
+    firstmoved,
+    permtype,
+    @perm_str
 export @perm_str, Perm, permtype
 
 export AbstractOrbit,
@@ -23,6 +25,10 @@ export AbstractOrbit,
     StabilizerChain
 export firstmoved, fixes, fixedpoints, lastmoved, nfixedpoints
 export base, degree, representative, schreier_sims, sgs, sift
+
+abstract type AbstractPermutationGroup <: Group end
+Base.IteratorSize(::Type{<:AbstractPermutationGroup}) = Base.HasLength()
+Perms.degree(G::AbstractPermutationGroup) = maximum(degree, gens(G))
 
 include("orbit.jl")
 include("stabchain.jl")
