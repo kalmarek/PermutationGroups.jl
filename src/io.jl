@@ -1,16 +1,16 @@
 Base.show(io::IO, ::Type{<:PermGroup{I}}) where I = print(io, PermGroup, "{$I, …}")
-Base.show(io::IO, ::Type{<:Permutation{I}}) where I = print(io, Permutation, "{$I, …}")
+# Base.show(io::IO, ::Type{<:Permutation{I}}) where I = print(io, Permutation, "{$I, …}")
 
 function Base.show(io::IO, G::PermGroup)
     init = isdefined(G, :stabchain) ? " of order $(order(StabilizerChain(G)))" : ""
-    ngen = length(gens(G))
+    ngen = ngens(G)
 
     print(io, "Permutation group on ", ngen, " generator", ngen > 1 ? "s" : "", init)
 end
 
 function Base.show(io::IO, ::MIME"text/plain", G::PermGroup)
     init = isdefined(G, :stabchain) ? " of order $(order(StabilizerChain(G)))" : ""
-    ngen = length(gens(G))
+    ngen = ngens(G)
 
     println(
         io,
@@ -24,4 +24,4 @@ function Base.show(io::IO, ::MIME"text/plain", G::PermGroup)
     Base.print_array(io, gens(G))
 end
 
-Base.show(io::IO, g::Permutation) = show(io, perm(g))
+# Base.show(io::IO, g::Permutation) = show(io, Perm.perm(g))
