@@ -31,6 +31,7 @@ function Base.:(*)(
 end
 
 function Base.:(*)(σ::AbstractPermutation, τs::AbstractPermutation...)
+    isempty(τs) && return σ
     deg = max(degree(σ), maximum(degree, τs))
     img = Vector{inttype(σ)}(undef, deg)
     for i in Base.OneTo(deg)

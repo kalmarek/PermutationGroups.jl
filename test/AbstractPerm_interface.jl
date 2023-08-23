@@ -48,6 +48,11 @@ function abstract_perm_interface_test(P::Type{<:PG.AbstractPermutation})
 
         @test Perm(r) * p isa Perm
 
+        @test *(p) == p
+        @test p*p*p*p == p^4
+
+        @test length(unique(p^i for i in 1:5)) == 3
+
         @test (1:5) .^ p == [3, 1, 2, 4, 5]
         @test sprint(show, p) == "(1,3,2)"
         @test sprint(show, PG.cycles(p)) == "Cycle Decomposition: (1,3,2)"
