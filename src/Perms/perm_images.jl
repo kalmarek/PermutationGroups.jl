@@ -58,7 +58,6 @@ end
         end
         return q
     end
-
 else
     function Base.copy(p::Perm)
         imgs = copy(p.images)
@@ -105,11 +104,15 @@ end
 else
     function Base.inv(σ::Perm)
         if !isdefined(σ, :inv, :sequentially_consistent)
-            σ⁻¹ = typeof(σ)(invperm(σ.images), false)
-            # we don't want to end up with two copies of inverse σ floating around
-            if !isdefined(σ, :inv, :sequentially_consistent)
-                @atomic σ.inv = σ⁻¹
-                @atomic σ⁻¹.inv = σ
+            if isone(σ)
+                @atomic σ.inv = σ
+            else
+                σ⁻¹ = typeof(σ)(invperm(σ.images), false)
+                # we don't want to end up with two copies of inverse σ floating around
+                if !isdefined(σ, :inv, :sequentially_consistent)
+                    @atomic σ.inv = σ⁻¹
+                    @atomic σ⁻¹.inv = σ
+                end
             end
         end
         return σ.inv
