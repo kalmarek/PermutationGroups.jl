@@ -16,7 +16,8 @@ and stabilizer chain are computed (and cached) _when needed_.
             T::Type{<:AbstractTransversal},
             gens::AbstractVector{<:AbstractPermutation},
         )
-            return new{eltype(gens),T}([Perms.perm(s) for s in gens])
+            gens_raw = [Perms.perm(s) for s in gens]
+            return new{eltype(gens_raw),T(eltype(gens_raw))}(gens_raw)
         end
     end
 else
@@ -30,17 +31,9 @@ else
             T::Type{<:AbstractTransversal},
             gens::AbstractVector{<:AbstractPermutation},
         )
-            return new{eltype(gens),T}([Perms.perm(s) for s in gens])
+            gens_raw = [Perms.perm(s) for s in gens]
+            return new{eltype(gens_raw),T(eltype(gens_raw))}(gens_raw)
         end
-    end
-end
-
-for T in (:Transversal, :SchreierTransversal)
-    @eval function PermGroup(
-        ::Type{$T},
-        gens::AbstractVector{<:AbstractPermutation},
-    )
-        return PermGroup($T(eltype(gens)), gens)
     end
 end
 
@@ -50,12 +43,12 @@ end
 
 PermGroup(gens::Vararg{P,N}) where {P,N} = PermGroup(collect(gens))
 
+__gens_raw(G::PermGroup) = G.__gens_raw
+
 struct Permutation{P,G<:PermGroup} <: AbstractPermutation
     perm::P
     parent::G
 end
-
-__gens_raw(G::PermGroup) = G.__gens_raw
 
 Perms.perm(p::Permutation) = Perms.perm(p.perm)
 
@@ -82,7 +75,7 @@ end
 
 function Base.conj(σ::Permutation{P}, τ::AbstractPermutation) where {P}
     deg = max(degree(σ), degree(τ))
-    img = Vector{Perms.inttype(Perms.perm(σ))}(undef, deg)
+    img = Vector{Perms.inttype(σ)}(undef, deg)
     for i in Base.OneTo(deg)
         img[i^τ] = (i^σ)^τ
     end

@@ -18,6 +18,8 @@
 
     @test length(PG.basis(G)) == 3
     @test order(G) == factorial(4)
+    H = PermGroup(Permutation(perm"(1,2,3)", G))
+    @test order(Int, H) == 3
 
     SN(n) = [Perm(circshift(collect(1:n), -1)), Perm([[2, 1]; 3:n])]
 
