@@ -65,6 +65,7 @@ function extend_chain!(
     stabch::StabilizerChain{P,T},
     g::AbstractPermutation,
 ) where {P,T}
+    @assert istrivial(stabch)
     @assert !isone(g)
 
     # we want to modify stabch in-place, so we access the fields directly
@@ -76,7 +77,7 @@ function extend_chain!(
     k = length(transversal(stabch))
     if k < order(g)
         # gᵏ stabilizes point(stabch) so is a generator for stabilizer(pts)
-        extend_chain!(stabch, g^k)
+        extend_chain!(stabch.stabilizer, g^k)
     end
     return stabch
 end

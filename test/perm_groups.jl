@@ -77,4 +77,7 @@
         @test order(K2) == length(uniq_elements) == 60
         @test uniq_elements == elements
     end
+
+    G = PermGroup(perm"(1,4,6)(3,5)", perm"(1,5,4,3)")
+    @test order(Int, G) == 120
 end
