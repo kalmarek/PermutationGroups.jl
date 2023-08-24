@@ -18,7 +18,7 @@ export AbstractOrbit,
     Permutation,
     StabilizerChain
 export firstmoved, fixes, fixedpoints, lastmoved, nfixedpoints
-export base, degree, representative, schreier_sims, sgs, sift
+export base, degree, perm, representative, schreier_sims, sgs, sift
 
 abstract type AbstractPermutationGroup <: Group end
 Base.IteratorSize(::Type{<:AbstractPermutationGroup}) = Base.HasLength()
