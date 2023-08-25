@@ -74,8 +74,8 @@ end
         @test order(G) == 384
         if BENCHMARK_TIME
             @info "Rubik cube 2×2×2 group:"
-            @btime order(Int, G) setup =
-                (G = PermGroup(Transversal, $cube222)) evals = 1
+            @btime order(Int, G) setup = (G = PermGroup(Transversal, $cube222)) evals =
+                1
             @btime order(Int, G) setup =
                 (G = PermGroup(SchreierTransversal, $cube222)) evals = 1
             # 24.767 μs (533 allocations: 44.37 KiB)
@@ -147,7 +147,7 @@ end
             @btime order(Int64, G) setup =
                 (G = PermGroup(SchreierTransversal, $([a, b]))) evals = 1
             # gap> G := Group([a,b]);; StabChain(G);; time;
-            # ~15ms
+            # ~35ms
             # 10.258 ms (30072 allocations: 11.49 MiB)
             # 98.011 ms (240549 allocations: 102.46 MiB)
         end
@@ -219,7 +219,7 @@ end
             @btime order(Int, G) setup =
                 (G = PermGroup(SchreierTransversal, $([a, b, c, d]))) evals = 1
             # gap> G := Group([a,b,c,d]);; StabChain(G);; time;
-            # ~15ms
+            # ~35ms
             # 2.759 ms (9133 allocations: 3.18 MiB)
             # 83.738 ms (221318 allocations: 77.73 MiB)
             G = PermGroup(Transversal, [a, b, c, d])
