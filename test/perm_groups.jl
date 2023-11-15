@@ -8,6 +8,8 @@
     @test order(Int, G) isa Int
     @test isdefined(G, :stabchain) == true
 
+    @test_throws AssertionError PermGroup()
+
     G = PermGroup(perm"(1,2)", perm"(1,2,3,4)")
     @test StabilizerChain(G) isa StabilizerChain
     sc = StabilizerChain(G)

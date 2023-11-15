@@ -16,6 +16,7 @@ and stabilizer chain are computed (and cached) _when needed_.
             T::Type{<:AbstractTransversal},
             gens::AbstractVector{<:AbstractPermutation},
         )
+            @assert !isempty(gens) "groups need to have at least one generator"
             gens_raw = [Perms.perm(s) for s in gens]
             return new{eltype(gens_raw),T(eltype(gens_raw))}(gens_raw)
         end
@@ -31,6 +32,7 @@ else
             T::Type{<:AbstractTransversal},
             gens::AbstractVector{<:AbstractPermutation},
         )
+            @assert !isempty(gens) "groups need to have at least one generator"
             gens_raw = [Perms.perm(s) for s in gens]
             return new{eltype(gens_raw),T(eltype(gens_raw))}(gens_raw)
         end
