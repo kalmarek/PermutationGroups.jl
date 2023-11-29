@@ -1,9 +1,3 @@
-function Base.show(io::IO, ::Type{<:PermGroup{I}}) where {I}
-    return print(io, PermGroup, "{$I, …}")
-end
-# function Base.show(io::IO, ::Type{<:Permutation{I, G}}) where {I, G}
-#     return print(io, Permutation, "{$I, …}")
-# end
 function Base.show(io::IO, G::PermGroup)
     print(io, "PermGroup( ")
     join(io, gens(G), ", ")
@@ -25,5 +19,3 @@ function Base.show(io::IO, ::MIME"text/plain", G::PermGroup)
     )
     return Base.print_array(io, gens(G))
 end
-
-# Base.show(io::IO, g::Permutation) = show(io, Perm.perm(g))
