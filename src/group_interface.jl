@@ -43,15 +43,19 @@ function Base.:(==)(g::Permutation, h::Permutation)
     return parent(g) === parent(h) && g.perm == h.perm
 end
 
-function Base.deepcopy_internal(g::Permutation, stackdict::IdDict)
-    return Permutation(Base.deepcopy_internal(g.perm, stackdict), parent(g))
+function Base.deepcopy_internal(g::Permutation, id::IdDict)
+    haskey(id, g) && return id[g]
+    haskey(id, g.perm) && return Permutation(id[g.perm], parent(g))
+    id[g] = Permutation(Base.deepcopy_internal(g.perm, id), parent(g))
+    return id[g]
 end
 
 Base.inv(g::Permutation) = Permutation(inv(g.perm), parent(g))
 
 function Base.:(*)(g::Permutation, h::Permutation)
-    parent(g) === parent(h) ||
-        error("Cannot multiply elements from different permutation groups")
+    if parent(g) !== parent(h)
+        @assert AP.perm(h) in parent(g)
+    end
     return Permutation(g.perm * h.perm, parent(g))
 end
 

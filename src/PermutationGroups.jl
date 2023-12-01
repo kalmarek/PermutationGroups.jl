@@ -25,7 +25,7 @@ include("Perms/perm_static.jl")
 
 abstract type AbstractPermutationGroup <: Group end
 Base.IteratorSize(::Type{<:AbstractPermutationGroup}) = Base.HasLength()
-Perms.degree(G::AbstractPermutationGroup) = maximum(degree, gens(G))
+AP.degree(G::AbstractPermutationGroup) = maximum(AP.degree, gens(G))
 
 include("orbit.jl")
 include("stabchain.jl")

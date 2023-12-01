@@ -4,22 +4,16 @@ using PermutationGroups
 using Random
 
 const PG = PermutationGroups
+import AbstractPermutations
 
-@testset "Perms" begin
-    include("AbstractPerm_interface.jl")
-    include("perm_interface.jl")
-
-    abstract_perm_interface_test(APerms.APerm)
-    abstract_perm_interface_test(Perm)
-
-    @test_throws AssertionError Perm([1, 2, 3, 1])
-
-    # more implementations come here …
-
-    include("perm_macro.jl")
-end
+include(joinpath(pkgdir(AbstractPermutations), "test", "abstract_perm_API.jl"))
 
 @testset "PermutationGroups" begin
+    @testset "Perms" begin
+        abstract_perm_interface_test(Perm)
+        abstract_perm_interface_test(SPerm{8})
+    end
+
     include("orbit_transversal.jl")
     include("conj_action.jl")
 

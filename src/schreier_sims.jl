@@ -71,8 +71,8 @@ function extend_chain!(
     # we want to modify stabch in-place, so we access the fields directly
     push!(stabch.gens, g)
     # the special transversal constructor with a single generator
-    stabch.transversal = T(firstmoved(g), g, ^)
-    stabch.stabilizer = StabilizerChain{P,T}() # the next stabilizer is empty
+    stabch.transversal = T(AP.firstmoved(g, Base.OneTo(AP.degree(g))), g, ^)
+    stabch.stabilizer = typeof(stabch)() # the next stabilizer is empty
 
     k = length(transversal(stabch))
     if k < order(g)

@@ -311,7 +311,7 @@ for Trans_t in (:Transversal, :SchreierTransversal)
 
         # The default transversal TYPE based on the type of permutation
         function $Trans_t(::Type{P}) where {P<:AbstractPermutation}
-            return $Trans_t{Perms.inttype(P),P}
+            return $Trans_t{AP.inttype(P),P}
         end
     end
 end

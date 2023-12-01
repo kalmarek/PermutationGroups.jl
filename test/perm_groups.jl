@@ -20,15 +20,15 @@
 
     @test length(PG.basis(G)) == 3
     @test order(G) == factorial(4)
-    @test degree(G) == 4
+    @test AP.degree(G) == 4
 
     H = PermGroup(Permutation(perm"(1,2,3)", G))
     @test order(Int, H) == 3
-    @test degree(H) == 3
+    @test AP.degree(H) == 3
 
     SN(n) = [Perm(circshift(collect(1:n), -1)), Perm([[2, 1]; 3:n])]
 
-    a = PG.Perms.perm(gens(G, 1))
+    a = AP.perm(gens(G, 1))
     @test gens(G, 1) * a == a * gens(G, 1) == a^2
 
     for N in 6:20

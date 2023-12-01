@@ -2,7 +2,7 @@
     mutable struct Perm{T<:Integer} <: AP.AbstractPermutation
         images::Vector{T}
         inv::Perm{T}
-        cycles::CycleDecomposition{T}
+        cycles::AP.CycleDecomposition{T}
 
         function Perm{T}(
             images::AbstractVector{<:Integer},
@@ -35,7 +35,9 @@ else
                 throw(ArgumentError("Provided images are not permutation!"))
             end
             li = lastindex(images)
-            deg = @inbounds images[li] ≠ li ? li : __degree(images)
+            deg =
+                iszero(li) ? li :
+                @inbounds images[li] ≠ li ? li : __degree(images)
             if deg == length(images)
                 return new{T}(images)
             else
