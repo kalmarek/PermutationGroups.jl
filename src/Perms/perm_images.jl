@@ -1,15 +1,16 @@
 @static if VERSION < v"1.7"
-    mutable struct Perm{T<:Integer} <: AbstractPermutation
+    mutable struct Perm{T<:Integer} <: AP.AbstractPermutation
         images::Vector{T}
         inv::Perm{T}
-        cycles::CycleDecomposition{T}
+        cycles::AP.CycleDecomposition{T}
 
         function Perm{T}(
             images::AbstractVector{<:Integer},
             check::Bool = true,
         ) where {T}
-            check &&
-                @assert isperm(images) "Provided images are not permutation!"
+            if check && !isperm(images)
+                throw(ArgumentError("Provided images are not permutation!"))
+            end
             deg = __degree(images)
             if deg == length(images)
                 return new{T}(images)
@@ -21,19 +22,22 @@
         end
     end
 else
-    mutable struct Perm{T<:Integer} <: AbstractPermutation
+    mutable struct Perm{T<:Integer} <: AP.AbstractPermutation
         images::Vector{T}
         @atomic inv::Perm{T}
-        @atomic cycles::CycleDecomposition{T}
+        @atomic cycles::AP.CycleDecomposition{T}
 
         function Perm{T}(
             images::AbstractVector{<:Integer},
             check::Bool = true,
         ) where {T}
-            check &&
-                @assert isperm(images) "Provided images are not permutation!"
+            if check && !isperm(images)
+                throw(ArgumentError("Provided images are not permutation!"))
+            end
             li = lastindex(images)
-            deg = @inbounds images[li] ≠ li ? li : __degree(images)
+            deg =
+                iszero(li) ? li :
+                @inbounds images[li] ≠ li ? li : __degree(images)
             if deg == length(images)
                 return new{T}(images)
             else
@@ -47,25 +51,18 @@ end
 
 # convienience constructor: inttype(::Type{<:AbstractPermutation}) defaults to UInt32
 function Perm(images::AbstractVector{<:Integer}, check = true)
-    return Perm{inttype(Perm)}(images, check)
+    return Perm{AP.inttype(Perm)}(images, check)
 end
-
-# convienience conversion:
-function Base.convert(::Type{Perm{T}}, p::Perm) where {T}
-    inttype(p) == T && return p
-    return Perm{T}(convert(Vector{T}, p.images), false)
-end
-
-# inttype must be T (UInt16 by default) since we store it in e.g. cycles
-inttype(::Type{Perm{T}}) where {T} = T
-inttype(::Type{Perm}) = UInt16
 
 # ## Interface of AbstractPermutation
-degree(σ::Perm) = length(σ.images)
-
 function Base.:^(n::Integer, σ::Perm)
-    return 1 ≤ n ≤ degree(σ) ? oftype(n, @inbounds σ.images[n]) : n
+    return 1 ≤ n ≤ AP.degree(σ) ? oftype(n, @inbounds σ.images[n]) : n
 end
+AP.degree(σ::Perm) = length(σ.images)
+# inttype must be T (UInt16 by default) since we store it in e.g. cycles
+AP.inttype(::Type{Perm{T}}) where {T} = T
+AP.inttype(::Type{Perm}) = UInt16
+
 @static if VERSION < v"1.7"
     function Base.copy(p::Perm)
         imgs = copy(p.images)
@@ -88,9 +85,9 @@ end
         return σ.inv
     end
 
-    function cycles(σ::Perm)
+    function AP.cycles(σ::Perm)
         if !isdefined(σ, :cycles)
-            cdec = CycleDecomposition(σ)
+            cdec = AP.CycleDecomposition(σ)
             σ.cycles = cdec
         end
         return σ.cycles
@@ -124,9 +121,9 @@ else
         return σ.inv
     end
 
-    function cycles(σ::Perm)
+    function AP.cycles(σ::Perm)
         if !isdefined(σ, :cycles, :sequentially_consistent)
-            cdec = CycleDecomposition(σ)
+            cdec = AP.CycleDecomposition(σ)
             # we can afford producing more than one cycle decomposition
             @atomic σ.cycles = cdec
         end
@@ -134,7 +131,11 @@ else
     end
 end
 
-function parity(σ::Perm)
-    isdefined(σ, :cycles) && return parity(cycles(σ))
-    return __parity_generic(σ)
+function Base.isodd(σ::Perm)
+    isdefined(σ, :cycles) && return isodd(AP.cycles(σ))
+    return AP.__isodd(σ)
+end
+
+macro perm_str(str)
+    return :(Base.parse(Perm, $str))
 end

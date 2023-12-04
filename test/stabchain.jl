@@ -27,7 +27,7 @@
     @test h == c
 
     # so we extend the base
-    @test firstmoved(c) == 2
+    @test AP.firstmoved(c, Base.OneTo(AP.degree(c))) == 2
     # add c to generators
     push!(PG.gens(sc.stabilizer), c)
     # (re)computes the orbit of the stabilizer
@@ -37,7 +37,7 @@
     # pushing extends base...
     @test length(sc) == 2
     @test length(PG.basis(sc)) == 2
-    @test PG.basis(sc)[2] == firstmoved(c)
+    @test PG.basis(sc)[2] == AP.firstmoved(c, Base.OneTo(AP.degree(c)))
 
     @test PG.sgs(sc) == [a, b, c]
 

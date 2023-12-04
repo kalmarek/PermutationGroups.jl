@@ -3,26 +3,29 @@ module PermutationGroups
 using GroupsCore
 import GroupsCore: istrivial
 using Random
+import AbstractPermutations as AP
+import AbstractPermutations: AbstractPermutation
 
-include("Perms/Perms.jl")
-import .Perms:
-    Perm, AbstractPermutation, cycles, degree, firstmoved, permtype, @perm_str
-export @perm_str, Perm, permtype
+export Perm, SPerm, @perm_str, @sperm8_str
 
 export AbstractOrbit,
     Orbit,
-    AbstractTransversal,
     Transversal,
     SchreierTransversal,
     PermGroup,
     Permutation,
     StabilizerChain
-export firstmoved, fixes, fixedpoints, lastmoved, nfixedpoints
-export base, degree, perm, representative, schreier_sims, sgs, sift
+export base, representative, schreier_sims, sgs, sift
+
+include("Perms/utils.jl")
+
+# concrete implementations
+include("Perms/perm_images.jl")
+include("Perms/perm_static.jl")
 
 abstract type AbstractPermutationGroup <: Group end
 Base.IteratorSize(::Type{<:AbstractPermutationGroup}) = Base.HasLength()
-Perms.degree(G::AbstractPermutationGroup) = maximum(degree, gens(G))
+AP.degree(G::AbstractPermutationGroup) = maximum(AP.degree, gens(G))
 
 include("orbit.jl")
 include("stabchain.jl")

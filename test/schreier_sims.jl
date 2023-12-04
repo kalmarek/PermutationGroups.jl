@@ -11,8 +11,8 @@
     @test g == S[1] # since sc is trivial
     # so we need to extend the chain:
     push!(sc.gens, g)
-    @test firstmoved(g) == 1
-    sc.transversal = Tr(firstmoved(g), g)
+    @test AP.firstmoved(g, Base.OneTo(AP.degree(g))) == 1
+    sc.transversal = Tr(AP.firstmoved(g, Base.OneTo(AP.degree(g))), g)
     sc.stabilizer = PG.StabilizerChain{P,Tr}()
 
     @test !(PG.istrivial(sc))
@@ -32,7 +32,8 @@
     # process the schreier generator
     schr_gen = g
     push!(sc.stabilizer.gens, schr_gen)
-    sc.stabilizer.transversal = Tr(firstmoved(schr_gen), schr_gen)
+    sc.stabilizer.transversal =
+        Tr(AP.firstmoved(schr_gen, Base.OneTo(AP.degree(schr_gen))), schr_gen)
     sc.stabilizer.stabilizer = PG.StabilizerChain{P,Tr}()
 
     @test collect(PG.orbit(sc.stabilizer)) == [2, 8, 7]
@@ -73,7 +74,7 @@
         β = PG.basis(sc)
         @test all(PG.leafs(sc)) do g
             β_im = β .^ g
-            return g == PG.Perms.perm(sc, β_im)
+            return g == AP.perm(sc, β_im)
         end
     end
 end

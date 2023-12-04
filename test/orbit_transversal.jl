@@ -1,6 +1,6 @@
 @testset "Orbits, Transversals" begin
     @test PermutationGroups.Orbit([1, 2, 3]) isa Orbit
-    gens = Perm{UInt16}[perm"(4,7,5,6)", perm"(1,9,13,8,6,5,7,4)(10,14,12,11)"]
+    gens = [perm"(4,7,5,6)", perm"(1,9,13,8,6,5,7,4)(10,14,12,11)"]
     @test gens isa Vector{<:Perm{UInt16}}
 
     pt = 4
@@ -69,8 +69,7 @@
     end
 
     @testset "allocations" begin
-        gens =
-            Perm{UInt16}[perm"(4,7,5,6)", perm"(1,9,13,8,6,5,7,4)(10,14,12,11)"]
+        gens = [perm"(4,7,5,6)", perm"(1,9,13,8,6,5,7,4)(10,14,12,11)"]
         init_pt = 4
         tr = Transversal(init_pt, gens)
 

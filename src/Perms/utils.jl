@@ -2,7 +2,7 @@
 #     @inbounds for i in lastindex(images):-1:firstindex(images)
 #         images[i] ≠ i && return i
 #     end
-#     return firstindex(images)
+#     return firstindex(images) - 1
 # end
 
 @inline function __unsafe_findlast(v, lastidx, firstidx)
@@ -34,8 +34,8 @@ function __degree(v::AbstractVector{<:Integer})
     end
     if i > firstindex(v)
         ans = __unsafe_findlast_simd(v, i, firstindex(v))
-        return ifelse(ans ≤ i, ans, firstindex(v))
+        return ifelse(ans ≤ i, ans, firstindex(v) - 1)
     else
-        return firstindex(v)
+        return firstindex(v) - 1
     end
 end

@@ -71,8 +71,8 @@ function extend_chain!(
     # we want to modify stabch in-place, so we access the fields directly
     push!(stabch.gens, g)
     # the special transversal constructor with a single generator
-    stabch.transversal = T(firstmoved(g), g, ^)
-    stabch.stabilizer = StabilizerChain{P,T}() # the next stabilizer is empty
+    stabch.transversal = T(AP.firstmoved(g, Base.OneTo(AP.degree(g))), g, ^)
+    stabch.stabilizer = typeof(stabch)() # the next stabilizer is empty
 
     k = length(transversal(stabch))
     if k < order(g)
@@ -111,15 +111,15 @@ function extend_gens!(
         end
     end
 
-    # a more advanced version does
-    # 1. push around the old points with the new generator g
+    # a more "advanced" version:
+    # 1. move the old points in orbit with the new generator g
     # 3. add g to the generators
-    # 2. push around the newly obtained points with the generators (old one and g)
+    # 2. push around the newly obtained points with all the generators
 
     tr = transversal(stabch)
     l = length(tr)
 
-    for δ in orbit(stabch) # pushing around old points with the new generator
+    for δ in orbit(stabch) # move the old points with the new generator
         γ = δ^g
         if γ ∉ tr
             tr[γ] = (δ, g)
@@ -131,10 +131,10 @@ function extend_gens!(
     end
 
     if length(tr) > l # if there are new points in the orbit
-        push!(stabch.gens, g) # with old and the new generators
+        push!(stabch.gens, g) # add the new generator and recompute the orbit
         for (idx, δ) in enumerate(orbit(stabch))
-            idx ≤ l && continue # pushing around only the newly added points
-            for g in gens(stabch)
+            idx ≤ l && continue # moving only the newly added points
+            for g in gens(stabch) # now with all generators
                 γ = δ^g
                 if γ ∉ tr
                     tr[γ] = (δ, g)

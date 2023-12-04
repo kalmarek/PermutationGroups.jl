@@ -17,7 +17,7 @@ and stabilizer chain are computed (and cached) _when needed_.
             gens::AbstractVector{<:AbstractPermutation},
         )
             @assert !isempty(gens) "groups need to have at least one generator"
-            gens_raw = [Perms.perm(s) for s in gens]
+            gens_raw = [AP.perm(s) for s in gens]
             return new{eltype(gens_raw),T(eltype(gens_raw))}(gens_raw)
         end
     end
@@ -33,7 +33,7 @@ else
             gens::AbstractVector{<:AbstractPermutation},
         )
             @assert !isempty(gens) "groups need to have at least one generator"
-            gens_raw = [Perms.perm(s) for s in gens]
+            gens_raw = [AP.perm(s) for s in gens]
             return new{eltype(gens_raw),T(eltype(gens_raw))}(gens_raw)
         end
     end
@@ -43,7 +43,9 @@ function PermGroup(gens::AbstractVector{<:AbstractPermutation})
     return PermGroup(Transversal, gens)
 end
 
-PermGroup(gens::Vararg{P,N}) where {P,N} = PermGroup(collect(gens))
+function PermGroup(gens::Vararg{P,N}) where {P<:AbstractPermutation,N}
+    return PermGroup(collect(gens))
+end
 
 __gens_raw(G::PermGroup) = G.__gens_raw
 
@@ -52,33 +54,35 @@ struct Permutation{P,G<:PermGroup} <: AbstractPermutation
     parent::G
 end
 
-Perms.perm(p::Permutation) = Perms.perm(p.perm)
-Base.copy(σ::Permutation) = Permutation(σ.perm, parent(σ))
-
-# Perms.Perm interface
-Perms.inttype(::Type{<:Permutation{P}}) where {P} = Perms.inttype(P)
-Perms.degree(p::Permutation) = Perms.degree(p.perm)
+# AbstractPermutation interface
+AP.degree(p::Permutation) = AP.degree(p.perm)
 Base.:^(n::Integer, p::Permutation) = n^p.perm
+
+AP.perm(p::Permutation) = AP.perm(p.perm)
+AP.inttype(::Type{<:Permutation{P}}) where {P} = AP.inttype(P)
+
 Base.one(p::Permutation) = Permutation(one(p.perm), parent(p))
+Base.copy(σ::Permutation) = Permutation(σ.perm, parent(σ))
 
 function Base.:*(p::Permutation, qs::Permutation...)
     G = parent(p)
-    @assert all(parent(q) === G for q in qs)
-    r = *(Perms.perm(p), map(Perms.perm, qs)...)
-    # @assert r in G
+    r = *(AP.perm(p), map(AP.perm, qs)...)
+    if !all(parent(q) === G for q in qs)
+        @assert all(AP.perm(q) in G for q in qs)
+    end
     return Permutation(r, G)
 end
 
 function Base.:*(p::Permutation, qs::AbstractPermutation...)
     G = parent(p)
-    r = *(Perms.perm(p), map(Perms.perm, qs)...)
+    r = *(AP.perm(p), map(AP.perm, qs)...)
     @assert r in G
     return Permutation(r, G)
 end
 
-function Base.conj(σ::Permutation{P}, τ::AbstractPermutation) where {P}
-    deg = max(degree(σ), degree(τ))
-    img = Vector{Perms.inttype(σ)}(undef, deg)
+function Base.:^(σ::Permutation{P}, τ::AbstractPermutation) where {P}
+    deg = max(AP.degree(σ), AP.degree(τ))
+    img = Vector{AP.inttype(σ)}(undef, deg)
     for i in Base.OneTo(deg)
         img[i^τ] = (i^σ)^τ
     end

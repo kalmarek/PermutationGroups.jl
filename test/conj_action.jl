@@ -8,7 +8,7 @@
     pt = perm"(1,2)(4)"
     @test Orbit(pt, S) isa Orbit
     @test length(Orbit(pt, S)) == 6
-    @test all(==(permtype(pt)), permtype.(Orbit(pt, S)))
+    @test all(==(AP.permtype(pt)), AP.permtype.(Orbit(pt, S)))
 
     pt = perm"(1,2)(4)"
     @test Transversal(pt, S) isa Transversal

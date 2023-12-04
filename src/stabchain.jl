@@ -62,7 +62,8 @@ function recompute_transversal!(sc::StabilizerChain{P,T}) where {P,T}
     pt = if isdefined(sc, :transversal)
         first(transversal(sc))
     else
-        firstmoved(first(gens(sc)))
+        g = first(gens(sc))
+        AP.firstmoved(g, Base.OneTo(AP.degree(g)))
     end
     sc.transversal = T(pt, gens(sc))
     return sc.transversal
@@ -79,7 +80,7 @@ end
 
 basis(stabch::StabilizerChain) = [first(transversal(sc)) for sc in stabch]
 
-function Perms.perm(
+function AP.perm(
     sc::PermutationGroups.StabilizerChain{P},
     baseimages::AbstractVector{<:Integer},
 ) where {P}
