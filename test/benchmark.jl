@@ -15,17 +15,12 @@ end
 
 @testset "GAP Docs examples$(BENCHMARK_TIME ? "/benchmark" : "")" begin
     @testset "test_perf$(BENCHMARK_TIME ? "/benchmark" : "") iteration" begin
-        import AbstractAlgebra
-        SymmetricGroup = AbstractAlgebra.SymmetricGroup
-
-        Base.:^(i::Integer, p::AbstractAlgebra.Perm) = oftype(i, p.d[i])
-
-        G = SymmetricGroup(8)
+        G = PermGroup(parse.(Perm{UInt16}, ["($(i), $(i+1))" for i in 1:7]))
         K = PermGroup(
             Transversal,
             [perm"(1,5,6,2,4,8)", perm"(1,3,6)(2,5,7,4)(8)"],
         )
-        @test order(Int, K) == order(Int, G)
+        @test order(Int, K) == order(Int, G) == factorial(8)
         @test test_perf(G) == test_perf(K) == 181440
         K = PermGroup(
             SchreierTransversal,
@@ -35,7 +30,7 @@ end
         @test test_perf(G) == test_perf(K) == 181440
 
         if BENCHMARK_TIME
-            @info "Native iteration over S8 group:"
+            @info "Iteration over S8 PermGroup (7 transpositions)"
             @btime test_perf($G)
             # 1.303 ms (80644 allocations: 6.77 MiB)
             @info "Iteration over K ≅ S8 PermGroup:"
