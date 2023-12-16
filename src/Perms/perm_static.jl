@@ -18,7 +18,7 @@ struct SPerm{N} <: AP.AbstractPermutation
 end
 
 function SPerm{N}(
-    images::AbstractVector{<:Integer},
+    images::AbstractVector{<:Integer};
     check::Bool = true,
 ) where {N}
     @assert length(images) ≤ N "vector too large for SPerm"

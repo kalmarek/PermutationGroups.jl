@@ -51,8 +51,8 @@ function Perm{T}(
 end
 
 # convienience constructor: inttype(::Type{<:AbstractPermutation}) defaults to UInt32
-function Perm(images::AbstractVector{<:Integer}, check = true)
-    return Perm{AP.inttype(Perm)}(images, check)
+function Perm(images::AbstractVector{<:Integer}; check = true)
+    return Perm{AP.inttype(Perm)}(images; check = check)
 end
 
 # ## Interface of AbstractPermutation
@@ -67,10 +67,10 @@ AP.inttype(::Type{Perm}) = UInt16
 @static if VERSION < v"1.7"
     function Base.copy(p::Perm)
         imgs = copy(p.images)
-        q = typeof(p)(imgs, false)
+        q = typeof(p)(imgs; check = false)
         if isdefined(p, :inv)
             inv_imgs = copy(p.inv.images)
-            q⁻¹ = typeof(p)(inv_imgs, false)
+            q⁻¹ = typeof(p)(inv_imgs; check = false)
             q.inv = q⁻¹
             q⁻¹.inv = q
         end
@@ -79,7 +79,7 @@ AP.inttype(::Type{Perm}) = UInt16
 
     function Base.inv(σ::Perm)
         if !isdefined(σ, :inv)
-            σ⁻¹ = typeof(σ)(invperm(σ.images), false)
+            σ⁻¹ = typeof(σ)(invperm(σ.images); check = false)
             σ.inv = σ⁻¹
             σ⁻¹.inv = σ
         end
@@ -96,10 +96,10 @@ AP.inttype(::Type{Perm}) = UInt16
 else
     function Base.copy(p::Perm)
         imgs = copy(p.images)
-        q = typeof(p)(imgs, false)
+        q = typeof(p)(imgs; check = false)
         if isdefined(p, :inv, :sequentially_consistent)
             inv_imgs = copy(@atomic(p.inv).images)
-            q⁻¹ = typeof(p)(inv_imgs, false)
+            q⁻¹ = typeof(p)(inv_imgs; check = false)
             @atomic q.inv = q⁻¹
             @atomic q⁻¹.inv = q
         end
@@ -111,7 +111,7 @@ else
             if isone(σ)
                 @atomic σ.inv = σ
             else
-                σ⁻¹ = typeof(σ)(invperm(σ.images), false)
+                σ⁻¹ = typeof(σ)(invperm(σ.images); check = false)
                 # we don't want to end up with two copies of inverse σ floating around
                 if !isdefined(σ, :inv, :sequentially_consistent)
                     @atomic σ.inv = σ⁻¹

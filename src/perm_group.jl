@@ -87,7 +87,7 @@ function Base.:^(σ::Permutation{P}, τ::AbstractPermutation) where {P}
         img[i^τ] = (i^σ)^τ
     end
 
-    res = P(img, false)
+    res = P(img; check = false)
     @assert res in parent(σ)
     return Permutation(res, parent(σ))
 end
