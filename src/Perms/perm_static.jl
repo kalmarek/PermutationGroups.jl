@@ -37,6 +37,7 @@ function Base.:^(n::Integer, σ::SPerm)
 end
 AP.degree(σ::SPerm) = σ.degree
 AP.inttype(::Type{<:SPerm}) = UInt8
+AP.__unsafe_image(n::Integer, σ::SPerm) = oftype(n, @inbounds σ.images[n])
 
 function Base.inv(σ::SPerm{N}) where {N}
     return SPerm{N}(invperm(σ.images), AP.degree(σ))

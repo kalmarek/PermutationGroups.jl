@@ -63,6 +63,7 @@ AP.degree(σ::Perm) = length(σ.images)
 # inttype must be T (UInt16 by default) since we store it in e.g. cycles
 AP.inttype(::Type{Perm{T}}) where {T} = T
 AP.inttype(::Type{Perm}) = UInt16
+AP.__unsafe_image(n::Integer, σ::Perm) = oftype(n, @inbounds σ.images[n])
 
 @static if VERSION < v"1.7"
     function Base.copy(p::Perm)
