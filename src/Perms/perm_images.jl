@@ -5,20 +5,15 @@
         cycles::AP.CycleDecomposition{T}
 
         function Perm{T}(
-            images::AbstractVector{<:Integer},
+            images::Vector{T};
             check::Bool = true,
         ) where {T}
             if check && !isperm(images)
                 throw(ArgumentError("Provided images are not permutation!"))
             end
             deg = __degree(images)
-            if deg == length(images)
-                return new{T}(images)
-            else
-                # for future: use @time one(Perm{Int})
-                # to check if julia can elide the creation of view
-                return new{T}(@view images[Base.OneTo(deg)])
-            end
+            resize!(images, deg)
+            return new{T}(images)
         end
     end
 else
@@ -28,7 +23,7 @@ else
         @atomic cycles::AP.CycleDecomposition{T}
 
         function Perm{T}(
-            images::AbstractVector{<:Integer},
+            images::Vector{T};
             check::Bool = true,
         ) where {T}
             if check && !isperm(images)
@@ -38,15 +33,21 @@ else
             deg =
                 iszero(li) ? li :
                 @inbounds images[li] ≠ li ? li : __degree(images)
-            if deg == length(images)
-                return new{T}(images)
-            else
-                # for future: use @time one(Perm{Int})
-                # to check if julia can elide the creation of view
-                return new{T}(@view images[Base.OneTo(deg)])
-            end
+            resize!(images, deg)
+            return new{T}(images)
         end
     end
+end
+
+function Perm{T}(
+    images::AbstractVector{<:Integer};
+    check::Bool = true,
+) where {T}
+    deg = __degree(images)
+    return Perm{T}(
+        convert(Vector{T}, @view images[Base.OneTo(deg)]);
+        check = check,
+    )
 end
 
 # convienience constructor: inttype(::Type{<:AbstractPermutation}) defaults to UInt32
