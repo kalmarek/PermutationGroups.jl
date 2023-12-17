@@ -4,10 +4,7 @@
         inv::Perm{T}
         cycles::AP.CycleDecomposition{T}
 
-        function Perm{T}(
-            images::Vector{T};
-            check::Bool = true,
-        ) where {T}
+        function Perm{T}(images::Vector{T}; check::Bool = true) where {T}
             if check && !isperm(images)
                 throw(ArgumentError("Provided images are not permutation!"))
             end
@@ -22,10 +19,7 @@ else
         @atomic inv::Perm{T}
         @atomic cycles::AP.CycleDecomposition{T}
 
-        function Perm{T}(
-            images::Vector{T};
-            check::Bool = true,
-        ) where {T}
+        function Perm{T}(images::Vector{T}; check::Bool = true) where {T}
             if check && !isperm(images)
                 throw(ArgumentError("Provided images are not permutation!"))
             end
