@@ -20,6 +20,14 @@ else
 end
 GroupsCore.gens(G::PermGroup) = Permutation.(G.__gens_raw, Ref(G))
 
+function Random.Sampler(
+    RNG::Type{<:Random.AbstractRNG},
+    G::AbstractPermutationGroup,
+    repetition::Random.Repetition = Val(Inf),
+)
+    return Random.SamplerTrivial(G)
+end
+
 function Base.rand(
     rng::Random.AbstractRNG,
     rs::Random.SamplerTrivial{Gr},
