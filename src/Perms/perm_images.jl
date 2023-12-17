@@ -4,21 +4,13 @@
         inv::Perm{T}
         cycles::AP.CycleDecomposition{T}
 
-        function Perm{T}(
-            images::AbstractVector{<:Integer},
-            check::Bool = true,
-        ) where {T}
+        function Perm{T}(images::Vector{T}; check::Bool = true) where {T}
             if check && !isperm(images)
                 throw(ArgumentError("Provided images are not permutation!"))
             end
             deg = __degree(images)
-            if deg == length(images)
-                return new{T}(images)
-            else
-                # for future: use @time one(Perm{Int})
-                # to check if julia can elide the creation of view
-                return new{T}(@view images[Base.OneTo(deg)])
-            end
+            resize!(images, deg)
+            return new{T}(images)
         end
     end
 else
@@ -27,10 +19,7 @@ else
         @atomic inv::Perm{T}
         @atomic cycles::AP.CycleDecomposition{T}
 
-        function Perm{T}(
-            images::AbstractVector{<:Integer},
-            check::Bool = true,
-        ) where {T}
+        function Perm{T}(images::Vector{T}; check::Bool = true) where {T}
             if check && !isperm(images)
                 throw(ArgumentError("Provided images are not permutation!"))
             end
@@ -38,20 +27,26 @@ else
             deg =
                 iszero(li) ? li :
                 @inbounds images[li] ≠ li ? li : __degree(images)
-            if deg == length(images)
-                return new{T}(images)
-            else
-                # for future: use @time one(Perm{Int})
-                # to check if julia can elide the creation of view
-                return new{T}(@view images[Base.OneTo(deg)])
-            end
+            resize!(images, deg)
+            return new{T}(images)
         end
     end
 end
 
+function Perm{T}(
+    images::AbstractVector{<:Integer};
+    check::Bool = true,
+) where {T}
+    deg = __degree(images)
+    return Perm{T}(
+        convert(Vector{T}, @view images[Base.OneTo(deg)]);
+        check = check,
+    )
+end
+
 # convienience constructor: inttype(::Type{<:AbstractPermutation}) defaults to UInt32
-function Perm(images::AbstractVector{<:Integer}, check = true)
-    return Perm{AP.inttype(Perm)}(images, check)
+function Perm(images::AbstractVector{<:Integer}; check = true)
+    return Perm{AP.inttype(Perm)}(images; check = check)
 end
 
 # ## Interface of AbstractPermutation
@@ -62,14 +57,15 @@ AP.degree(σ::Perm) = length(σ.images)
 # inttype must be T (UInt16 by default) since we store it in e.g. cycles
 AP.inttype(::Type{Perm{T}}) where {T} = T
 AP.inttype(::Type{Perm}) = UInt16
+AP.__unsafe_image(n::Integer, σ::Perm) = oftype(n, @inbounds σ.images[n])
 
 @static if VERSION < v"1.7"
     function Base.copy(p::Perm)
         imgs = copy(p.images)
-        q = typeof(p)(imgs, false)
+        q = typeof(p)(imgs; check = false)
         if isdefined(p, :inv)
             inv_imgs = copy(p.inv.images)
-            q⁻¹ = typeof(p)(inv_imgs, false)
+            q⁻¹ = typeof(p)(inv_imgs; check = false)
             q.inv = q⁻¹
             q⁻¹.inv = q
         end
@@ -78,7 +74,7 @@ AP.inttype(::Type{Perm}) = UInt16
 
     function Base.inv(σ::Perm)
         if !isdefined(σ, :inv)
-            σ⁻¹ = typeof(σ)(invperm(σ.images), false)
+            σ⁻¹ = typeof(σ)(invperm(σ.images); check = false)
             σ.inv = σ⁻¹
             σ⁻¹.inv = σ
         end
@@ -95,10 +91,10 @@ AP.inttype(::Type{Perm}) = UInt16
 else
     function Base.copy(p::Perm)
         imgs = copy(p.images)
-        q = typeof(p)(imgs, false)
+        q = typeof(p)(imgs; check = false)
         if isdefined(p, :inv, :sequentially_consistent)
             inv_imgs = copy(@atomic(p.inv).images)
-            q⁻¹ = typeof(p)(inv_imgs, false)
+            q⁻¹ = typeof(p)(inv_imgs; check = false)
             @atomic q.inv = q⁻¹
             @atomic q⁻¹.inv = q
         end
@@ -110,7 +106,7 @@ else
             if isone(σ)
                 @atomic σ.inv = σ
             else
-                σ⁻¹ = typeof(σ)(invperm(σ.images), false)
+                σ⁻¹ = typeof(σ)(invperm(σ.images); check = false)
                 # we don't want to end up with two copies of inverse σ floating around
                 if !isdefined(σ, :inv, :sequentially_consistent)
                     @atomic σ.inv = σ⁻¹

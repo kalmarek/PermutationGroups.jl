@@ -15,17 +15,12 @@ end
 
 @testset "GAP Docs examples$(BENCHMARK_TIME ? "/benchmark" : "")" begin
     @testset "test_perf$(BENCHMARK_TIME ? "/benchmark" : "") iteration" begin
-        import AbstractAlgebra
-        SymmetricGroup = AbstractAlgebra.SymmetricGroup
-
-        Base.:^(i::Integer, p::AbstractAlgebra.Perm) = oftype(i, p.d[i])
-
-        G = SymmetricGroup(8)
+        G = PermGroup(parse.(Perm{UInt16}, ["($(i), $(i+1))" for i in 1:7]))
         K = PermGroup(
             Transversal,
             [perm"(1,5,6,2,4,8)", perm"(1,3,6)(2,5,7,4)(8)"],
         )
-        @test order(Int, K) == order(Int, G)
+        @test order(Int, K) == order(Int, G) == factorial(8)
         @test test_perf(G) == test_perf(K) == 181440
         K = PermGroup(
             SchreierTransversal,
@@ -35,15 +30,13 @@ end
         @test test_perf(G) == test_perf(K) == 181440
 
         if BENCHMARK_TIME
-            @info "Native iteration over S8 group:"
+            @info "Iteration over S8 PermGroup (7 transpositions)"
             @btime test_perf($G)
-            # 1.303 ms (80644 allocations: 6.77 MiB)
             @info "Iteration over K ≅ S8 PermGroup:"
             K = PermGroup(
                 Transversal,
                 [perm"(1,5,6,2,4,8)", perm"(1,3,6)(2,5,7,4)(8)"],
             )
-            # 3.285 ms (125987 allocations: 6.46 MiB)
             @time order(Int, K)
             @btime test_perf($K)
             K = PermGroup(
@@ -52,7 +45,6 @@ end
             )
             @time order(Int, K)
             @btime test_perf($K)
-            # 6.833 ms (206127 allocations: 11.35 MiB)
         end
     end
 
@@ -78,8 +70,6 @@ end
                 1
             @btime order(Int, G) setup =
                 (G = PermGroup(SchreierTransversal, $cube222)) evals = 1
-            # 24.767 μs (533 allocations: 44.37 KiB)
-            # 63.420 μs (1239 allocations: 109.91 KiB)
         end
 
         cube333 = [
@@ -102,8 +92,6 @@ end
                 (G = PermGroup(Transversal, $cube333)) evals = 1
             @btime order(Int128, G) setup =
                 (G = PermGroup(SchreierTransversal, $cube333)) evals = 1
-            # 1.975 ms (26628 allocations: 2.59 MiB)
-            # 8.836 ms (116353 allocations: 11.42 MiB)
         end
     end
 
@@ -146,10 +134,6 @@ end
                 (G = PermGroup(Transversal, $([a, b]))) evals = 1
             @btime order(Int64, G) setup =
                 (G = PermGroup(SchreierTransversal, $([a, b]))) evals = 1
-            # gap> G := Group([a,b]);; StabChain(G);; time;
-            # ~35ms
-            # 10.258 ms (30072 allocations: 11.49 MiB)
-            # 98.011 ms (240549 allocations: 102.46 MiB)
         end
     end
 
@@ -218,16 +202,37 @@ end
                 (G = PermGroup(Transversal, $([a, b, c, d]))) evals = 1
             @btime order(Int, G) setup =
                 (G = PermGroup(SchreierTransversal, $([a, b, c, d]))) evals = 1
-            # gap> G := Group([a,b,c,d]);; StabChain(G);; time;
-            # ~35ms
-            # 2.759 ms (9133 allocations: 3.18 MiB)
-            # 83.738 ms (221318 allocations: 77.73 MiB)
             G = PermGroup(Transversal, [a, b, c, d])
+            @info "Iteration over direct-product group of order 192480"
             @time test_perf(G)
             H = PermGroup(SchreierTransversal, [a, b, c, d])
             @time test_perf(H)
-            # 0.146197 seconds (622.65 k allocations: 216.433 MiB, 3.77% gc time)
-            # 0.388392 seconds (1.24 M allocations: 473.432 MiB, 3.57% gc time)
         end
     end
 end
+
+#=
+[ Info: Iteration over S8 PermGroup (7 transpositions)
+  3.138 ms (120949 allocations: 6.15 MiB)
+[ Info: Iteration over K ≅ S8 PermGroup:
+  0.000039 seconds (562 allocations: 32.742 KiB)
+  3.121 ms (120949 allocations: 6.15 MiB)
+  0.000075 seconds (1.16 k allocations: 70.273 KiB)
+  5.809 ms (201815 allocations: 11.09 MiB)
+[ Info: Testing and benchmarking Schreier-Sims algorithm
+[ Info: Rubik cube 2×2×2 group:
+  18.565 μs (442 allocations: 29.43 KiB)
+  52.597 μs (1148 allocations: 79.07 KiB)
+[ Info: Schreier-Sims for Rubik cube 3×3×3 group:
+  1.374 ms (24680 allocations: 2.31 MiB)
+  6.975 ms (111829 allocations: 10.81 MiB)
+[ Info: Schreier-Sims for SL(4,7):
+  4.393 ms (25970 allocations: 10.22 MiB)
+  53.474 ms (189388 allocations: 76.13 MiB)
+[ Info: Schreier-Sims for a direct-product group:
+  1.228 ms (9104 allocations: 3.15 MiB)
+  58.843 ms (219502 allocations: 77.17 MiB)
+[ Info: Iteration over direct-product group of order 192480
+  0.061710 seconds (585.73 k allocations: 184.881 MiB, 9.19% gc time)
+  0.201417 seconds (1.20 M allocations: 441.331 MiB, 6.48% gc time)
+=#

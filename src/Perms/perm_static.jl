@@ -18,7 +18,7 @@ struct SPerm{N} <: AP.AbstractPermutation
 end
 
 function SPerm{N}(
-    images::AbstractVector{<:Integer},
+    images::AbstractVector{<:Integer};
     check::Bool = true,
 ) where {N}
     @assert length(images) ≤ N "vector too large for SPerm"
@@ -37,6 +37,7 @@ function Base.:^(n::Integer, σ::SPerm)
 end
 AP.degree(σ::SPerm) = σ.degree
 AP.inttype(::Type{<:SPerm}) = UInt8
+AP.__unsafe_image(n::Integer, σ::SPerm) = oftype(n, @inbounds σ.images[n])
 
 function Base.inv(σ::SPerm{N}) where {N}
     return SPerm{N}(invperm(σ.images), AP.degree(σ))
