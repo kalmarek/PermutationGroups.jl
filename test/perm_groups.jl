@@ -68,6 +68,13 @@
     @test perm"(1,2)" ∉ A
     @test perm"(1,3,4)" in A
 
+    @testset "Schreier-Sims: add generator even when orbit is unchanged" begin
+        H = PermGroup([perm"(1,5,4,3,2)", perm"(1,4,5,3)"])
+        # when missing a generator on the second level order is 90
+        @test order(Int, H) == 120
+        @test perm"(2,3)" in H
+    end
+
     @testset "Iterate over PermGroup" begin
         K1 = PermGroup(Perm{UInt32}[perm"(5,6)", perm"(1,2,3,4,5,6)"]) # Symmetric group on 6 symbols
         elements = [g for g in K1]
@@ -86,4 +93,36 @@
 
     G = PermGroup(perm"(1,4,6)(3,5)", perm"(1,5,4,3)")
     @test order(Int, G) == 120
+
+    @testset "Random subgroups of Sym(n): conjugacy classes" begin
+        function conjugacy_classes_orbit(grp::GroupsCore.Group)
+            id = one(grp)
+            S = gens(grp)
+            ordG = order(Int, grp)
+
+            cclasses = [PermutationGroups.Orbit([id])]
+            elts_counted = 1
+
+            for g in grp
+                any(ccl -> g ∈ ccl, cclasses) && continue
+                ccl_g = PermutationGroups.Orbit(g, S, conj)
+                elts_counted += length(ccl_g)
+                push!(cclasses, ccl_g)
+                elts_counted == ordG && break
+            end
+
+            elts_counted == ordG || @warn "$elts_counted ≠ $ordG"
+            return cclasses
+        end
+
+        for n in 2:6
+            G = PermGroup(perm"(1,2)", Perm([2:n; 1]))
+            for _ in 1:10
+                S = rand(G, 2)
+                H = PermGroup(S)
+                ccls = conjugacy_classes_orbit(H)
+                @test sum(length, ccls) == order(Int, H) ≤ factorial(n)
+            end
+        end
+    end
 end
