@@ -130,8 +130,8 @@ function extend_gens!(
         end
     end
 
-    if length(tr) > l # if there are new points in the orbit
-        push!(stabch.gens, g) # add the new generator and recompute the orbit
+    push!(stabch.gens, g) # add the new generator and
+    if length(tr) > l # recompute the orbit if necessary
         for (idx, δ) in enumerate(orbit(stabch))
             idx ≤ l && continue # moving only the newly added points
             for g in gens(stabch) # now with all generators
