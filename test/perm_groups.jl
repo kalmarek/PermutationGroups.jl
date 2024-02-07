@@ -75,6 +75,15 @@
         @test perm"(2,3)" in H
     end
 
+    @testset "power_by_cycles" begin
+        G = PermGroup(Perm([2:32; 1]))
+        g = gens(G, 1)
+        @test isone(g^32)
+        @test (g^8)^3 == g^24
+        @test PermutationGroups.AP.power_by_cycles(g, 8) ==
+              Base.power_by_squaring(g, 8)
+    end
+
     @testset "Iterate over PermGroup" begin
         K1 = PermGroup(Perm{UInt32}[perm"(5,6)", perm"(1,2,3,4,5,6)"]) # Symmetric group on 6 symbols
         elements = [g for g in K1]

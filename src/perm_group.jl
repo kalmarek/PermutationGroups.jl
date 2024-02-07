@@ -92,6 +92,10 @@ function Base.:^(σ::Permutation{P}, τ::AbstractPermutation) where {P}
     return Permutation(res, parent(σ))
 end
 
+function AP.power_by_cycles(σ::Permutation, n::Integer)
+    return Permutation(AP.power_by_cycles(AP.perm(σ), n), parent(σ))
+end
+
 # misc
 """
     StabilizerChain(G::PermGroup)
