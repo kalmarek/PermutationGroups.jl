@@ -116,7 +116,9 @@ if !(haskey(ENV, "CI"))
 
     @info "Benchmarking Iteration and Schreier-Sims algorithm"
 
-    versioninfo()
+    if isinteractive()
+        versioninfo()
+    end
 
     begin # iteration Sym(8)
         @info "Iteration over S8 PermGroup (7 transpositions)"

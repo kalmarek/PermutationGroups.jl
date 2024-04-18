@@ -86,9 +86,9 @@
             k = @allocated schtr[pt]
             if pt == first(schtr)
                 @test k == 0
-            elseif VERSION == v"1.9"
+            elseif v"1.10" ≤ VERSION < v"1.11"
                 if pt == last(schtr)
-                    @test k == 512
+                    @test k == 432
                 else
                     @test k ∈ (128, 144)
                 end
