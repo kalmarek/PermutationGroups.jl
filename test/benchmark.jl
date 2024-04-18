@@ -2,6 +2,9 @@ using Test
 using GroupsCore
 using PermutationGroups
 using BenchmarkTools
+using Random
+
+Random.seed!(1234)
 
 function test_perf(G)
     s = 0
@@ -186,23 +189,23 @@ Threads: 8 default, 0 interactive, 4 GC (on 16 virtual cores)
 Environment:
   JULIA_NUM_THREADS = 8
 [ Info: Iteration over S8 PermGroup (7 transpositions)
-  1.756 ms (120949 allocations: 6.15 MiB)
+  1.753 ms (120949 allocations: 6.15 MiB)
 [ Info: Iteration over K (2 gens) ≅ S8 PermGroup:
-  1.779 ms (120949 allocations: 6.15 MiB)
-  3.667 ms (201815 allocations: 11.09 MiB)
+  1.770 ms (120949 allocations: 6.15 MiB)
+  3.824 ms (202931 allocations: 11.16 MiB)
 [ Info: Rubik cube 2×2×2 group:
-  10.819 μs (442 allocations: 29.43 KiB)
-  35.014 μs (1148 allocations: 79.07 KiB)
+  10.700 μs (442 allocations: 29.43 KiB)
+  34.904 μs (1148 allocations: 79.07 KiB)
 [ Info: Schreier-Sims for Rubik cube 3×3×3 group:
-  1.019 ms (28389 allocations: 2.66 MiB)
-  5.308 ms (125759 allocations: 12.15 MiB)
+  1.003 ms (28389 allocations: 2.66 MiB)
+  3.385 ms (77831 allocations: 7.54 MiB)
 [ Info: Schreier-Sims for SL(4,7):
-  2.876 ms (25982 allocations: 10.23 MiB)
-  34.668 ms (189468 allocations: 76.16 MiB)
+  2.889 ms (25982 allocations: 10.23 MiB)
+  31.405 ms (159639 allocations: 70.08 MiB)
 [ Info: Schreier-Sims for a direct-product group:
-  824.475 μs (9104 allocations: 3.15 MiB)
-  39.179 ms (219502 allocations: 77.17 MiB)
+  824.125 μs (9104 allocations: 3.15 MiB)
+  11.211 ms (65861 allocations: 22.37 MiB)
 [ Info: Iteration over direct-product group of order 192480
-  33.980 ms (576643 allocations: 181.73 MiB)
-  76.612 ms (977085 allocations: 364.16 MiB)
+  35.031 ms (576643 allocations: 181.73 MiB)
+  76.199 ms (972173 allocations: 362.54 MiB)
 =#

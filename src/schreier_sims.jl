@@ -111,6 +111,7 @@ function extend_gens!(
         orb_len = length(orbit(stabch))
         if orb_dep > 3 + ceil(sqrt(orb_len) / 2)
             push!(stabch.gens, g)
+            push!(stabch.gens, prod(rand(stabch.gens, 4)))
             recompute_transversal!(stabch)
 
             tr = transversal(stabch)
