@@ -2,7 +2,7 @@
     PG = PermutationGroups
     S = [perm"(1,3,5,7)(2,4,6,8)", perm"(1,3,8)(4,5,7)"]
     P = eltype(S)
-    Tr = PG.Transversal(P)
+    Tr = PG.__schreier_sims_transversal(Transversal, P)
 
     sc = PG.StabilizerChain{P,Tr}()
     @test PG.istrivial(sc)

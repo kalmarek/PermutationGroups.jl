@@ -1,7 +1,7 @@
 @testset "StabChain unit tests" begin
     a, b = [perm"(1,2,4,3)(5)", perm"(1,2,5,4)"]
     P_t = typeof(a)
-    Tr_t = Transversal(P_t)
+    Tr_t = PG.__schreier_sims_transversal(Transversal, P_t)
 
     sc = StabilizerChain{P_t,Tr_t}()
 
@@ -81,7 +81,7 @@
         a = perm"(1,2,4)(5,3,6)"
 
         P_t = typeof(a)
-        Tr_t = SchreierTransversal(P_t)
+        Tr_t = PG.__schreier_sims_transversal(SchreierTransversal, P_t)
 
         sc = StabilizerChain{P_t,Tr_t}()
 

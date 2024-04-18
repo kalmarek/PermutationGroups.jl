@@ -324,10 +324,5 @@ for Trans_t in (:Transversal, :SchreierTransversal)
         function $Trans_t(pt, gens::AbstractVector{<:GroupElement}, op = ^)
             return $Trans_t{typeof(pt)}(pt, gens, op)
         end
-
-        # The default transversal TYPE based on the type of permutation
-        function $Trans_t(::Type{P}) where {P<:AbstractPermutation}
-            return $Trans_t{AP.inttype(P),P}
-        end
     end
 end
