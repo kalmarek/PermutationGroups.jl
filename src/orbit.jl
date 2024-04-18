@@ -175,11 +175,15 @@ function Base.setindex!(tr::Transversal, pt0_g::Tuple, pt1)
     return tr
 end
 
-struct SchreierTransversal{T,S} <: AbstractTransversal{T,S}
+struct SchreierTransversal{T,S,Op} <: AbstractTransversal{T,S}
     orbit::Orbit{T}
     representatives::Dict{T,S}
 
-    function SchreierTransversal{T,S}(pt, g::GroupElement, op = ^) where {T,S}
+    function SchreierTransversal{T,S,Op}(
+        pt,
+        g::GroupElement,
+        op::Op,
+    ) where {T,S,Op<:Function}
         orbit = Orbit{T}(T[pt])
         reps = Dict{T,S}(pt => one(g))
         δ = pt
@@ -190,14 +194,14 @@ struct SchreierTransversal{T,S} <: AbstractTransversal{T,S}
                 reps[γ] = g
             end
         end
-        return new{T,S}(orbit, reps)
+        return new{T,S,typeof(op)}(orbit, reps)
     end
 
-    function SchreierTransversal{T,S}(
+    function SchreierTransversal{T,S,Op}(
         pt,
         gens::AbstractVector{S},
-        op = ^,
-    ) where {T,S<:GroupElement}
+        op::Op,
+    ) where {T,S<:GroupElement,Op<:Function}
         @assert !isempty(gens)
         orbit = Orbit{T}(T[pt])
         reps = Dict{T,S}(pt => one(first(gens)))
@@ -211,12 +215,21 @@ struct SchreierTransversal{T,S} <: AbstractTransversal{T,S}
                 end
             end
         end
-        return new{T,S}(orbit, reps)
+        return new{T,S,typeof(op)}(orbit, reps)
     end
+end
+
+function SchreierTransversal{T,S}(pt, gens, op = ^) where {T,S}
+    return SchreierTransversal{T,S,typeof(op)}(pt, gens, op)
+end
+
+function SchreierTransversal{T,S,Op}(pt, gens, op = Op.instance) where {T,S,Op}
+    return SchreierTransversal{T,S,typeof(op)}(pt, gens, op)
 end
 
 orbit(tr::SchreierTransversal) = tr.orbit
 Base.in(pt, tr::SchreierTransversal) = pt in keys(tr.representatives)
+@inline action(::SchreierTransversal{T,S,Op}) where {T,S,Op} = Op.instance
 
 function Base.setindex!(tr::SchreierTransversal, pt0_g::Tuple, pt1)
     @assert pt1 ∉ tr
@@ -230,9 +243,10 @@ depth(tr::SchreierTransversal) = depth(last(orbit(tr)), tr)
 
 function depth(pt, tr::SchreierTransversal)
     depth = 1
+    op = action(tr)
     while pt ≠ first(tr)
         g = tr.representatives[pt]
-        pt = pt^inv(g)
+        pt = op(pt, inv(g))
         depth += 1
     end
     return depth
@@ -258,9 +272,10 @@ function coset_representative(
 end
 
 function _descend(tr::SchreierTransversal, pt, depth)
+    op = action(tr)
     while pt ≠ first(tr) && depth > 1
         g = tr.representatives[pt]
-        pt = pt^inv(g)
+        pt = op(pt, inv(g))
     end
     return pt
 end
@@ -273,19 +288,20 @@ function coset_representative_recursive(
     g = tr.representatives[target]
     pt0 == target && return g
     g0 = tr.representatives[pt0]
-    pt1 = pt0^inv(g0)
+    op = action(tr)
+    pt1 = op(pt0, inv(g0))
     # return coset_representative_rec(pt1^inv(g0), tr, target=target) * g0 * g
     # doing tail call optimization manually below
     if pt1 == target
         return g0 * g
     else
         g1 = tr.representatives[pt1]
-        pt2 = pt1^inv(g1)
+        pt2 = op(pt1, inv(g1))
         if pt2 == target
             return g1 * g0 * g
         else
             g2 = tr.representatives[pt2]
-            pt3 = pt2^inv(g2)
+            pt3 = op(pt2, inv(g2))
             if pt3 == target
                 return g2 * g1 * g0 * g
             else
