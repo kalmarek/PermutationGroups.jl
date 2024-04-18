@@ -113,6 +113,8 @@ if !(haskey(ENV, "CI"))
 
     @info "Benchmarking Iteration and Schreier-Sims algorithm"
 
+    versioninfo()
+
     begin # iteration Sym(8)
         @info "Iteration over S8 PermGroup (7 transpositions)"
         G = PermGroup(GENERATORS["Sym8_7t"])
@@ -170,27 +172,37 @@ end
 end
 
 #=
+Julia Version 1.10.2
+Commit bd47eca2c8a (2024-03-01 10:14 UTC)
+Build Info:
+  Official https://julialang.org/ release
+Platform Info:
+  OS: Linux (x86_64-linux-gnu)
+  CPU: 16 × AMD Ryzen 7 7840U w/ Radeon  780M Graphics
+  WORD_SIZE: 64
+  LIBM: libopenlibm
+  LLVM: libLLVM-15.0.7 (ORCJIT, znver3)
+Threads: 8 default, 0 interactive, 4 GC (on 16 virtual cores)
+Environment:
+  JULIA_NUM_THREADS = 8
 [ Info: Iteration over S8 PermGroup (7 transpositions)
-  3.138 ms (120949 allocations: 6.15 MiB)
-[ Info: Iteration over K ≅ S8 PermGroup:
-  0.000039 seconds (562 allocations: 32.742 KiB)
-  3.121 ms (120949 allocations: 6.15 MiB)
-  0.000075 seconds (1.16 k allocations: 70.273 KiB)
-  5.809 ms (201815 allocations: 11.09 MiB)
-[ Info: Testing and benchmarking Schreier-Sims algorithm
+  1.756 ms (120949 allocations: 6.15 MiB)
+[ Info: Iteration over K (2 gens) ≅ S8 PermGroup:
+  1.779 ms (120949 allocations: 6.15 MiB)
+  3.667 ms (201815 allocations: 11.09 MiB)
 [ Info: Rubik cube 2×2×2 group:
-  18.565 μs (442 allocations: 29.43 KiB)
-  52.597 μs (1148 allocations: 79.07 KiB)
+  10.819 μs (442 allocations: 29.43 KiB)
+  35.014 μs (1148 allocations: 79.07 KiB)
 [ Info: Schreier-Sims for Rubik cube 3×3×3 group:
-  1.374 ms (24680 allocations: 2.31 MiB)
-  6.975 ms (111829 allocations: 10.81 MiB)
+  1.019 ms (28389 allocations: 2.66 MiB)
+  5.308 ms (125759 allocations: 12.15 MiB)
 [ Info: Schreier-Sims for SL(4,7):
-  4.393 ms (25970 allocations: 10.22 MiB)
-  53.474 ms (189388 allocations: 76.13 MiB)
+  2.876 ms (25982 allocations: 10.23 MiB)
+  34.668 ms (189468 allocations: 76.16 MiB)
 [ Info: Schreier-Sims for a direct-product group:
-  1.228 ms (9104 allocations: 3.15 MiB)
-  58.843 ms (219502 allocations: 77.17 MiB)
+  824.475 μs (9104 allocations: 3.15 MiB)
+  39.179 ms (219502 allocations: 77.17 MiB)
 [ Info: Iteration over direct-product group of order 192480
-  0.061710 seconds (585.73 k allocations: 184.881 MiB, 9.19% gc time)
-  0.201417 seconds (1.20 M allocations: 441.331 MiB, 6.48% gc time)
+  33.980 ms (576643 allocations: 181.73 MiB)
+  76.612 ms (977085 allocations: 364.16 MiB)
 =#
