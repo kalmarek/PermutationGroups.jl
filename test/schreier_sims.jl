@@ -61,6 +61,15 @@
         end
     end
 
+    @test_logs (:warn, "schreier_sims using order is not implemented yet") PG.schreier_sims(
+        S,
+        24,
+    )
+    sc2 = PG.schreier_sims(S, 24)
+    @test PG.order(Int, sc2) == PG.order(Int, sc)
+    @test PG.basis(sc2) == PG.basis(sc) == [1, 2]
+    @test PG.gens(sc2) == PG.gens(sc)
+
     @testset "perm from base images" begin
         cube222 =
             Perm.([
