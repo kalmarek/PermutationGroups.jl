@@ -134,4 +134,12 @@
             end
         end
     end
+
+    @testset "group acting on itself" begin
+        G = PermGroup(perm"(1,2,3,4)", perm"(3,4)")
+        S = gens(G)
+        t = Transversal(one(G), S, *)
+        st = SchreierTransversal(one(G), S, *)
+        @test all(t[g] == st[g] for g in G)
+    end
 end

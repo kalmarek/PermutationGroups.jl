@@ -18,7 +18,8 @@ and stabilizer chain are computed (and cached) _when needed_.
         )
             @assert !isempty(gens) "groups need to have at least one generator"
             gens_raw = [AP.perm(s) for s in gens]
-            return new{eltype(gens_raw),T(eltype(gens_raw))}(gens_raw)
+            Tr = __schreier_sims_transversal(T, eltype(gens_raw))
+            return new{eltype(gens_raw),Tr}(gens_raw)
         end
     end
 else
@@ -34,7 +35,8 @@ else
         )
             @assert !isempty(gens) "groups need to have at least one generator"
             gens_raw = [AP.perm(s) for s in gens]
-            return new{eltype(gens_raw),T(eltype(gens_raw))}(gens_raw)
+            Tr = __schreier_sims_transversal(T, eltype(gens_raw))
+            return new{eltype(gens_raw),Tr}(gens_raw)
         end
     end
 end

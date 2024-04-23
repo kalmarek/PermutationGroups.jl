@@ -1,14 +1,28 @@
 # schreier_sims implementation
 
+function __schreier_sims_transversal(::Type{Transversal}, P::Type)
+    return Transversal{AP.inttype(P),P}
+end
+function __schreier_sims_transversal(::Type{SchreierTransversal}, P::Type)
+    return SchreierTransversal{AP.inttype(P),P,typeof(^)}
+end
+
 function schreier_sims(gens::AbstractVector{<:AbstractPermutation})
-    return schreier_sims(Transversal(eltype(gens)), gens)
+    return schreier_sims(
+        __schreier_sims_transversal(Transversal, eltype(gens)),
+        gens,
+    )
 end
 
 function schreier_sims(
     gens::AbstractVector{<:AbstractPermutation},
     order::Integer,
 )
-    return schreier_sims(Transversal(eltype(gens)), gens, order)
+    return schreier_sims(
+        __schreier_sims_transversal(Transversal, eltype(gens)),
+        gens,
+        order,
+    )
 end
 
 function schreier_sims(
@@ -97,6 +111,7 @@ function extend_gens!(
         orb_len = length(orbit(stabch))
         if orb_dep > 3 + ceil(sqrt(orb_len) / 2)
             push!(stabch.gens, g)
+            push!(stabch.gens, prod(rand(stabch.gens, 4)))
             recompute_transversal!(stabch)
 
             tr = transversal(stabch)
