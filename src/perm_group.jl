@@ -26,8 +26,8 @@ else
     mutable struct PermGroup{P<:AbstractPermutation,T<:AbstractTransversal} <:
                    AbstractPermutationGroup
         __gens_raw::Vector{P}
-        @atomic stabchain::StabilizerChain{P,T}
-        @atomic order::BigInt
+        stabchain::StabilizerChain{P,T}
+        order::BigInt
 
         function PermGroup(
             T::Type{<:AbstractTransversal},
@@ -120,11 +120,11 @@ The subsequent calls just return the cached data structure.
     end
 else
     function StabilizerChain(G::PermGroup{P,T}) where {P,T}
-        if !isdefined(G, :stabchain, :sequentially_consistent)
+        if !isdefined(G, :stabchain)
             stabchain = schreier_sims(T, __gens_raw(G))
             # this may take some time, so let's check again
-            if !isdefined(G, :stabchain, :sequentially_consistent)
-                @atomic G.stabchain = stabchain
+            if !isdefined(G, :stabchain)
+                G.stabchain = stabchain
             end
         end
         return G.stabchain

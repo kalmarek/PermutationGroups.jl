@@ -16,8 +16,8 @@
 else
     mutable struct Perm{T<:Integer} <: AP.AbstractPermutation
         images::Vector{T}
-        @atomic inv::Perm{T}
-        @atomic cycles::AP.CycleDecomposition{T}
+        inv::Perm{T}
+        cycles::AP.CycleDecomposition{T}
 
         function Perm{T}(images::Vector{T}; check::Bool = true) where {T}
             if check && !isperm(images)
@@ -92,25 +92,25 @@ else
     function Base.copy(p::Perm)
         imgs = copy(p.images)
         q = typeof(p)(imgs; check = false)
-        if isdefined(p, :inv, :sequentially_consistent)
-            inv_imgs = copy(@atomic(p.inv).images)
+        if isdefined(p, :inv)
+            inv_imgs = copy(p.inv.images)
             q⁻¹ = typeof(p)(inv_imgs; check = false)
-            @atomic q.inv = q⁻¹
-            @atomic q⁻¹.inv = q
+            q.inv = q⁻¹
+            q⁻¹.inv = q
         end
         return q
     end
 
     function Base.inv(σ::Perm)
-        if !isdefined(σ, :inv, :sequentially_consistent)
+        if !isdefined(σ, :inv)
             if isone(σ)
-                @atomic σ.inv = σ
+                σ.inv = σ
             else
                 σ⁻¹ = typeof(σ)(invperm(σ.images); check = false)
                 # we don't want to end up with two copies of inverse σ floating around
-                if !isdefined(σ, :inv, :sequentially_consistent)
-                    @atomic σ.inv = σ⁻¹
-                    @atomic σ⁻¹.inv = σ
+                if !isdefined(σ, :inv)
+                    σ.inv = σ⁻¹
+                    σ⁻¹.inv = σ
                 end
             end
         end
@@ -118,10 +118,10 @@ else
     end
 
     function AP.cycles(σ::Perm)
-        if !isdefined(σ, :cycles, :sequentially_consistent)
+        if !isdefined(σ, :cycles)
             cdec = AP.CycleDecomposition(σ)
             # we can afford producing more than one cycle decomposition
-            @atomic σ.cycles = cdec
+            σ.cycles = cdec
         end
         return σ.cycles
     end

@@ -11,9 +11,9 @@ Base.one(G::PermGroup{P}) where {P} = Permutation(one(P), G)
     end
 else
     function GroupsCore.order(::Type{T}, G::AbstractPermutationGroup) where {T}
-        if !isdefined(G, :order, :sequentially_consistent)
+        if !isdefined(G, :order)
             ord = order(StabilizerChain(G))
-            @atomic G.order = ord
+            G.order = ord
         end
         return convert(T, G.order)
     end
