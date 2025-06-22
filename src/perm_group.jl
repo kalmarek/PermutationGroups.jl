@@ -90,12 +90,9 @@ The subsequent calls just return the cached data structure.
 """
 
 function StabilizerChain(G::PermGroup{P,T}) where {P,T}
-    if !isdefined(G, :stabchain, :sequentially_consistent)
+    if !isdefined(G, :stabchain, :acquire)
         stabchain = schreier_sims(T, __gens_raw(G))
-        # this may take some time, so let's check again
-        if !isdefined(G, :stabchain, :sequentially_consistent)
-            @atomic G.stabchain = stabchain
-        end
+        @atomiconce :release :acquire G.stabchain = stabchain
     end
     return G.stabchain
 end
