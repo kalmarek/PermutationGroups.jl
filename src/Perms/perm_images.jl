@@ -9,8 +9,7 @@ mutable struct Perm{T<:Integer} <: AP.AbstractPermutation
         end
         li = lastindex(images)
         deg =
-            iszero(li) ? li :
-            @inbounds images[li] ≠ li ? li : __degree(images)
+            iszero(li) ? li : @inbounds images[li] ≠ li ? li : __degree(images)
         resize!(images, deg)
         return new{T}(images)
     end
