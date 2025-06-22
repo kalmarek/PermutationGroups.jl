@@ -1,23 +1,15 @@
 # Group Interface
 
 Base.one(G::PermGroup{P}) where {P} = Permutation(one(P), G)
-@static if VERSION < v"1.7"
-    function GroupsCore.order(::Type{T}, G::AbstractPermutationGroup) where {T}
-        if !isdefined(G, :order)
-            ord = order(StabilizerChain(G))
-            G.order = ord
-        end
-        return convert(T, G.order)
+
+function GroupsCore.order(::Type{T}, G::AbstractPermutationGroup) where {T}
+    if !isdefined(G, :order, :sequentially_consistent)
+        ord = order(StabilizerChain(G))
+        @atomic G.order = ord
     end
-else
-    function GroupsCore.order(::Type{T}, G::AbstractPermutationGroup) where {T}
-        if !isdefined(G, :order, :sequentially_consistent)
-            ord = order(StabilizerChain(G))
-            @atomic G.order = ord
-        end
-        return convert(T, G.order)
-    end
+    return convert(T, G.order)
 end
+
 GroupsCore.gens(G::PermGroup) = Permutation.(G.__gens_raw, Ref(G))
 
 function Random.Sampler(

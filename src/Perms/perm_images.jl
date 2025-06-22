@@ -1,35 +1,18 @@
-@static if VERSION < v"1.7"
-    mutable struct Perm{T<:Integer} <: AP.AbstractPermutation
-        images::Vector{T}
-        inv::Perm{T}
-        cycles::AP.CycleDecomposition{T}
+mutable struct Perm{T<:Integer} <: AP.AbstractPermutation
+    images::Vector{T}
+    @atomic inv::Perm{T}
+    @atomic cycles::AP.CycleDecomposition{T}
 
-        function Perm{T}(images::Vector{T}; check::Bool = true) where {T}
-            if check && !isperm(images)
-                throw(ArgumentError("Provided images are not permutation!"))
-            end
-            deg = __degree(images)
-            resize!(images, deg)
-            return new{T}(images)
+    function Perm{T}(images::Vector{T}; check::Bool = true) where {T}
+        if check && !isperm(images)
+            throw(ArgumentError("Provided images are not permutation!"))
         end
-    end
-else
-    mutable struct Perm{T<:Integer} <: AP.AbstractPermutation
-        images::Vector{T}
-        @atomic inv::Perm{T}
-        @atomic cycles::AP.CycleDecomposition{T}
-
-        function Perm{T}(images::Vector{T}; check::Bool = true) where {T}
-            if check && !isperm(images)
-                throw(ArgumentError("Provided images are not permutation!"))
-            end
-            li = lastindex(images)
-            deg =
-                iszero(li) ? li :
-                @inbounds images[li] ≠ li ? li : __degree(images)
-            resize!(images, deg)
-            return new{T}(images)
-        end
+        li = lastindex(images)
+        deg =
+            iszero(li) ? li :
+            @inbounds images[li] ≠ li ? li : __degree(images)
+        resize!(images, deg)
+        return new{T}(images)
     end
 end
 
@@ -59,72 +42,41 @@ AP.inttype(::Type{Perm{T}}) where {T} = T
 AP.inttype(::Type{Perm}) = UInt16
 AP.__unsafe_image(n::Integer, σ::Perm) = oftype(n, @inbounds σ.images[n])
 
-@static if VERSION < v"1.7"
-    function Base.copy(p::Perm)
-        imgs = copy(p.images)
-        q = typeof(p)(imgs; check = false)
-        if isdefined(p, :inv)
-            inv_imgs = copy(p.inv.images)
-            q⁻¹ = typeof(p)(inv_imgs; check = false)
-            q.inv = q⁻¹
-            q⁻¹.inv = q
-        end
-        return q
+function Base.copy(p::Perm)
+    imgs = copy(p.images)
+    q = typeof(p)(imgs; check = false)
+    if isdefined(p, :inv, :sequentially_consistent)
+        inv_imgs = copy(@atomic(p.inv).images)
+        q⁻¹ = typeof(p)(inv_imgs; check = false)
+        @atomic q.inv = q⁻¹
+        @atomic q⁻¹.inv = q
     end
+    return q
+end
 
-    function Base.inv(σ::Perm)
-        if !isdefined(σ, :inv)
+function Base.inv(σ::Perm)
+    if !isdefined(σ, :inv, :sequentially_consistent)
+        if isone(σ)
+            @atomic σ.inv = σ
+        else
             σ⁻¹ = typeof(σ)(invperm(σ.images); check = false)
-            σ.inv = σ⁻¹
-            σ⁻¹.inv = σ
-        end
-        return σ.inv
-    end
-
-    function AP.cycles(σ::Perm)
-        if !isdefined(σ, :cycles)
-            cdec = AP.CycleDecomposition(σ)
-            σ.cycles = cdec
-        end
-        return σ.cycles
-    end
-else
-    function Base.copy(p::Perm)
-        imgs = copy(p.images)
-        q = typeof(p)(imgs; check = false)
-        if isdefined(p, :inv, :sequentially_consistent)
-            inv_imgs = copy(@atomic(p.inv).images)
-            q⁻¹ = typeof(p)(inv_imgs; check = false)
-            @atomic q.inv = q⁻¹
-            @atomic q⁻¹.inv = q
-        end
-        return q
-    end
-
-    function Base.inv(σ::Perm)
-        if !isdefined(σ, :inv, :sequentially_consistent)
-            if isone(σ)
-                @atomic σ.inv = σ
-            else
-                σ⁻¹ = typeof(σ)(invperm(σ.images); check = false)
-                # we don't want to end up with two copies of inverse σ floating around
-                if !isdefined(σ, :inv, :sequentially_consistent)
-                    @atomic σ.inv = σ⁻¹
-                    @atomic σ⁻¹.inv = σ
-                end
+            # we don't want to end up with two copies of inverse σ floating around
+            if !isdefined(σ, :inv, :sequentially_consistent)
+                @atomic σ.inv = σ⁻¹
+                @atomic σ⁻¹.inv = σ
             end
         end
-        return σ.inv
     end
+    return σ.inv
+end
 
-    function AP.cycles(σ::Perm)
-        if !isdefined(σ, :cycles, :sequentially_consistent)
-            cdec = AP.CycleDecomposition(σ)
-            # we can afford producing more than one cycle decomposition
-            @atomic σ.cycles = cdec
-        end
-        return σ.cycles
+function AP.cycles(σ::Perm)
+    if !isdefined(σ, :cycles, :sequentially_consistent)
+        cdec = AP.CycleDecomposition(σ)
+        # we can afford producing more than one cycle decomposition
+        @atomic σ.cycles = cdec
     end
+    return σ.cycles
 end
 
 function Base.isodd(σ::Perm)
