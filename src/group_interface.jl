@@ -2,12 +2,22 @@
 
 Base.one(G::PermGroup{P}) where {P} = Permutation(one(P), G)
 
-function GroupsCore.order(::Type{T}, G::AbstractPermutationGroup) where {T}
-    if !isdefined(G, :order, :acquire)
-        ord = order(BigInt, StabilizerChain(G))
-        @atomiconce :release :acquire G.order = ord
+@static if VERSION < v"1.11"
+    function GroupsCore.order(::Type{T}, G::AbstractPermutationGroup) where {T}
+        if !isdefined(G, :order, :sequentially_consistent)
+            ord = order(StabilizerChain(G))
+            @atomic G.order = ord
+        end
+        return convert(T, G.order)
     end
-    return convert(T, G.order)
+else
+    function GroupsCore.order(::Type{T}, G::AbstractPermutationGroup) where {T}
+        if !isdefined(G, :order, :acquire)
+            ord = order(BigInt, StabilizerChain(G))
+            @atomiconce :release :acquire G.order = ord
+        end
+        return convert(T, G.order)
+    end
 end
 
 GroupsCore.gens(G::PermGroup) = Permutation.(G.__gens_raw, Ref(G))
