@@ -41,41 +41,80 @@ AP.inttype(::Type{Perm{T}}) where {T} = T
 AP.inttype(::Type{Perm}) = UInt16
 AP.__unsafe_image(n::Integer, σ::Perm) = oftype(n, @inbounds σ.images[n])
 
-function Base.copy(p::Perm)
-    imgs = copy(p.images)
-    q = typeof(p)(imgs; check = false)
-    if isdefined(p, :inv, :acquire)
-        inv_imgs = copy(p.inv.images)
-        q⁻¹ = typeof(p)(inv_imgs; check = false)
-        @atomic :release q⁻¹.inv = q
-        @atomiconce :release :acquire q.inv = q⁻¹
-    end
-    return q
-end
-
-function Base.inv(σ::Perm)
-    if !isdefined(σ, :inv, :acquire)
-        if isone(σ)
-            @atomiconce :release :acquire σ.inv = σ
-        else
-            σ⁻¹ = typeof(σ)(invperm(σ.images); check = false)
-            # this order is important:
-            # fuly initialize the "local" inverse first and only then
-            # update σ to make the local inverse visible globally
-            @atomic :release σ⁻¹.inv = σ
-            @atomiconce :release :acquire σ.inv = σ⁻¹
+@static if VERSION < v"1.11"
+    function Base.copy(p::Perm)
+        imgs = copy(p.images)
+        q = typeof(p)(imgs; check = false)
+        if isdefined(p, :inv, :sequentially_consistent)
+            inv_imgs = copy(@atomic(p.inv).images)
+            q⁻¹ = typeof(p)(inv_imgs; check = false)
+            @atomic q.inv = q⁻¹
+            @atomic q⁻¹.inv = q
         end
+        return q
     end
-    return σ.inv
-end
 
-function AP.cycles(σ::Perm)
-    if !isdefined(σ, :cycles, :acquire)
-        cdec = AP.CycleDecomposition(σ)
-        # we can afford producing more than one cycle decomposition
-        @atomiconce :release :acquire σ.cycles = cdec
+    function Base.inv(σ::Perm)
+        if !isdefined(σ, :inv, :sequentially_consistent)
+            if isone(σ)
+                @atomic σ.inv = σ
+            else
+                σ⁻¹ = typeof(σ)(invperm(σ.images); check = false)
+                # we don't want to end up with two copies of inverse σ floating around
+                if !isdefined(σ, :inv, :sequentially_consistent)
+                    @atomic σ.inv = σ⁻¹
+                    @atomic σ⁻¹.inv = σ
+                end
+            end
+        end
+        return σ.inv
     end
-    return σ.cycles
+
+    function AP.cycles(σ::Perm)
+        if !isdefined(σ, :cycles, :sequentially_consistent)
+            cdec = AP.CycleDecomposition(σ)
+            # we can afford producing more than one cycle decomposition
+            @atomic σ.cycles = cdec
+        end
+        return σ.cycles
+    end
+else
+    function Base.copy(p::Perm)
+        imgs = copy(p.images)
+        q = typeof(p)(imgs; check = false)
+        if isdefined(p, :inv, :acquire)
+            inv_imgs = copy(p.inv.images)
+            q⁻¹ = typeof(p)(inv_imgs; check = false)
+            @atomic :release q⁻¹.inv = q
+            @atomiconce :release :acquire q.inv = q⁻¹
+        end
+        return q
+    end
+
+    function Base.inv(σ::Perm)
+        if !isdefined(σ, :inv, :acquire)
+            if isone(σ)
+                @atomiconce :release :acquire σ.inv = σ
+            else
+                σ⁻¹ = typeof(σ)(invperm(σ.images); check = false)
+                # this order is important:
+                # fuly initialize the "local" inverse first and only then
+                # update σ to make the local inverse visible globally
+                @atomic :release σ⁻¹.inv = σ
+                @atomiconce :release :acquire σ.inv = σ⁻¹
+            end
+        end
+        return σ.inv
+    end
+
+    function AP.cycles(σ::Perm)
+        if !isdefined(σ, :cycles, :acquire)
+            cdec = AP.CycleDecomposition(σ)
+            # we can afford producing more than one cycle decomposition
+            @atomiconce :release :acquire σ.cycles = cdec
+        end
+        return σ.cycles
+    end
 end
 
 function Base.isodd(σ::Perm)
