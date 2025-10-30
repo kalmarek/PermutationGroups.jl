@@ -52,8 +52,8 @@ function Base.push!(orb::Orbit, pt; check = true)
 end
 
 Base.length(orb::Orbit) = Base.length(orb.points)
-Base.iterate(orb::Orbit) = Base.iterate(orb.points)
-Base.iterate(orb::Orbit, state) = Base.iterate(orb.points, state)
+@inline Base.iterate(orb::Orbit) = Base.iterate(orb.points)
+@inline Base.iterate(orb::Orbit, state) = Base.iterate(orb.points, state)
 
 Base.last(orb::Orbit) = last(orb.points)
 
@@ -103,8 +103,8 @@ of the stabilizer of `x`.
 abstract type AbstractTransversal{T,S} <: AbstractOrbit{T} end
 
 Base.length(tr::AbstractTransversal) = length(orbit(tr))
-Base.iterate(tr::AbstractTransversal) = iterate(orbit(tr))
-Base.iterate(tr::AbstractTransversal, state) = iterate(orbit(tr), state)
+@inline Base.iterate(tr::AbstractTransversal) = iterate(orbit(tr))
+@inline Base.iterate(tr::AbstractTransversal, state) = iterate(orbit(tr), state)
 Base.last(tr::AbstractTransversal) = last(orbit(tr))
 
 function Base.rand(
