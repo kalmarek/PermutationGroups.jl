@@ -17,14 +17,13 @@ end
 const GENERATORS = Dict(
     "Sym8_7t" => parse.(Perm{UInt16}, ["($(i), $(i+1))" for i in 1:7]),
     "Sym8_2rp" => [perm"(1,5,6,2,4,8)", perm"(1,3,6)(2,5,7,4)(8)"],
-    "cube222" =>
-        Perm.([
-            [1, 9, 3, 11, 5, 13, 7, 15, 2, 10, 4, 12, 6, 14, 8, 16],
-            [1, 2, 3, 4, 9, 10, 11, 12, 5, 6, 7, 8, 13, 14, 15, 16],
-            [1, 2, 5, 6, 3, 4, 7, 8, 9, 10, 13, 14, 11, 12, 15, 16],
-            [16, 8, 14, 6, 12, 4, 10, 2, 15, 7, 13, 5, 11, 3, 9, 1],
-            [3, 11, 1, 9, 7, 15, 5, 13, 4, 12, 2, 10, 8, 16, 6, 14],
-        ]),
+    "cube222" => Perm.([
+        [1, 9, 3, 11, 5, 13, 7, 15, 2, 10, 4, 12, 6, 14, 8, 16],
+        [1, 2, 3, 4, 9, 10, 11, 12, 5, 6, 7, 8, 13, 14, 15, 16],
+        [1, 2, 5, 6, 3, 4, 7, 8, 9, 10, 13, 14, 11, 12, 15, 16],
+        [16, 8, 14, 6, 12, 4, 10, 2, 15, 7, 13, 5, 11, 3, 9, 1],
+        [3, 11, 1, 9, 7, 15, 5, 13, 4, 12, 2, 10, 8, 16, 6, 14],
+    ]),
     "cube333" => [
         perm"( 1, 3, 8, 6)( 2, 5, 7, 4)( 9,33,25,17)(10,34,26,18)(11,35,27,19)",
         perm"( 9,11,16,14)(10,13,15,12)( 1,17,41,40)( 4,20,44,37)( 6,22,46,35)",
@@ -70,6 +69,13 @@ const GENERATORS = Dict(
 )
 
 @testset "GAP Docs examples" begin
+    @testset "SL(4,7)" begin
+        SL_4_7tr = PermGroup(Transversal, GENERATORS["SL(4,7)"])
+        @test order(Int64, SL_4_7tr) == 2317591180800
+        SL_4_7str = PermGroup(SchreierTransversal, GENERATORS["SL(4,7)"])
+        @test order(Int64, SL_4_7str) == 2317591180800
+    end
+
     @testset "Sym(8) iteration" begin
         G = PermGroup(GENERATORS["Sym8_7t"])
         Ktr = PermGroup(Transversal, GENERATORS["Sym8_2rp"])
@@ -94,13 +100,6 @@ const GENERATORS = Dict(
         @test order(RC3tr) == order(Int128, RC3tr) # fits Int128
         RC3str = PermGroup(SchreierTransversal, GENERATORS["cube333"])
         @test order(Int128, RC3str) == 43252003274489856000
-    end
-
-    @testset "SL(4,7)" begin
-        SL_4_7tr = PermGroup(Transversal, GENERATORS["SL(4,7)"])
-        @test order(Int64, SL_4_7tr) == 2317591180800
-        SL_4_7str = PermGroup(SchreierTransversal, GENERATORS["SL(4,7)"])
-        @test order(Int64, SL_4_7str) == 2317591180800
     end
 
     @testset "DirectProduct example" begin
@@ -168,12 +167,6 @@ if !(haskey(ENV, "CI"))
         @btime test_perf($Gtr)
         @btime test_perf($Gstr)
     end
-end
-@testset "SL(4,7)" begin
-    SL_4_7tr = PermGroup(Transversal, GENERATORS["SL(4,7)"])
-    @test order(Int64, SL_4_7tr) == 2317591180800
-    SL_4_7str = PermGroup(SchreierTransversal, GENERATORS["SL(4,7)"])
-    @test order(Int64, SL_4_7str) == 2317591180800
 end
 
 #=

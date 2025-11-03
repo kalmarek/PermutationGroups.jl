@@ -95,6 +95,6 @@
 
         @test length(sc) == 1
         @test length(PG.leafs(sc)) == order(Int, a)
-        @test collect(PG.leafs(sc)) == [a^i for i in 0:order(Int, a)-1]
+        @test collect(PG.leafs(sc)) == [a^i for i in 0:(order(Int, a)-1)]
     end
 end

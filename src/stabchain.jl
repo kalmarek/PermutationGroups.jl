@@ -173,7 +173,7 @@ end
 @inline function Base.iterate(lfs::Leafs{<:AbstractTransversal})
     states = last.(iterate.(lfs.iters))
 
-    partial_prods = map(1:length(lfs.iters)-1) do idx
+    partial_prods = map(1:(length(lfs.iters)-1)) do idx
         tr = lfs.iters[idx]
         return tr[first(tr)]
     end

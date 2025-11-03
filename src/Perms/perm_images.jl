@@ -1,35 +1,17 @@
-@static if VERSION < v"1.7"
-    mutable struct Perm{T<:Integer} <: AP.AbstractPermutation
-        images::Vector{T}
-        inv::Perm{T}
-        cycles::AP.CycleDecomposition{T}
+mutable struct Perm{T<:Integer} <: AP.AbstractPermutation
+    images::Vector{T}
+    @atomic inv::Perm{T}
+    @atomic cycles::AP.CycleDecomposition{T}
 
-        function Perm{T}(images::Vector{T}; check::Bool = true) where {T}
-            if check && !isperm(images)
-                throw(ArgumentError("Provided images are not permutation!"))
-            end
-            deg = __degree(images)
-            resize!(images, deg)
-            return new{T}(images)
+    function Perm{T}(images::Vector{T}; check::Bool = true) where {T}
+        if check && !isperm(images)
+            throw(ArgumentError("Provided images are not permutation!"))
         end
-    end
-else
-    mutable struct Perm{T<:Integer} <: AP.AbstractPermutation
-        images::Vector{T}
-        @atomic inv::Perm{T}
-        @atomic cycles::AP.CycleDecomposition{T}
-
-        function Perm{T}(images::Vector{T}; check::Bool = true) where {T}
-            if check && !isperm(images)
-                throw(ArgumentError("Provided images are not permutation!"))
-            end
-            li = lastindex(images)
-            deg =
-                iszero(li) ? li :
-                @inbounds images[li] ≠ li ? li : __degree(images)
-            resize!(images, deg)
-            return new{T}(images)
-        end
+        li = lastindex(images)
+        deg =
+            iszero(li) ? li : @inbounds images[li] ≠ li ? li : __degree(images)
+        resize!(images, deg)
+        return new{T}(images)
     end
 end
 
@@ -59,36 +41,7 @@ AP.inttype(::Type{Perm{T}}) where {T} = T
 AP.inttype(::Type{Perm}) = UInt16
 AP.__unsafe_image(n::Integer, σ::Perm) = oftype(n, @inbounds σ.images[n])
 
-@static if VERSION < v"1.7"
-    function Base.copy(p::Perm)
-        imgs = copy(p.images)
-        q = typeof(p)(imgs; check = false)
-        if isdefined(p, :inv)
-            inv_imgs = copy(p.inv.images)
-            q⁻¹ = typeof(p)(inv_imgs; check = false)
-            q.inv = q⁻¹
-            q⁻¹.inv = q
-        end
-        return q
-    end
-
-    function Base.inv(σ::Perm)
-        if !isdefined(σ, :inv)
-            σ⁻¹ = typeof(σ)(invperm(σ.images); check = false)
-            σ.inv = σ⁻¹
-            σ⁻¹.inv = σ
-        end
-        return σ.inv
-    end
-
-    function AP.cycles(σ::Perm)
-        if !isdefined(σ, :cycles)
-            cdec = AP.CycleDecomposition(σ)
-            σ.cycles = cdec
-        end
-        return σ.cycles
-    end
-else
+@static if VERSION < v"1.11"
     function Base.copy(p::Perm)
         imgs = copy(p.images)
         q = typeof(p)(imgs; check = false)
@@ -122,6 +75,43 @@ else
             cdec = AP.CycleDecomposition(σ)
             # we can afford producing more than one cycle decomposition
             @atomic σ.cycles = cdec
+        end
+        return σ.cycles
+    end
+else
+    function Base.copy(p::Perm)
+        imgs = copy(p.images)
+        q = typeof(p)(imgs; check = false)
+        if isdefined(p, :inv, :acquire)
+            inv_imgs = copy(p.inv.images)
+            q⁻¹ = typeof(p)(inv_imgs; check = false)
+            @atomic :release q⁻¹.inv = q
+            @atomiconce :release :acquire q.inv = q⁻¹
+        end
+        return q
+    end
+
+    function Base.inv(σ::Perm)
+        if !isdefined(σ, :inv, :acquire)
+            if isone(σ)
+                @atomiconce :release :acquire σ.inv = σ
+            else
+                σ⁻¹ = typeof(σ)(invperm(σ.images); check = false)
+                # this order is important:
+                # fuly initialize the "local" inverse first and only then
+                # update σ to make the local inverse visible globally
+                @atomic :release σ⁻¹.inv = σ
+                @atomiconce :release :acquire σ.inv = σ⁻¹
+            end
+        end
+        return σ.inv
+    end
+
+    function AP.cycles(σ::Perm)
+        if !isdefined(σ, :cycles, :acquire)
+            cdec = AP.CycleDecomposition(σ)
+            # we can afford producing more than one cycle decomposition
+            @atomiconce :release :acquire σ.cycles = cdec
         end
         return σ.cycles
     end
