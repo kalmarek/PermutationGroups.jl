@@ -42,7 +42,7 @@ function GroupsCore.order(::Type{I}, stabch::StabilizerChain) where {I}
 end
 
 # iteration over layers of StabilizerChain
-function Base.iterate(stabch::StabilizerChain, state = stabch)
+@inline function Base.iterate(stabch::StabilizerChain, state = stabch)
     istrivial(state) && return nothing
     return state, stabilizer(state)
 end
@@ -170,7 +170,7 @@ function leafs(stabch::StabilizerChain{P,T}) where {P,T}
     return Leafs(transversals, prod(length, transversals; init = 1))
 end
 
-function Base.iterate(lfs::Leafs{<:AbstractTransversal})
+@inline function Base.iterate(lfs::Leafs{<:AbstractTransversal})
     states = last.(iterate.(lfs.iters))
 
     partial_prods = map(1:length(lfs.iters)-1) do idx
@@ -184,7 +184,7 @@ function Base.iterate(lfs::Leafs{<:AbstractTransversal})
     return res, state
 end
 
-function Base.iterate(lfs::Leafs{<:AbstractTransversal}, state)
+@inline function Base.iterate(lfs::Leafs{<:AbstractTransversal}, state)
     isempty(lfs.iters) && return nothing
     next = iterate(lfs.iters[end], state.states[end])
     depth = length(lfs.iters)
