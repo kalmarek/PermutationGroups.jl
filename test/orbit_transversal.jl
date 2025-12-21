@@ -63,7 +63,7 @@
         δ = pt^z
         # @test Word(inv.(S), schr.orb, δ, ^) == Word([3, 2, 1])
 
-        @test schr[δ] == z
+        @test δ^(inv(schr[δ])*z) == δ # inv(schr[δ])*z stabilizes δ
         @test all([pt^schr[o] == o for o in schr])
         @test all(schr[o] == tr[o] for o in tr)
     end
